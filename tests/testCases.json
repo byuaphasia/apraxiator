@@ -1,0 +1,202 @@
+[
+    {
+        "soundUri": "CT/constitution.wav",
+        "word": "constitution",
+        "splitPoint": 72000,
+        "speechUri": "CT/constitution_speech.wav",
+        "ambUri": "CT/constitution_amb.wav",
+        "speechDuration": 958.75,
+        "syllableCount": 4,
+        "expectedWsd": 239.6875
+    },
+    {
+        "soundUri": "CT/flattering.wav",
+        "word": "flattering",
+        "splitPoint": 62000,
+        "speechUri": "CT/flattering_speech.wav",
+        "ambUri": "CT/flattering_amb.wav",
+        "speechDuration": 803.63,
+        "syllableCount": 3,
+        "expectedWsd": 267.8767
+    },
+    {
+        "soundUri": "CT/gingerbread.wav",
+        "word": "gingerbread",
+        "splitPoint": 80000,
+        "speechUri": "CT/gingerbread_speech.wav",
+        "ambUri": "CT/gingerbread_amb.wav",
+        "speechDuration": 867.12,
+        "syllableCount": 3,
+        "expectedWsd": 289.04
+    },
+    {
+        "soundUri": "CT/harmonica.wav",
+        "word": "harmonica",
+        "splitPoint": 60000,
+        "speechUri": "CT/harmonica_speech.wav",
+        "ambUri": "CT/harmonica_amb.wav",
+        "speechDuration": 840.93,
+        "syllableCount": 4,
+        "expectedWsd": 210.23
+    },
+    {
+        "soundUri": "CT/jabbering.wav",
+        "word": "jabbering",
+        "splitPoint": 60000,
+        "speechUri": "CT/jabbering_speech.wav",
+        "ambUri": "CT/jabbering_amb.wav",
+        "speechDuration": 689.31,
+        "syllableCount": 3,
+        "expectedWsd": 229.77
+    },
+    {
+        "soundUri": "CT/spaghetti.wav",
+        "word": "spaghetti",
+        "splitPoint": 60000,
+        "speechUri": "CT/spaghetti_speech.wav",
+        "ambUri": "CT/spaghetti_amb.wav",
+        "speechDuration": 771.66,
+        "syllableCount": 3,
+        "expectedWsd": 257.22
+    },
+    {
+        "soundUri": "CT/stethoscope.wav",
+        "word": "stethoscope",
+        "splitPoint": 70000,
+        "speechUri": "CT/stethoscope_speech.wav",
+        "ambUri": "CT/stethoscope_amb.wav",
+        "speechDuration": 936.47,
+        "syllableCount": 3,
+        "expectedWsd": 312.1567
+    },
+    {
+        "soundUri": "CT/thickening.wav",
+        "word": "thickening",
+        "splitPoint": 60000,
+        "speechUri": "CT/thickening_speech.wav",
+        "ambUri": "CT/thickening_amb.wav",
+        "speechDuration": 564.49,
+        "syllableCount": 3,
+        "expectedWsd": 188.163
+    },
+    {
+        "soundUri": "CT/volcano.wav",
+        "word": "volcano",
+        "splitPoint": 66000,
+        "speechUri": "CT/volcano_speech.wav",
+        "ambUri": "CT/volcano_amb.wav",
+        "speechDuration": 739.65,
+        "syllableCount": 3,
+        "expectedWsd": 246.55
+    },
+    {
+        "soundUri": "CT/zippering.wav",
+        "word": "zippering",
+        "splitPoint": 60000,
+        "speechUri": "CT/zippering_speech.wav",
+        "ambUri": "CT/zippering_amb.wav",
+        "speechDuration": 702.9,
+        "syllableCount": 3,
+        "expectedWsd": 234.3
+    },
+    {
+        "soundUri": "TH/constitution.wav",
+        "word": "constitution",
+        "splitPoint": 80000,
+        "speechUri": "TH/constitution_speech.wav",
+        "ambUri": "TH/constitution_amb.wav",
+        "speechDuration": 990.78,
+        "syllableCount": 4,
+        "expectedWsd": 247.695
+    },
+    {
+        "soundUri": "TH/flattering.wav",
+        "word": "flattering",
+        "splitPoint": 60000,
+        "speechUri": "TH/flattering_speech.wav",
+        "ambUri": "TH/flattering_amb.wav",
+        "speechDuration": 804.98,
+        "syllableCount": 3,
+        "expectedWsd": 268.3267
+    },
+    {
+        "soundUri": "TH/gingerbread.wav",
+        "word": "gingerbread",
+        "splitPoint": 72000,
+        "speechUri": "TH/gingerbread_speech.wav",
+        "ambUri": "TH/gingerbread_amb.wav",
+        "speechDuration": 737.84,
+        "syllableCount": 3,
+        "expectedWsd": 245.9467
+    },
+    {
+        "soundUri": "TH/harmonica.wav",
+        "word": "harmonica",
+        "splitPoint": 80000,
+        "speechUri": "TH/harmonica_speech.wav",
+        "ambUri": "TH/harmonica_amb.wav",
+        "speechDuration": 860.61,
+        "syllableCount": 4,
+        "expectedWsd": 215.15
+    },
+    {
+        "soundUri": "TH/jabbering.wav",
+        "word": "jabbering",
+        "splitPoint": 66000,
+        "speechUri": "TH/jabbering_speech.wav",
+        "ambUri": "TH/jabbering_amb.wav",
+        "speechDuration": 737.23,
+        "syllableCount": 3,
+        "expectedWsd": 245.743
+    },
+    {
+        "soundUri": "TH/spaghetti.wav",
+        "word": "spaghetti",
+        "splitPoint": 60000,
+        "speechUri": "TH/spaghetti_speech.wav",
+        "ambUri": "TH/spaghetti_amb.wav",
+        "speechDuration": 715.89,
+        "syllableCount": 3,
+        "expectedWsd": 238.63
+    },
+    {
+        "soundUri": "TH/stethoscope.wav",
+        "word": "stethoscope",
+        "splitPoint": 82000,
+        "speechUri": "TH/stethoscope_speech.wav",
+        "ambUri": "TH/stethoscope_amb.wav",
+        "speechDuration": 1078.13,
+        "syllableCount": 3,
+        "expectedWsd": 359.3767
+    },
+    {
+        "soundUri": "TH/thickening.wav",
+        "word": "thickening",
+        "splitPoint": 60000,
+        "speechUri": "TH/thickening_speech.wav",
+        "ambUri": "TH/thickening_amb.wav",
+        "speechDuration": 651.36,
+        "syllableCount": 3,
+        "expectedWsd": 217.12
+    },
+    {
+        "soundUri": "TH/volcano.wav",
+        "word": "volcano",
+        "splitPoint": 80000,
+        "speechUri": "TH/volcano_speech.wav",
+        "ambUri": "TH/volcano_amb.wav",
+        "speechDuration": 696.63,
+        "syllableCount": 3,
+        "expectedWsd": 232.21
+    },
+    {
+        "soundUri": "TH/zippering.wav",
+        "word": "zippering",
+        "splitPoint": 80000,
+        "speechUri": "TH/zippering_speech.wav",
+        "ambUri": "TH/zippering_amb.wav",
+        "speechDuration": 665.22,
+        "syllableCount": 3,
+        "expectedWsd": 221.74
+    }
+]
