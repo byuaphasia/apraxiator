@@ -1,0 +1,122 @@
+{
+    "CT/constitution.wav": {
+        "expected": 239.6875,
+        "averageActual": 245.64625850340136,
+        "endpointFinderActual": 250.49886621315193,
+        "filtererActual": 240.79365079365078
+    },
+    "CT/flattering.wav": {
+        "expected": 267.8767,
+        "averageActual": 207.96674225245656,
+        "endpointFinderActual": 216.6439909297052,
+        "filtererActual": 199.28949357520787
+    },
+    "CT/gingerbread.wav": {
+        "expected": 289.04,
+        "averageActual": 249.20256991685562,
+        "endpointFinderActual": 261.8820861678004,
+        "filtererActual": 236.5230536659108
+    },
+    "CT/harmonica.wav": {
+        "expected": 210.23,
+        "averageActual": 232.3327664399093,
+        "endpointFinderActual": 239.36507936507937,
+        "filtererActual": 225.30045351473925
+    },
+    "CT/jabbering.wav": {
+        "expected": 229.77,
+        "averageActual": 198.27664399092973,
+        "endpointFinderActual": 203.9531368102797,
+        "filtererActual": 192.6001511715797
+    },
+    "CT/spaghetti.wav": {
+        "expected": 257.22,
+        "averageActual": 273.0196523053666,
+        "endpointFinderActual": 281.3000755857899,
+        "filtererActual": 264.7392290249433
+    },
+    "CT/stethoscope.wav": {
+        "expected": 312.1567,
+        "averageActual": 374.572940287226,
+        "endpointFinderActual": 383.2879818594104,
+        "filtererActual": 365.8578987150416
+    },
+    "CT/thickening.wav": {
+        "expected": 188.163,
+        "averageActual": 163.45049130763417,
+        "endpointFinderActual": 175.11715797430085,
+        "filtererActual": 151.78382464096748
+    },
+    "CT/volcano.wav": {
+        "expected": 246.55,
+        "averageActual": 233.43915343915342,
+        "endpointFinderActual": 239.98488284202566,
+        "filtererActual": 226.89342403628117
+    },
+    "CT/zippering.wav": {
+        "expected": 234.3,
+        "averageActual": 210.51776266061984,
+        "endpointFinderActual": 216.20559334845052,
+        "filtererActual": 204.82993197278913
+    },
+    "TH/constitution.wav": {
+        "expected": 247.695,
+        "averageActual": 259.60600907029476,
+        "endpointFinderActual": 269.9829931972789,
+        "filtererActual": 249.22902494331063
+    },
+    "TH/flattering.wav": {
+        "expected": 268.3267,
+        "averageActual": 295.61602418745275,
+        "endpointFinderActual": 306.00907029478464,
+        "filtererActual": 285.222978080121
+    },
+    "TH/gingerbread.wav": {
+        "expected": 245.9467,
+        "averageActual": 253.14814814814815,
+        "endpointFinderActual": 258.5034013605442,
+        "filtererActual": 247.7928949357521
+    },
+    "TH/harmonica.wav": {
+        "expected": 215.15,
+        "averageActual": 223.04138321995464,
+        "endpointFinderActual": 240.4875283446712,
+        "filtererActual": 205.5952380952381
+    },
+    "TH/jabbering.wav": {
+        "expected": 245.743,
+        "averageActual": 209.40665154950867,
+        "endpointFinderActual": 216.05442176870747,
+        "filtererActual": 202.75888133030992
+    },
+    "TH/spaghetti.wav": {
+        "expected": 238.63,
+        "averageActual": 237.40362811791383,
+        "endpointFinderActual": 264.70143613000755,
+        "filtererActual": 210.10582010582007
+    },
+    "TH/stethoscope.wav": {
+        "expected": 359.3767,
+        "averageActual": 320.6916099773243,
+        "endpointFinderActual": 357.02191987906275,
+        "filtererActual": 284.3613000755858
+    },
+    "TH/thickening.wav": {
+        "expected": 217.12,
+        "averageActual": 200.95616024187453,
+        "endpointFinderActual": 214.4671201814059,
+        "filtererActual": 187.44520030234318
+    },
+    "TH/volcano.wav": {
+        "expected": 232.21,
+        "averageActual": 263.50340136054416,
+        "endpointFinderActual": 260.5744520030234,
+        "filtererActual": 266.432350718065
+    },
+    "TH/zippering.wav": {
+        "expected": 221.74,
+        "averageActual": 226.5721844293273,
+        "endpointFinderActual": 250.34013605442178,
+        "filtererActual": 202.8042328042328
+    }
+}
