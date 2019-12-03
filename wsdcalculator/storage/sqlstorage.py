@@ -2,9 +2,10 @@ import mysql.connector
 import os
 
 from .evaluationstorage import EvaluationStorage
+from .filestorage import FileStorage
 from ..models.attempt import Attempt
 
-class SQLStorage(EvaluationStorage):
+class SQLStorage(EvaluationStorage, FileStorage):
     def __init__(self):
         p = os.environ.get('MYSQL_PASSWORD', None)
         self.db = mysql.connector.connect(host='localhost', user='root', password=p, database='apraxiator')
@@ -21,7 +22,7 @@ class SQLStorage(EvaluationStorage):
         return res[2]
     
     def _add_attempt(self, a):
-        sql = 'INSERT INTO attempt (attempt_id, evaluation_id, term, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
+        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, term, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
         val = (a.id, a.evaluation_id, a.term, a.wsd, a.duration)
         self._execute_insert_query(sql, val)
 
@@ -51,3 +52,14 @@ class SQLStorage(EvaluationStorage):
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchall()
+
+    def _save_recording(self, recording, attempt_id):
+        sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
+        val = (attempt_id, recording)
+        self._execute_insert_query(sql, val)
+
+    def _get_recording(self, attempt_id):
+        sql = 'SELECT recording FROM recordings WHERE attempt_id = %s'
+        val = (attempt_id,)
+        res = self._execute_select_query(sql, val)
+        return res[0]
