@@ -1,1 +1,82 @@
-{}
+{
+    "CT/constitution.wav": {
+        "expected": 958.75,
+        "actual": 963.1746031746031
+    },
+    "CT/flattering.wav": {
+        "expected": 803.63,
+        "actual": 597.8684807256236
+    },
+    "CT/gingerbread.wav": {
+        "expected": 867.12,
+        "actual": 709.5691609977324
+    },
+    "CT/harmonica.wav": {
+        "expected": 840.93,
+        "actual": 901.201814058957
+    },
+    "CT/jabbering.wav": {
+        "expected": 689.31,
+        "actual": 577.8004535147392
+    },
+    "CT/spaghetti.wav": {
+        "expected": 771.66,
+        "actual": 794.21768707483
+    },
+    "CT/stethoscope.wav": {
+        "expected": 936.47,
+        "actual": 1097.5736961451248
+    },
+    "CT/thickening.wav": {
+        "expected": 564.49,
+        "actual": 455.35147392290247
+    },
+    "CT/volcano.wav": {
+        "expected": 739.65,
+        "actual": 680.6802721088435
+    },
+    "CT/zippering.wav": {
+        "expected": 702.9,
+        "actual": 614.4897959183673
+    },
+    "TH/constitution.wav": {
+        "expected": 990.78,
+        "actual": 996.9160997732425
+    },
+    "TH/flattering.wav": {
+        "expected": 804.98,
+        "actual": 855.6689342403629
+    },
+    "TH/gingerbread.wav": {
+        "expected": 737.84,
+        "actual": 743.3786848072563
+    },
+    "TH/harmonica.wav": {
+        "expected": 860.61,
+        "actual": 822.3809523809524
+    },
+    "TH/jabbering.wav": {
+        "expected": 737.23,
+        "actual": 608.2766439909298
+    },
+    "TH/spaghetti.wav": {
+        "expected": 715.89,
+        "actual": 630.3174603174602
+    },
+    "TH/stethoscope.wav": {
+        "expected": 1078.13,
+        "actual": 853.0839002267574
+    },
+    "TH/thickening.wav": {
+        "expected": 651.36,
+        "actual": 562.3356009070295
+    },
+    "TH/volcano.wav": {
+        "expected": 696.63,
+        "actual": 799.297052154195
+    },
+    "TH/zippering.wav": {
+        "expected": 665.22,
+        "actual": 608.4126984126984
+    }
+}

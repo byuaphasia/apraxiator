@@ -20,7 +20,7 @@ class TestEndpointFinder(unittest.TestCase):
 
             amb_path = os.path.abspath(self.local_dir + self.recordings_dir + case['ambUri'])
             threshold = get_environment_percentile(amb_path)
-            id = self.storage.add_threshold(threshold)
+            id = self.storage.create_evaluation(threshold, '')
             
             speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
             speech_duration = self.detector.measure(speech_path, id)
