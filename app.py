@@ -14,7 +14,6 @@ calculator = WSDCalculator(storage)
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
     f = request.files['recording']
-    print(f)
     threshold = get_environment_percentile(f)
     id = storage.create_evaluation(threshold, '')
     result = {
@@ -24,14 +23,17 @@ def create_evaluation():
 
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
 def get_evaluation(evaluationId):
-    measurements = storage.get_attempts(evaluationId)
-    return measurements
+    attempts = storage.fetch_attempts(evaluationId, '')
+    result = {
+        'attempts':[a.__dict__ for a in attempts]
+    }
+    return result
 
 @app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
 def process_attempt(evaluationId):
     f = request.files['recording']
-    print(f)
     syllable_count = request.args.get('syllableCount')
+    syllable_count = int(syllable_count)
     term = request.args.get('word')
     if syllable_count is None:
         return 'Must provide syllable count.'

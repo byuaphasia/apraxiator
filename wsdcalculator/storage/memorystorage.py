@@ -16,9 +16,9 @@ class MemoryStorage(EvaluationStorage):
             return -1
 
     def _add_attempt(self, a):
-        prev = self.attempts.get(evaluation_id, [])
+        prev = self.attempts.get(a.evaluation_id, [])
         prev.append(a)
-        self.attempts[evaluation_id] = prev
+        self.attempts[a.evaluation_id] = prev
 
-    def get_attempts(self, evaluation_id):
+    def _get_attempts(self, evaluation_id):
         return self.attempts.get(evaluation_id, [])

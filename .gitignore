@@ -105,6 +105,8 @@ venv.bak/
 
 # recordings and processing files
 recordings/
+ambiance.wav
+attempt.wav
 
 # Apple
 .DS_Store

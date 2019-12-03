@@ -1,3 +1,5 @@
+import soundfile as sf
+
 from .speechdetection.filterbythreshold import Filterer
 from .speechdetection.findendpoints import EndpointFinder
 
@@ -22,15 +24,18 @@ class WSDCalculator():
         Returns:
         float: WSD measurement, average milliseconds per syllable in the recording
         """
+        audio, sr = sf.read(recording)
+
         m = self.measurers.get(method, None)
         # Default is to average all methods
         if m is None:
             total = 0
             for mes in self.measurers.values():
-                total += mes.measure(recording, evaluation_id)
+                total += mes.measure(audio, sr, evaluation_id)
             duration = total / len(self.measurers)
         else:
-            duration = m.measure(recording, evaluation_id)
+            duration = m.measure(audio, sr, evaluation_id)
 
         wsd = duration / syllable_count
+        print(duration, wsd, syllable_count)
         return wsd, duration
