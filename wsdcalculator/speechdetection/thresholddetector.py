@@ -27,4 +27,4 @@ class ThresholdDetector:
         return smoothed
 
     def get_threshold(self, evaluation_id):
-        return self.storage.get_threshold(evaluation_id)
+        return self.storage.fetch_evaluation(evaluation_id, '')

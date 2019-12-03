@@ -23,7 +23,8 @@ class EvaluationStorage(IdGenerator):
     def _get_threshold(self, id):
         return -1
 
-    def create_attempt(self, evaluation_id, term, wsd, duration):
+    def create_attempt(self, evaluation_id, term, wsd, duration, owner_id):
+        self._check_is_owner(evaluation_id, owner_id)
         id = self.create_id('AT')
         a = Attempt(id, evaluation_id, term, wsd, duration)
         self._add_attempt(a)

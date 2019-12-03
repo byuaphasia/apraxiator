@@ -33,4 +33,4 @@ class WSDCalculator():
             duration = m.measure(recording, evaluation_id)
 
         wsd = duration / syllable_count
-        return wsd
+        return wsd, duration

@@ -1,5 +1,4 @@
 from flask import Flask, request
-from werkzeug.utils import secure_filename
 import os
 
 from wsdcalculator.calculatewsd import WSDCalculator
@@ -17,8 +16,11 @@ def create_evaluation():
     f = request.files['recording']
     print(f)
     threshold = get_environment_percentile(f)
-    id = storage.add_threshold(threshold)
-    return id
+    id = storage.create_evaluation(threshold, '')
+    result = {
+        'evaluationId': id
+    }
+    return result
 
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
 def get_evaluation(evaluationId):
@@ -39,9 +41,13 @@ def process_attempt(evaluationId):
     method = request.args.get('method')
     if method is None or method == '':
         method = 'average'
-    wsd = calculator.calculate_wsd(f, syllable_count, evaluationId, method)
-    storage.add_attempt(evaluationId, term, wsd)
-    return str(wsd)
+    wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, method)
+    id = storage.create_attempt(evaluationId, term, wsd, duration, '')
+    result = {
+        'attemptId': id,
+        'wsd': wsd
+    }
+    return result
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
