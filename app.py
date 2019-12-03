@@ -3,11 +3,11 @@ import os
 
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
-from wsdcalculator.storage.memorystorage import MemoryStorage
+from wsdcalculator.storage.sqlstorage import SQLStorage
 
 app = Flask(__name__)
 
-storage = MemoryStorage()
+storage = SQLStorage()
 calculator = WSDCalculator(storage)
 
 @app.route('/evaluation', methods=['POST'])
@@ -24,7 +24,7 @@ def create_evaluation():
 def get_evaluation(evaluationId):
     attempts = storage.fetch_attempts(evaluationId, '')
     result = {
-        'attempts':[a.__dict__ for a in attempts]
+        'attempts': [a.__dict__ for a in attempts]
     }
     return result
 
@@ -53,6 +53,15 @@ def process_attempt(evaluationId):
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
 
-@app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST'])
+@app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
-    pass
+    if request.method == 'POST':
+        f = request.files['recording']
+        id = storage.save_recording(f, evaluationId, attemptId, '')
+        result = {
+            'attemptId': id
+        }
+    else:
+        f = storage.get_recording(evaluationId, attemptId, '')
+        result = f
+    return result
