@@ -107,6 +107,8 @@ venv.bak/
 recordings/
 ambiance.wav
 attempt.wav
+sprint1/
+
 
 # Apple
 .DS_Store
