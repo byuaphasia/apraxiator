@@ -2,7 +2,7 @@ import mysql.connector
 import os
 
 from .evaluationstorage import EvaluationStorage
-from .filestorage import FileStorage
+from .recordingstorage import FileStorage
 from ..models.attempt import Attempt
 
 class SQLStorage(EvaluationStorage, FileStorage):

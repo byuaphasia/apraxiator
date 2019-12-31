@@ -1,4 +1,5 @@
 import soundfile as sf
+import logging
 
 from .speechdetection.filterbythreshold import Filterer
 from .speechdetection.findendpoints import EndpointFinder
@@ -11,6 +12,7 @@ class WSDCalculator():
             'filter': filterer,
             'endpoint': endpoint_finder
         }
+        self.logger = logging.getLogger(__name__)
 
     def calculate_wsd(self, recording, syllable_count, evaluation_id, method='average'):
         """ Uses the supplied method to calculate a Word Syllable Duration (WSD) measurement.
@@ -37,5 +39,6 @@ class WSDCalculator():
             duration = m.measure(audio, sr, evaluation_id)
 
         wsd = duration / syllable_count
-        print(duration, wsd, syllable_count)
+
+        self.logger.info('[event=wsd-calculated][evaluationId=%s][duration=%s][syllableCount=%s][wsd=%s]', evaluation_id, duration, syllable_count, wsd)
         return wsd, duration

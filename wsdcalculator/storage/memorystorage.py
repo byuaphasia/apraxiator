@@ -1,6 +1,7 @@
 from .evaluationstorage import EvaluationStorage
+from .recordingstorage import FileStorage
 
-class MemoryStorage(EvaluationStorage):
+class MemoryStorage(EvaluationStorage, FileStorage):
     def __init__(self):
         self.thresholds = {}
         self.attempts = {}
