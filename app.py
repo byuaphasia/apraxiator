@@ -5,6 +5,7 @@ from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
 # from wsdcalculator.storage.sqlstorage import SQLStorage
 from wsdcalculator.storage.memorystorage import MemoryStorage
+from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
 
 import logging
 from log.setup import setup_logger
@@ -16,6 +17,7 @@ app = Flask(__name__)
 # storage = SQLStorage()
 storage = MemoryStorage()
 calculator = WSDCalculator(storage)
+authenticator = JWTAuthenticator()
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
