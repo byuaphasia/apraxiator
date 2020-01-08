@@ -32,7 +32,8 @@ class TestWSDCalculator(unittest.TestCase):
             r = results.get(basic_path, {})
             tmp = {
                 'expected': expected_wsd,
-                'endpointFinderActual': wsd
+                'endpointFinderActual': wsd,
+                'endpointThreshold': threshold
             }
             r.update(tmp)
             results[basic_path] = r
@@ -57,7 +58,8 @@ class TestWSDCalculator(unittest.TestCase):
             r = results.get(basic_path, {})
             tmp = {
                 'expected': expected_wsd,
-                'filtererActual': wsd
+                'filtererActual': wsd,
+                'filtererThreshold': threshold
             }
             r.update(tmp)
             results[basic_path] = r
@@ -82,7 +84,8 @@ class TestWSDCalculator(unittest.TestCase):
             r = results.get(basic_path, {})
             tmp = {
                 'expected': expected_wsd,
-                'averageActual': wsd
+                'averageActual': wsd,
+                'averageThreshold': threshold
             }
             r.update(tmp)
             results[basic_path] = r
