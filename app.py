@@ -4,8 +4,7 @@ import io
 
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
-from wsdcalculator.storage.sqlstorage import SQLStorage
-# from wsdcalculator.storage.memorystorage import MemoryStorage
+from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
 
 import logging
 from log.setup import setup_logger
@@ -14,17 +13,26 @@ setup_logger()
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
-storage = SQLStorage()
-# storage = MemoryStorage()
+try:
+  from wsdcalculator.storage.sqlstorage import SQLStorage
+  storage = SQLStorage()
+except Exception as e:
+  logger.error('Problem establishing SQL connection', e)
+  
+  from wsdcalculator.storage.memorystorage import MemoryStorage
+  storage = MemoryStorage()
+  
 calculator = WSDCalculator(storage)
+authenticator = JWTAuthenticator()
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
     logger.info('[event=create-evaluation][remoteAddress=%s]', request.remote_addr)
+    user = authenticator.get_user(request.headers[authenticator.header_key])
 
     f = request.files['recording'].read()
     threshold = get_environment_percentile(f)
-    id = storage.create_evaluation(threshold, '')
+    id = storage.create_evaluation(threshold, user)
     result = {
         'evaluationId': id
     }
@@ -34,8 +42,9 @@ def create_evaluation():
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
 def get_evaluation(evaluationId):
     logger.info('[event=get-evaluation][evaluationId=%s][remoteAddress=%s]', evaluationId, request.remote_addr)
+    user = authenticator.get_user(request.headers[authenticator.header_key])
     
-    attempts = storage.fetch_attempts(evaluationId, '')
+    attempts = storage.fetch_attempts(evaluationId, user)
     result = {
         'attempts': [a.__dict__ for a in attempts]
     }
@@ -44,6 +53,7 @@ def get_evaluation(evaluationId):
 @app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
 def process_attempt(evaluationId):
     logger.info('[event=create-attempt][evaluationId=%s][remoteAddress=%s]', evaluationId, request.remote_addr)
+    user = authenticator.get_user(request.headers[authenticator.header_key])
 
     f = request.files['recording'].read()
     syllable_count = request.args.get('syllableCount')
@@ -58,7 +68,7 @@ def process_attempt(evaluationId):
     if method is None or method == '':
         method = 'average'
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, method)
-    id = storage.create_attempt(evaluationId, term, wsd, duration, '')
+    id = storage.create_attempt(evaluationId, term, wsd, duration, user)
     result = {
         'attemptId': id,
         'wsd': wsd
@@ -69,9 +79,8 @@ def process_attempt(evaluationId):
 def save_recording(evaluationId, attemptId):
     if request.method == 'POST':
         logger.info('[event=save-recording][evaluationId=%s][attemptId=%s][remoteAddress=%s]', evaluationId, attemptId, request.remote_addr)
-
+        user = authenticator.get_user(request.headers[authenticator.header_key])
         f = request.files['recording'].read()
-        print(type(f))
         id = storage.save_recording(f, evaluationId, attemptId, '')
         result = {
             'attemptId': id
@@ -80,7 +89,7 @@ def save_recording(evaluationId, attemptId):
         return result
     else:
         logger.info('[event=get-recording][evaluationId=%s][attemptId=%s][remoteAddress=%s]', evaluationId, attemptId, request.remote_addr)
-
+        user = authenticator.get_user(request.headers[authenticator.header_key])
         f = storage.get_recording(evaluationId, attemptId, '')
         return send_file(io.BytesIO(f), mimetype='audio/wav')
 

@@ -6,3 +6,6 @@ from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.storage import memorystorage
 from wsdcalculator.speechdetection import filterbythreshold, findendpoints
 from wsdcalculator.calculatewsd import WSDCalculator
+
+from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
+from wsdcalculator.authentication.exceptions.unauthenticated import TokenExpiredException

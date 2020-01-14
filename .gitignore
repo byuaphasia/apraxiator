@@ -112,3 +112,6 @@ sprint1/
 
 # Apple
 .DS_Store
+
+# Authentication
+jwk.json
