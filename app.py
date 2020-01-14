@@ -17,7 +17,7 @@ try:
   from wsdcalculator.storage.sqlstorage import SQLStorage
   storage = SQLStorage()
 except Exception as e:
-  logger.error('Problem establishing SQL connection', e)
+  logger.exception('Problem establishing SQL connection', e)
   
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
