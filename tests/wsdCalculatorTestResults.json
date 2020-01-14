@@ -1,122 +1,182 @@
 {
     "CT/constitution.wav": {
         "expected": 239.6875,
-        "averageActual": 245.64625850340136,
-        "endpointFinderActual": 250.49886621315193,
-        "filtererActual": 240.79365079365078
+        "averageActual": 243.85487528344672,
+        "averageThreshold": 0.001547058105468846,
+        "endpointFinderActual": 250.2721088435374,
+        "endpointThreshold": 0.001547058105468846,
+        "filtererActual": 237.43764172335602,
+        "filtererThreshold": 0.001547058105468846
     },
     "CT/flattering.wav": {
         "expected": 267.8767,
-        "averageActual": 207.96674225245656,
-        "endpointFinderActual": 216.6439909297052,
-        "filtererActual": 199.28949357520787
+        "averageActual": 204.7883597883598,
+        "averageThreshold": 0.008248718261718802,
+        "endpointFinderActual": 216.3416477702192,
+        "endpointThreshold": 0.008248718261718802,
+        "filtererActual": 193.2350718065004,
+        "filtererThreshold": 0.008248718261718802
     },
     "CT/gingerbread.wav": {
         "expected": 289.04,
-        "averageActual": 249.20256991685562,
-        "endpointFinderActual": 261.8820861678004,
-        "filtererActual": 236.5230536659108
+        "averageActual": 240.25699168556312,
+        "averageThreshold": 0.008270263671875,
+        "endpointFinderActual": 254.5502645502646,
+        "endpointThreshold": 0.008270263671875,
+        "filtererActual": 225.9637188208617,
+        "filtererThreshold": 0.008270263671875
     },
     "CT/harmonica.wav": {
         "expected": 210.23,
-        "averageActual": 232.3327664399093,
-        "endpointFinderActual": 239.36507936507937,
-        "filtererActual": 225.30045351473925
+        "averageActual": 226.828231292517,
+        "averageThreshold": 0.001068115234375,
+        "endpointFinderActual": 233.83219954648527,
+        "endpointThreshold": 0.001068115234375,
+        "filtererActual": 219.82426303854874,
+        "filtererThreshold": 0.001068115234375
     },
     "CT/jabbering.wav": {
         "expected": 229.77,
-        "averageActual": 198.27664399092973,
-        "endpointFinderActual": 203.9531368102797,
-        "filtererActual": 192.6001511715797
+        "averageActual": 197.13529856387,
+        "averageThreshold": 0.0053190307617188015,
+        "endpointFinderActual": 203.65079365079364,
+        "endpointThreshold": 0.0053190307617188015,
+        "filtererActual": 190.61980347694634,
+        "filtererThreshold": 0.0053190307617188015
     },
     "CT/spaghetti.wav": {
         "expected": 257.22,
-        "averageActual": 273.0196523053666,
-        "endpointFinderActual": 281.3000755857899,
-        "filtererActual": 264.7392290249433
+        "averageActual": 263.40136054421765,
+        "averageThreshold": 0.001251220703125,
+        "endpointFinderActual": 271.3454270597128,
+        "endpointThreshold": 0.001251220703125,
+        "filtererActual": 255.4572940287226,
+        "filtererThreshold": 0.001251220703125
     },
     "CT/stethoscope.wav": {
         "expected": 312.1567,
-        "averageActual": 374.572940287226,
-        "endpointFinderActual": 383.2879818594104,
-        "filtererActual": 365.8578987150416
+        "averageActual": 360.6009070294784,
+        "averageThreshold": 0.0010661010742187838,
+        "endpointFinderActual": 367.28647014361303,
+        "endpointThreshold": 0.0010661010742187838,
+        "filtererActual": 353.91534391534384,
+        "filtererThreshold": 0.0010661010742187838
     },
     "CT/thickening.wav": {
         "expected": 188.163,
-        "averageActual": 163.45049130763417,
-        "endpointFinderActual": 175.11715797430085,
-        "filtererActual": 151.78382464096748
+        "averageActual": 151.55706727135296,
+        "averageThreshold": 0.007586303710937603,
+        "endpointFinderActual": 157.04459561602417,
+        "endpointThreshold": 0.007586303710937603,
+        "filtererActual": 146.0695389266818,
+        "filtererThreshold": 0.007586303710937603
     },
     "CT/volcano.wav": {
         "expected": 246.55,
-        "averageActual": 233.43915343915342,
-        "endpointFinderActual": 239.98488284202566,
-        "filtererActual": 226.89342403628117
+        "averageActual": 229.34996220710505,
+        "averageThreshold": 0.005859375,
+        "endpointFinderActual": 239.68253968253967,
+        "endpointThreshold": 0.005859375,
+        "filtererActual": 219.01738473167043,
+        "filtererThreshold": 0.005859375
     },
     "CT/zippering.wav": {
         "expected": 234.3,
-        "averageActual": 210.51776266061984,
-        "endpointFinderActual": 216.20559334845052,
-        "filtererActual": 204.82993197278913
+        "averageActual": 206.67800453514738,
+        "averageThreshold": 0.006317138671875,
+        "endpointFinderActual": 215.90325018896445,
+        "endpointThreshold": 0.006317138671875,
+        "filtererActual": 197.45275888133028,
+        "filtererThreshold": 0.006317138671875
     },
     "TH/constitution.wav": {
         "expected": 247.695,
-        "averageActual": 259.60600907029476,
-        "endpointFinderActual": 269.9829931972789,
-        "filtererActual": 249.22902494331063
+        "averageActual": 255.46768707482994,
+        "averageThreshold": 0.00262451171875,
+        "endpointFinderActual": 269.7562358276644,
+        "endpointThreshold": 0.00262451171875,
+        "filtererActual": 241.17913832199548,
+        "filtererThreshold": 0.00262451171875
     },
     "TH/flattering.wav": {
         "expected": 268.3267,
-        "averageActual": 295.61602418745275,
-        "endpointFinderActual": 306.00907029478464,
-        "filtererActual": 285.222978080121
+        "averageActual": 290.5971277399849,
+        "averageThreshold": 0.003662109375,
+        "endpointFinderActual": 305.70672713529854,
+        "endpointThreshold": 0.003662109375,
+        "filtererActual": 275.4875283446712,
+        "filtererThreshold": 0.003662109375
     },
     "TH/gingerbread.wav": {
         "expected": 245.9467,
-        "averageActual": 253.14814814814815,
-        "endpointFinderActual": 258.5034013605442,
-        "filtererActual": 247.7928949357521
+        "averageActual": 250.2569916855631,
+        "averageThreshold": 0.0030517578125,
+        "endpointFinderActual": 258.2010582010582,
+        "endpointThreshold": 0.0030517578125,
+        "filtererActual": 242.31292517006798,
+        "filtererThreshold": 0.0030517578125
     },
     "TH/harmonica.wav": {
         "expected": 215.15,
-        "averageActual": 223.04138321995464,
-        "endpointFinderActual": 240.4875283446712,
-        "filtererActual": 205.5952380952381
+        "averageActual": 220.9920634920635,
+        "averageThreshold": 0.002044677734375,
+        "endpointFinderActual": 240.2607709750567,
+        "endpointThreshold": 0.002044677734375,
+        "filtererActual": 201.7233560090703,
+        "filtererThreshold": 0.002044677734375
     },
     "TH/jabbering.wav": {
         "expected": 245.743,
-        "averageActual": 209.40665154950867,
-        "endpointFinderActual": 216.05442176870747,
-        "filtererActual": 202.75888133030992
+        "averageActual": 199.44444444444443,
+        "averageThreshold": 0.009251495361328188,
+        "endpointFinderActual": 202.41118669690096,
+        "endpointThreshold": 0.009251495361328188,
+        "filtererActual": 196.4777021919879,
+        "filtererThreshold": 0.009251495361328188
     },
     "TH/spaghetti.wav": {
         "expected": 238.63,
-        "averageActual": 237.40362811791383,
-        "endpointFinderActual": 264.70143613000755,
-        "filtererActual": 210.10582010582007
+        "averageActual": 231.08087679516248,
+        "averageThreshold": 0.003753936767578181,
+        "endpointFinderActual": 258.76795162509444,
+        "endpointThreshold": 0.003753936767578181,
+        "filtererActual": 203.39380196523052,
+        "filtererThreshold": 0.003753936767578181
     },
     "TH/stethoscope.wav": {
         "expected": 359.3767,
-        "averageActual": 320.6916099773243,
-        "endpointFinderActual": 357.02191987906275,
-        "filtererActual": 284.3613000755858
+        "averageActual": 318.0007558578987,
+        "averageThreshold": 0.005767822265625,
+        "endpointFinderActual": 356.7195767195767,
+        "endpointThreshold": 0.005767822265625,
+        "filtererActual": 279.28193499622074,
+        "filtererThreshold": 0.005767822265625
     },
     "TH/thickening.wav": {
         "expected": 217.12,
-        "averageActual": 200.95616024187453,
-        "endpointFinderActual": 214.4671201814059,
-        "filtererActual": 187.44520030234318
+        "averageActual": 197.4981103552532,
+        "averageThreshold": 0.004241943359375,
+        "endpointFinderActual": 214.1647770219199,
+        "endpointThreshold": 0.004241943359375,
+        "filtererActual": 180.83144368858655,
+        "filtererThreshold": 0.004241943359375
     },
     "TH/volcano.wav": {
         "expected": 232.21,
-        "averageActual": 263.50340136054416,
-        "endpointFinderActual": 260.5744520030234,
-        "filtererActual": 266.432350718065
+        "averageActual": 251.2396069538927,
+        "averageThreshold": 0.0019590148925782147,
+        "endpointFinderActual": 255.24565381708237,
+        "endpointThreshold": 0.0019590148925782147,
+        "filtererActual": 247.23356009070298,
+        "filtererThreshold": 0.0019590148925782147
     },
     "TH/zippering.wav": {
         "expected": 221.74,
-        "averageActual": 226.5721844293273,
-        "endpointFinderActual": 250.34013605442178,
-        "filtererActual": 202.8042328042328
+        "averageActual": 219.4104308390023,
+        "averageThreshold": 0.0030454406738282813,
+        "endpointFinderActual": 245.7067271352986,
+        "endpointThreshold": 0.0030454406738282813,
+        "filtererActual": 193.11413454270598,
+        "filtererThreshold": 0.0030454406738282813
     }
 }

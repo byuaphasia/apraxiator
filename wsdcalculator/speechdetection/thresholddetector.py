@@ -19,7 +19,7 @@ class ThresholdDetector:
     def get_speech_sample_count(self, audio, threshold, sr):
         return -1
 
-    def smooth(self, audio, window=40):
+    def smooth(self, audio, window=20):
         smoothed = audio.copy()
         for i in range(window, len(audio) - window):
             smoothed[i] = np.max(np.abs(audio[i - window: i + window]))
