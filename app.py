@@ -30,7 +30,7 @@ def create_evaluation():
     logger.info('[event=create-evaluation][remoteAddress=%s]', request.remote_addr)
     user = authenticator.get_user(request.headers[authenticator.header_key])
 
-    f = request.files['recording'].read()
+    f = request.files['recording']
     threshold = get_environment_percentile(f)
     id = storage.create_evaluation(threshold, user)
     result = {
@@ -55,7 +55,7 @@ def process_attempt(evaluationId):
     logger.info('[event=create-attempt][evaluationId=%s][remoteAddress=%s]', evaluationId, request.remote_addr)
     user = authenticator.get_user(request.headers[authenticator.header_key])
 
-    f = request.files['recording'].read()
+    f = request.files['recording']
     syllable_count = request.args.get('syllableCount')
     syllable_count = int(syllable_count)
     term = request.args.get('word')
