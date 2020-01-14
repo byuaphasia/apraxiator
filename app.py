@@ -94,4 +94,4 @@ def save_recording(evaluationId, attemptId):
         return send_file(io.BytesIO(f), mimetype='audio/wav')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
