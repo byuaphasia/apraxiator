@@ -64,7 +64,7 @@ def process_attempt(evaluationId):
     return result
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
