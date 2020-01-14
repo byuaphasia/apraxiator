@@ -28,17 +28,20 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         self.logger.info(e.id)
         val = (e.id, e.owner_id, e.ambiance_threshold)
         self._execute_insert_query(sql, val)
+        self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
 
     def _get_threshold(self, id):
         sql = 'SELECT ambiance_threshold FROM evaluations WHERE evaluation_id = %s'
         val = (id,)
         res = self._execute_select_query(sql, val)
-        return res
+        self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, res[0])
+        return res[0]
     
     def _add_attempt(self, a):
         sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
         val = (a.id, a.evaluation_id, a.term, a.wsd, a.duration)
         self._execute_insert_query(sql, val)
+        self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s][attemptCount=%s]', a.evaluation_id, a.id, len(prev))
 
     def _get_attempts(self, evaluation_id):
         sql = 'SELECT * FROM attempts WHERE evaluation_id = %s'
@@ -47,13 +50,14 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         attempts = []
         for row in res:
             attempts.append(*row)
+        self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
         return attempts
 
     def _check_is_owner(self, evaluation_id, owner_id):
         sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
         val = (evaluation_id,)
         res = self._execute_select_query(sql, val)
-        if res != owner_id:
+        if res[0] != owner_id:
             self.logger.error('[event=access-denied][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
             raise PermissionDeniedException(evaluation_id, owner_id)
         else:
@@ -81,12 +85,13 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
         val = (attempt_id, recording)
         self._execute_insert_query(sql, val)
-        return attempt_id
+        self.logger.info('[event=recording-saved][attemptId=%s]', attempt_id)
 
     def _get_recording(self, attempt_id):
         sql = 'SELECT recording FROM recordings WHERE attempt_id = %s'
         val = (attempt_id,)
         res = self._execute_select_query(sql, val)
+        self.logger.info('[event=recording-retrieved][attemptId=%s]', attempt_id)
         return res[0]
 
     def _create_tables(self):

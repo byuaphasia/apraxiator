@@ -1,3 +1,5 @@
+from ..apraxiatorexception import NotImplementedException
+
 class RecordingStorage:
     def save_recording(self, recording, evaluation_id, attempt_id, owner_id):
         self._check_is_owner(evaluation_id, owner_id)
@@ -8,10 +10,10 @@ class RecordingStorage:
         return self._get_recording(attempt_id)
 
     def _check_is_owner(self, evaluation_id, owner_id):
-        pass
+        raise NotImplementedException()
 
     def _save_recording(self, recording, attempt_id):
-        return ''
+        raise NotImplementedException()
 
     def _get_recording(self, attempt_id):
-        return None
+        raise NotImplementedException()

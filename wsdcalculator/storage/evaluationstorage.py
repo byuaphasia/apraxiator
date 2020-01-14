@@ -1,6 +1,7 @@
 from .idgenerator import IdGenerator
 from ..models.attempt import Attempt
 from ..models.evaluation import Evaluation
+from ..apraxiatorexception import NotImplementedException
 
 class EvaluationStorage(IdGenerator):
     def __init__(self):
@@ -17,14 +18,14 @@ class EvaluationStorage(IdGenerator):
         return id
 
     def _add_evaluation(self, e):
-        return -1
+        raise NotImplementedException()
 
     def fetch_evaluation(self, id, owner_id):
         self._check_is_owner(id, owner_id)
         return self._get_threshold(id)
 
     def _get_threshold(self, id):
-        return -1
+        raise NotImplementedException()
 
     def create_attempt(self, evaluation_id, term, wsd, duration, owner_id):
         self._check_is_owner(evaluation_id, owner_id)
@@ -34,14 +35,14 @@ class EvaluationStorage(IdGenerator):
         return id
 
     def _add_attempt(self, a):
-        return -1
+        raise NotImplementedException()
 
     def fetch_attempts(self, evaluation_id, owner_id):
         self._check_is_owner(evaluation_id, owner_id)
         return self._get_attempts(evaluation_id)
 
     def _get_attempts(self, evaluation_id):
-        return -1
+        raise NotImplementedException()
 
     def _check_is_owner(self, evaluation_id, owner_id):
-        pass
+        raise NotImplementedException()

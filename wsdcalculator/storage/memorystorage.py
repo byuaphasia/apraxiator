@@ -12,12 +12,13 @@ class MemoryStorage(EvaluationStorage, RecordingStorage):
     
     def _add_evaluation(self, e):
         self.evaluations[e.id] = e
+        self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
 
     def _get_threshold(self, id):
         e = self.evaluations.get(id, None)
         if e is not None:
             t = e.ambiance_threshold
-            self.logger.info('[event=get-threshold][evaluationId=%s][threshold=%s]', id, t)
+            self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, t)
             return t
         else:
             self.logger.error('[event=get-threshold-error][evaluationId=%s][error=resource not found]', id)
@@ -27,11 +28,12 @@ class MemoryStorage(EvaluationStorage, RecordingStorage):
         prev = self.attempts.get(a.evaluation_id, [])
         prev.append(a)
         self.attempts[a.evaluation_id] = prev
+        self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s][attemptCount=%s]', a.evaluation_id, a.id, len(prev))
 
     def _get_attempts(self, evaluation_id):
         attempts = self.attempts.get(evaluation_id, None)
         if attempts is not None:
-            self.logger.info('[event=get-attempts][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
+            self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
             return attempts
         else:
             self.logger.error('[event=get-attempts-error][evaluationId=%s][error=resource not found]', evaluation_id)
