@@ -3,7 +3,15 @@ import json
 import logging
 from jwcrypto import jwk
 
-from .exceptions.unauthenticated import *
+from .unauthenticatedexceptions import TokenExpiredException, InvalidTokenException, UnauthenticatedException, MissingTokenException
+
+HEADER_KEY = 'TOKEN'
+def get_token(http_headers):
+    try:
+        token = http_headers[HEADER_KEY]
+        return token
+    except Exception as e:
+        raise MissingTokenException(e)
 
 class JWTAuthenticator:
     def __init__(self):

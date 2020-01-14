@@ -5,6 +5,7 @@ import io
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
+from wsdcalculator.apraxiatorexception import ApraxiatorException
 
 import logging
 from log.setup import setup_logger
@@ -17,7 +18,7 @@ try:
   from wsdcalculator.storage.sqlstorage import SQLStorage
   storage = SQLStorage()
 except Exception as e:
-  logger.error('Problem establishing SQL connection', e)
+  logger.exception('Problem establishing SQL connection')
   
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
@@ -25,12 +26,23 @@ except Exception as e:
 calculator = WSDCalculator(storage)
 authenticator = JWTAuthenticator()
 
+@app.errorhandler(ApraxiatorException)
+def handle_failure(error: ApraxiatorException):
+    response = jsonify(error.to_dict())
+    response.status_code = error.get_code()
+    return response
+
+@app.route('/healthcheck', methods=['GET'])
+def healthcheck():
+    storage.is_healthy()
+    return
+
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
     logger.info('[event=create-evaluation][remoteAddress=%s]', request.remote_addr)
     user = authenticator.get_user(request.headers[authenticator.header_key])
 
-    f = request.files['recording'].read()
+    f = request.files['recording']
     threshold = get_environment_percentile(f)
     id = storage.create_evaluation(threshold, user)
     result = {
@@ -43,7 +55,7 @@ def create_evaluation():
 def get_evaluation(evaluationId):
     logger.info('[event=get-evaluation][evaluationId=%s][remoteAddress=%s]', evaluationId, request.remote_addr)
     user = authenticator.get_user(request.headers[authenticator.header_key])
-    
+
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
         'attempts': [a.__dict__ for a in attempts]
@@ -81,7 +93,7 @@ def save_recording(evaluationId, attemptId):
         logger.info('[event=save-recording][evaluationId=%s][attemptId=%s][remoteAddress=%s]', evaluationId, attemptId, request.remote_addr)
         user = authenticator.get_user(request.headers[authenticator.header_key])
         f = request.files['recording'].read()
-        id = storage.save_recording(f, evaluationId, attemptId, '')
+        id = storage.save_recording(f, evaluationId, attemptId, user)
         result = {
             'attemptId': id
         }

@@ -1,10 +1,14 @@
-from .evaluationstorage import EvaluationStorage
-from .recordingstorage import FileStorage
+import logging
 
-class MemoryStorage(EvaluationStorage, FileStorage):
+from .evaluationstorage import EvaluationStorage
+from .recordingstorage import RecordingStorage
+from .storageexceptions import ResourceNotFoundException
+
+class MemoryStorage(EvaluationStorage, RecordingStorage):
     def __init__(self):
         self.thresholds = {}
         self.attempts = {}
+        self.logger = logging.getLogger(__name__)
     
     def _add_evaluation(self, e):
         self.thresholds[e.id] = e
@@ -12,9 +16,12 @@ class MemoryStorage(EvaluationStorage, FileStorage):
     def _get_threshold(self, id):
         e = self.thresholds.get(id, None)
         if e is not None:
-            return e.ambiance_threshold
+            t = e.ambiance_threshold
+            self.logger.info('[event=get-threshold][evaluationId=%s][threshold=%s]', id, t)
+            return t
         else:
-            return -1
+            self.logger.error('[event=get-threshold-error][evaluationId=%s][error=resource not found]', id)
+            raise ResourceNotFoundException(id)            
 
     def _add_attempt(self, a):
         prev = self.attempts.get(a.evaluation_id, [])

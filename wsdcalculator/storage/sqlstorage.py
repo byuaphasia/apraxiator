@@ -4,15 +4,23 @@ import logging
 import pickle
 
 from .evaluationstorage import EvaluationStorage
-from .recordingstorage import FileStorage
+from .recordingstorage import RecordingStorage
 from ..models.attempt import Attempt
+from .dbexceptions import ConnectionException
 
-class SQLStorage(EvaluationStorage, FileStorage):
+class SQLStorage(EvaluationStorage, RecordingStorage):
     def __init__(self):
         p = os.environ.get('MYSQL_PASSWORD', None)
         self.db = pymysql.connections.Connection(user='root', password=p, database='apraxiator')
         self.logger = logging.getLogger(__name__)
         self._create_tables()
+
+    def is_healthy(self):
+        try:
+            self.db.ping()
+        except Exception as e:
+            self.logger.exception('[event=ping-db-error]')
+            raise ConnectionException(e)
 
     def _add_evaluation(self, e):
         sql = 'INSERT INTO evaluations (evaluation_id, owner_id, ambience_threshold) VALUES (%s, %s, %s)'

@@ -8,4 +8,4 @@ from wsdcalculator.speechdetection import filterbythreshold, findendpoints
 from wsdcalculator.calculatewsd import WSDCalculator
 
 from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
-from wsdcalculator.authentication.exceptions.unauthenticated import TokenExpiredException
+from wsdcalculator.authentication.unauthenticatedexceptions import TokenExpiredException

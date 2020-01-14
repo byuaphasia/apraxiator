@@ -1,4 +1,4 @@
-class FileStorage:
+class RecordingStorage:
     def save_recording(self, recording, evaluation_id, attempt_id, owner_id):
         self._check_is_owner(evaluation_id, owner_id)
         return self._save_recording(recording, attempt_id)

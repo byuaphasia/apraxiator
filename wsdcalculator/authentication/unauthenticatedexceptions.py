@@ -1,4 +1,6 @@
-class UnauthenticatedException(Exception):
+from ..apraxiatorexception import ApraxiatorException
+
+class UnauthenticatedException(ApraxiatorException):
     def __init__(self, inner_error=None):
         self.inner_error = inner_error
     
@@ -15,3 +17,7 @@ class TokenExpiredException(UnauthenticatedException):
 class InvalidTokenException(UnauthenticatedException):
     def get_message(self):
         return 'Invalid JWT Token'
+
+class MissingTokenException(UnauthenticatedException):
+    def get_message(self):
+        return 'JWT Token Missing'

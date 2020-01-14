@@ -6,6 +6,9 @@ class EvaluationStorage(IdGenerator):
     def __init__(self):
         self.thresholds = {}
         self.attempts = {}
+
+    def is_healthy(self):
+        return True
     
     def create_evaluation(self, threshold, owner_id):
         id = self.create_id('EV')
