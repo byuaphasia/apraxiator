@@ -17,3 +17,14 @@ class ApraxiatorException(Exception):
 class NotImplementedException(ApraxiatorException):
     def get_message(self):
         return "Whoops, Can't Do That"
+
+class InvalidRequestException(ApraxiatorException):
+    def __init__(self, issue, inner_error=None):
+        super(inner_error)
+        self.issue = issue
+
+    def get_message(self):
+        return 'Invalid Request: {}'.format(self.issue)
+
+    def get_code(self):
+        return 400

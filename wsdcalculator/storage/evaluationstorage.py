@@ -9,7 +9,7 @@ class EvaluationStorage(IdGenerator):
         self.attempts = {}
 
     def is_healthy(self):
-        return True
+        raise NotImplementedException()
     
     def create_evaluation(self, threshold, owner_id):
         id = self.create_id('EV')

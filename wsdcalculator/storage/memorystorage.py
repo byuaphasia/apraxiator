@@ -50,3 +50,6 @@ class MemoryStorage(EvaluationStorage, RecordingStorage):
         else:
             self.logger.error('[event=check-owner-error][resourceId=%s][error=resource not found]', evaluation_id)
             raise ResourceNotFoundException(id)
+
+    def is_healthy(self):
+        return True

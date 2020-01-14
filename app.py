@@ -5,7 +5,7 @@ import io
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator, get_token
-from wsdcalculator.apraxiatorexception import ApraxiatorException
+from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidRequestException
 
 import logging
 from log.setup import setup_logger
@@ -77,9 +77,9 @@ def process_attempt(evaluationId):
     syllable_count = int(syllable_count)
     term = request.args.get('word')
     if syllable_count is None:
-        return 'Must provide syllable count.'
+        raise InvalidRequestException('Must provide syllable count')
     if term is None:
-        return 'Must provide attempted word.'
+        raise InvalidRequestException('Must provide attempted word')
 
     method = request.args.get('method')
     if method is None or method == '':

@@ -3,6 +3,7 @@ import logging
 
 from .speechdetection.filterbythreshold import Filterer
 from .speechdetection.findendpoints import EndpointFinder
+from .apraxiatorexception import InvalidRequestException
 
 class WSDCalculator():
     def __init__(self, storage):
@@ -26,7 +27,11 @@ class WSDCalculator():
         Returns:
         float: WSD measurement, average milliseconds per syllable in the recording
         """
-        audio, sr = sf.read(recording)
+        try:
+            audio, sr = sf.read(recording)
+        except Exception as e:
+            self.logger.exception('[event=read-file-failure]')
+            raise InvalidRequestException('Invalid WAV file provided', e)
 
         m = self.measurers.get(method, None)
         # Default is to average all methods
