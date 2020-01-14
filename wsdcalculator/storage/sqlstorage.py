@@ -7,6 +7,7 @@ from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from ..models.attempt import Attempt
 from .dbexceptions import ConnectionException
+from .storageexceptions import PermissionDeniedException
 
 class SQLStorage(EvaluationStorage, RecordingStorage):
     def __init__(self):
@@ -29,10 +30,10 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         self._execute_insert_query(sql, val)
 
     def _get_threshold(self, id):
-        sql = 'SELECT * FROM evaluations WHERE evaluation_id = %s'
+        sql = 'SELECT ambiance_threshold FROM evaluations WHERE evaluation_id = %s'
         val = (id,)
         res = self._execute_select_query(sql, val)
-        return res[2]
+        return res
     
     def _add_attempt(self, a):
         sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
@@ -49,19 +50,29 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         return attempts
 
     def _check_is_owner(self, evaluation_id, owner_id):
-        return True
+        sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
+        val = (evaluation_id,)
+        res = self._execute_select_query(sql, val)
+        if res != owner_id:
+            self.logger.error('[event=access-denied][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
+            raise PermissionDeniedException(evaluation_id, owner_id)
+        else:
+            self.logger.info('[event=owner-verified][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
 
     def _execute_insert_query(self, sql, val):
+        self.logger.info(self._make_info_log('db-insert', sql, val))
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
     
     def _execute_select_query(self, sql, val):
+        self.logger.info(self._make_info_log('db-select', sql, val))
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchone()
 
     def _execute_select_many_query(self, sql, val):
+        self.logger.info(self._make_info_log('db-select-many', sql, val))
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchall()
@@ -113,3 +124,22 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         c.execute(create_evaluations_statement)
         c.execute(create_attempts_statement)
         c.execute(create_recordings_statement)
+
+    @staticmethod
+    def _make_info_log(event, sql, val):
+        fmt = '[event={event}][sql={sql}][vals={vals}]'
+
+        str_vals = []
+        for v in val:
+            if isinstance(v, str):
+                str_vals.append(v)
+            else:
+                str_vals.append('nonstring')
+
+        if sql[0] == 'I':
+            sql_msg = sql.split('VALUE', 0)[0]
+        elif sql[0] == 'S':
+            sql_msg = sql.split('=', 0)[0]
+        else:
+            sql_msg = 'unrecognized sql'
+        return fmt.format(event=event, sql=sql_msg, vals='-'.join(str_vals))

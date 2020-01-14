@@ -44,4 +44,4 @@ class EvaluationStorage(IdGenerator):
         return -1
 
     def _check_is_owner(self, evaluation_id, owner_id):
-        return -1
+        pass

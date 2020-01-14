@@ -4,7 +4,7 @@ import io
 
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
-from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
+from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator, get_token
 from wsdcalculator.apraxiatorexception import ApraxiatorException
 
 import logging
@@ -19,7 +19,6 @@ try:
   storage = SQLStorage()
 except Exception as e:
   logger.exception('Problem establishing SQL connection')
-  
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
   
@@ -28,19 +27,23 @@ authenticator = JWTAuthenticator()
 
 @app.errorhandler(ApraxiatorException)
 def handle_failure(error: ApraxiatorException):
-    response = jsonify(error.to_dict())
-    response.status_code = error.get_code()
-    return response
+    result = jsonify(error.to_dict())
+    result.status_code = error.get_code()
+    return result
 
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
     storage.is_healthy()
-    return
+    result = {
+        'message': 'all is well'
+    }
+    return jsonify(result)
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
-    logger.info('[event=create-evaluation][remoteAddress=%s]', request.remote_addr)
-    user = authenticator.get_user(request.headers[authenticator.header_key])
+    token = get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
 
     f = request.files['recording']
     threshold = get_environment_percentile(f)
@@ -53,8 +56,9 @@ def create_evaluation():
 
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
 def get_evaluation(evaluationId):
-    logger.info('[event=get-evaluation][evaluationId=%s][remoteAddress=%s]', evaluationId, request.remote_addr)
-    user = authenticator.get_user(request.headers[authenticator.header_key])
+    token = get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=get-evaluation][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
@@ -64,8 +68,9 @@ def get_evaluation(evaluationId):
 
 @app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
 def process_attempt(evaluationId):
-    logger.info('[event=create-attempt][evaluationId=%s][remoteAddress=%s]', evaluationId, request.remote_addr)
-    user = authenticator.get_user(request.headers[authenticator.header_key])
+    token = get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     f = request.files['recording'].read()
     syllable_count = request.args.get('syllableCount')
@@ -89,9 +94,10 @@ def process_attempt(evaluationId):
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
+    token = get_token(request.headers)
+    user = authenticator.get_user(token)
     if request.method == 'POST':
-        logger.info('[event=save-recording][evaluationId=%s][attemptId=%s][remoteAddress=%s]', evaluationId, attemptId, request.remote_addr)
-        user = authenticator.get_user(request.headers[authenticator.header_key])
+        logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = request.files['recording'].read()
         id = storage.save_recording(f, evaluationId, attemptId, user)
         result = {
@@ -100,9 +106,8 @@ def save_recording(evaluationId, attemptId):
         result = jsonify(result)
         return result
     else:
-        logger.info('[event=get-recording][evaluationId=%s][attemptId=%s][remoteAddress=%s]', evaluationId, attemptId, request.remote_addr)
-        user = authenticator.get_user(request.headers[authenticator.header_key])
-        f = storage.get_recording(evaluationId, attemptId, '')
+        logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
+        f = storage.get_recording(evaluationId, attemptId, user)
         return send_file(io.BytesIO(f), mimetype='audio/wav')
 
 if __name__ == '__main__':
