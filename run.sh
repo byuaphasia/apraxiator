@@ -16,6 +16,6 @@ pip3 install jwcrypto
 pip3 install pyjwt
 
 ## DB packages
-pip3 install mysql-connector-python
+pip3 install PyMySQL
 
 python3 app.py
