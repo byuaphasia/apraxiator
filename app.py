@@ -72,7 +72,7 @@ def process_attempt(evaluationId):
     user = authenticator.get_user(token)
     logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
-    f = request.files['recording'].read()
+    f = request.files['recording']
     syllable_count = request.args.get('syllableCount')
     syllable_count = int(syllable_count)
     term = request.args.get('word')
@@ -111,4 +111,4 @@ def save_recording(evaluationId, attemptId):
         return send_file(io.BytesIO(f), mimetype='audio/wav')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
