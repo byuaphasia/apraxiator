@@ -41,7 +41,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
         val = (a.id, a.evaluation_id, a.term, a.wsd, a.duration)
         self._execute_insert_query(sql, val)
-        self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s][attemptCount=%s]', a.evaluation_id, a.id, len(prev))
+        self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
 
     def _get_attempts(self, evaluation_id):
         sql = 'SELECT * FROM attempts WHERE evaluation_id = %s'
