@@ -4,7 +4,7 @@ import io
 
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
-from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator, get_token
+from wsdcalculator.authentication.authprovider import get_auth
 from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidRequestException
 
 import logging
@@ -23,7 +23,7 @@ except Exception as e:
   storage = MemoryStorage()
   
 calculator = WSDCalculator(storage)
-authenticator = JWTAuthenticator()
+authenticator = get_auth()
 
 @app.errorhandler(ApraxiatorException)
 def handle_failure(error: ApraxiatorException):
@@ -41,7 +41,7 @@ def healthcheck():
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
-    token = get_token(request.headers)
+    token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
 
@@ -56,36 +56,36 @@ def create_evaluation():
 
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
 def get_evaluation(evaluationId):
-    token = get_token(request.headers)
+    token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=get-evaluation][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
-        'attempts': [a.__dict__ for a in attempts]
+        'attempts': [a.to_dict() for a in attempts]
     }
     return jsonify(result)
 
 @app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
 def process_attempt(evaluationId):
-    token = get_token(request.headers)
+    token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     f = request.files['recording']
     syllable_count = request.args.get('syllableCount')
     syllable_count = int(syllable_count)
-    term = request.args.get('word')
+    word = request.args.get('word')
     if syllable_count is None:
         raise InvalidRequestException('Must provide syllable count')
-    if term is None:
+    if word is None:
         raise InvalidRequestException('Must provide attempted word')
 
     method = request.args.get('method')
     if method is None or method == '':
         method = 'average'
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, method)
-    id = storage.create_attempt(evaluationId, term, wsd, duration, user)
+    id = storage.create_attempt(evaluationId, word, wsd, duration, user)
     result = {
         'attemptId': id,
         'wsd': wsd
@@ -94,7 +94,7 @@ def process_attempt(evaluationId):
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
-    token = get_token(request.headers)
+    token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     if request.method == 'POST':
         logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
