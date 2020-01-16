@@ -1,5 +1,5 @@
 # Apraxiator
-Server implemented in python for speech pathology tests. Focuses on Word Syllable Duration (WSD) calculations.
+Server implemented in python for speech pathology tests. Focuses on Word Syllable Duration (WSD) calculations. Running "run.sh" will install the necessary dependencies and run the server on a linux machine. Runs on port 8080. A healtcheck endpoint is available for testing at /healtcheck.
 
 
 ## API Endpoints
