@@ -25,7 +25,6 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
 
     def _add_evaluation(self, e):
         sql = 'INSERT INTO evaluations (evaluation_id, owner_id, ambience_threshold) VALUES (%s, %s, %s)'
-        self.logger.info(e.id)
         val = (e.id, e.owner_id, e.ambiance_threshold)
         self._execute_insert_query(sql, val)
         self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
