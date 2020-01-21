@@ -9,3 +9,6 @@ from wsdcalculator.calculatewsd import WSDCalculator
 
 from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
 from wsdcalculator.authentication.unauthenticatedexceptions import TokenExpiredException
+
+from wsdcalculator.storage.memorystorage import MemoryStorage
+from wsdcalculator.storage.storageexceptions import PermissionDeniedException
