@@ -2,7 +2,7 @@ from ..apraxiatorexception import ApraxiatorException
 
 class StorageException(ApraxiatorException):
     def __init__(self, inner_error=None):
-        self.inner_error = inner_error
+        super().__init__(inner_error)
 
     def get_message(self):
         return 'Problem Accessing Storage'
@@ -12,7 +12,7 @@ class StorageException(ApraxiatorException):
 
 class ResourceNotFoundException(StorageException):
     def __init__(self, resource_id, inner_error=None):
-        super(inner_error)
+        super().__init__(inner_error)
         self.resource_id = resource_id
 
     def get_message(self):
@@ -23,7 +23,7 @@ class ResourceNotFoundException(StorageException):
 
 class PermissionDeniedException(StorageException):
     def __init__(self, resource_id, user_id, inner_error=None):
-        super(inner_error)
+        super().__init__(inner_error)
         self.resource_id = resource_id
         self.user_id = user_id
 

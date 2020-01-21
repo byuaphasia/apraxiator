@@ -2,7 +2,7 @@ from ..apraxiatorexception import ApraxiatorException
 
 class UnauthenticatedException(ApraxiatorException):
     def __init__(self, inner_error=None):
-        self.inner_error = inner_error
+        super().__init__(inner_error)
     
     def get_message(self):
         return 'User Not Authenticated'

@@ -20,7 +20,7 @@ class NotImplementedException(ApraxiatorException):
 
 class InvalidRequestException(ApraxiatorException):
     def __init__(self, issue, inner_error=None):
-        super(inner_error)
+        super().__init__(inner_error)
         self.issue = issue
 
     def get_message(self):
