@@ -51,7 +51,6 @@ def create_evaluation():
     result = {
         'evaluationId': id
     }
-    logger.info('evaluation created')
     return jsonify(result)
 
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
