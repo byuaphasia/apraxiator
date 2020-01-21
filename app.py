@@ -98,10 +98,8 @@ def save_recording(evaluationId, attemptId):
     if request.method == 'POST':
         logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = request.files['recording'].read()
-        id = storage.save_recording(f, evaluationId, attemptId, user)
-        result = {
-            'attemptId': id
-        }
+        storage.save_recording(f, evaluationId, attemptId, user)
+        result = {}
         result = jsonify(result)
         return result
     else:

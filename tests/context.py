@@ -12,3 +12,4 @@ from wsdcalculator.authentication.unauthenticatedexceptions import TokenExpiredE
 
 from wsdcalculator.storage.memorystorage import MemoryStorage
 from wsdcalculator.storage.storageexceptions import PermissionDeniedException
+from wsdcalculator.storage.sqlstorage import SQLStorage
