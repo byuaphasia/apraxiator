@@ -9,7 +9,7 @@ from ..models.attempt import Attempt
 from .dbexceptions import ConnectionException
 from .storageexceptions import PermissionDeniedException
 
-class SQLStorage(EvaluationStorage):
+class SQLStorage(EvaluationStorage, RecordingStorage):
     def __init__(self):
         p = os.environ.get('MYSQL_PASSWORD', None)
         self.db = pymysql.connections.Connection(user='root', password=p, database='apraxiator')
@@ -91,7 +91,6 @@ class SQLStorage(EvaluationStorage):
         val = (attempt_id,)
         res = self._execute_select_query(sql, val)
         self.logger.info('[event=recording-retrieved][attemptId=%s]', attempt_id)
-        print(res[0])
         return res[0]
 
     def _create_tables(self):

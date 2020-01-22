@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, send_file
 import os
 import io
-import pdb
 
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
@@ -85,7 +84,6 @@ def process_attempt(evaluationId):
     if method is None or method == '':
         method = 'average'
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
-    logger.info('USER: %s', user)
     id = storage.create_attempt(evaluationId, word, wsd, duration, user)
     result = {
         'attemptId': id,
@@ -100,7 +98,6 @@ def save_recording(evaluationId, attemptId):
     if request.method == 'POST':
         logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = request.files['recording'].read()
-        print(type(f))
         storage.save_recording(f, evaluationId, attemptId, user)
         result = {}
         result = jsonify(result)
@@ -111,4 +108,4 @@ def save_recording(evaluationId, attemptId):
         return send_file(io.BytesIO(f), mimetype='audio/wav')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)#, ssl_context=('cert.pem', 'key.pem'))
+    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
