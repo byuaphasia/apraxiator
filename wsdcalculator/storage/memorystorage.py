@@ -4,7 +4,7 @@ from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from .storageexceptions import ResourceNotFoundException, PermissionDeniedException
 
-class MemoryStorage(EvaluationStorage, RecordingStorage):
+class MemoryStorage(EvaluationStorage):
     def __init__(self):
         self.evaluations = {}
         self.attempts = {}

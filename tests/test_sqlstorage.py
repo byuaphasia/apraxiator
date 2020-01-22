@@ -25,15 +25,15 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_create_attempt(self):
         evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         self.assertEqual('AT-', attempt_id[0:3])
 
         with self.assertRaises(PermissionDeniedException):
-            storage.create_attempt(evaluation_id, 'word', 0, 0, bad_owner_id)
+            storage.create_attempt(evaluation_id, 'word', 4, 12, bad_owner_id)
 
     def test_fetch_attempts(self):
         evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         attempts = storage.fetch_attempts(evaluation_id, owner_id)
         self.assertEqual(1, len(attempts))
         self.assertEqual(attempt_id, attempts[0].id)
@@ -44,7 +44,7 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_save_recording(self):
         evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
 
         with self.assertRaises(PermissionDeniedException):
@@ -53,14 +53,16 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_get_recording(self):
         evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
         recording = storage.get_recording(evaluation_id, attempt_id, owner_id)
-        data, sr = sf.read(recording)
+
+        print(create_mock_recording())
+        data, sr = sf.read(create_mock_recording())
         self.assertEqual(1, sr)
         self.assertTrue(np.array_equal(sample_data, data))
 
 def create_mock_recording():
         file_object = io.BytesIO()
-        sf.write(file_object, sample_data, samplerate=1)
-        return file_object
+        sf.write(file_object, sample_data, samplerate=1, format='WAV')
+        return file_object.read()
