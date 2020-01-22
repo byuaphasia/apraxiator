@@ -4,7 +4,7 @@ import numpy as np
 from .thresholddetector import ThresholdDetector
 
 class Filterer(ThresholdDetector):
-    def get_speech_sample_count(self, audio, threshold, sr):
+    def get_speech_sample_count(self, audio, threshold, sr, **kwargs):
         """ Calculates speech duration in milliseconds based off an associated environment threshold.
         Smooths amplitude measurements and identifies speech by comparing it to that threshold.
 

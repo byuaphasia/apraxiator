@@ -9,14 +9,14 @@ class ThresholdDetector:
         """
         self.storage = storage
 
-    def measure(self, audio, sr, evaluation_id):
+    def measure(self, audio, sr, evaluation_id, **kwargs):
         audio = self.smooth(audio)
         threshold = self.get_threshold(evaluation_id)
-        num_speech_samples = self.get_speech_sample_count(audio, threshold, sr)
+        num_speech_samples = self.get_speech_sample_count(audio, threshold, sr, **kwargs)
         num_speech_seconds = num_speech_samples / sr
         return num_speech_seconds * self.num_milliseconds_per_second
 
-    def get_speech_sample_count(self, audio, threshold, sr):
+    def get_speech_sample_count(self, audio, threshold, sr, **kwargs):
         return -1
 
     def smooth(self, audio, window=20):

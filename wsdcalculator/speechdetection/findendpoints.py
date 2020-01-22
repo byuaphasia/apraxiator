@@ -4,7 +4,7 @@ import numpy as np
 from .thresholddetector import ThresholdDetector
 
 class EndpointFinder(ThresholdDetector):
-    def get_speech_sample_count(self, audio, threshold, sr):
+    def get_speech_sample_count(self, audio, threshold, sr, **kwargs):
         """ Calculates speech duration in milliseconds based off an associated environment threshold.
         Uses the threshold to find the start and end points of speech.
 
@@ -15,11 +15,14 @@ class EndpointFinder(ThresholdDetector):
         Returns:
         float: milliseconds of speech
         """
-        start = self.find_start_point(audio, threshold, sr)
-        end = self.find_end_point(audio, threshold, sr)
+        window_ratio = kwargs.get('window_ratio', 0.1)
+        percentile = kwargs.get('percentile', 30)
+
+        start = self.find_start_point(audio, threshold, sr, window_ratio, percentile)
+        end = self.find_end_point(audio, threshold, sr, window_ratio, percentile)
         return end - start
 
-    def find_start_point(self, audio, threshold, sr, window_ratio=0.15, percentile=40):
+    def find_start_point(self, audio, threshold, sr, window_ratio, percentile):
         window = int(sr * window_ratio)
         start = -1
         for i in range(len(audio)):
@@ -30,7 +33,7 @@ class EndpointFinder(ThresholdDetector):
                 break
         return start
 
-    def find_end_point(self, audio, threshold, sr, window_ratio=0.15, percentile=40):
+    def find_end_point(self, audio, threshold, sr, window_ratio, percentile):
         window = int(sr * window_ratio)
         end = -1
         l = len(audio)
