@@ -14,6 +14,6 @@ def read(file_object):
         raise InvalidRequestException('Invalid WAV file provided', e)
     if len(data.shape) > 1:
         logger.info('[event=stereo-file-found][fileShape=%s]', data.shape)
-        data = np.mean(data, axis=0)
+        data = np.mean(data, axis=1)
     logger.info('[event=file-read][fileShape=%s][sampleRate=%s]', data.shape, sr)
     return data, sr
