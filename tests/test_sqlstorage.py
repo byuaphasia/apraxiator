@@ -6,7 +6,10 @@ import os
 
 from .context import SQLStorage, PermissionDeniedException
 
-storage = SQLStorage()
+try:
+    storage = SQLStorage()
+except Exception:
+    storage = None
 owner_id = 'OWNER'
 bad_owner_id = 'NOT THE OWNER'
 sample_data = np.zeros(8000)

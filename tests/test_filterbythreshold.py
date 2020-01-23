@@ -25,7 +25,7 @@ class TestEndpointFinder(unittest.TestCase):
             
             speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
             audio, sr = sf.read(speech_path)
-            speech_duration = self.detector.measure(audio, sr, id)
+            speech_duration = self.detector.measure(audio, sr, id, '')
 
             expected_duration = float(case['speechDuration'])
 
