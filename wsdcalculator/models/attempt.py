@@ -17,3 +17,8 @@ class Attempt:
             'dateCreated': self.date_created
         }
         return r
+
+    @staticmethod
+    def from_row(row):
+        evaluation_id, word, id, wsd, duration, date_created = row
+        return Attempt(id, evaluation_id, word, wsd, duration, date_created)

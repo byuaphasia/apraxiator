@@ -15,7 +15,7 @@ class WSDCalculator():
         }
         self.logger = logging.getLogger(__name__)
 
-    def calculate_wsd(self, recording, syllable_count, evaluation_id, method='average'):
+    def calculate_wsd(self, recording, syllable_count, evaluation_id, user_id, method='average'):
         """ Uses the supplied method to calculate a Word Syllable Duration (WSD) measurement.
 
         Parameters:
@@ -38,11 +38,12 @@ class WSDCalculator():
         if m is None:
             total = 0
             for mes in self.measurers.values():
-                total += mes.measure(audio, sr, evaluation_id)
+                total += mes.measure(audio, sr, evaluation_id, user_id)
             duration = total / len(self.measurers)
         else:
-            duration = m.measure(audio, sr, evaluation_id)
-
+            duration = m.measure(audio, sr, evaluation_id, user_id)
+            
+        duration = float(duration)
         wsd = duration / syllable_count
 
         self.logger.info('[event=wsd-calculated][evaluationId=%s][duration=%s][syllableCount=%s][wsd=%s]', evaluation_id, duration, syllable_count, wsd)

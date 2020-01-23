@@ -1,15 +1,9 @@
-import logging
-
 from .idgenerator import IdGenerator
 from ..models.attempt import Attempt
 from ..models.evaluation import Evaluation
 from ..apraxiatorexception import NotImplementedException
 
 class EvaluationStorage(IdGenerator):
-    def __init__(self):
-        self.thresholds = {}
-        self.attempts = {}
-
     def is_healthy(self):
         raise NotImplementedException()
     
@@ -30,8 +24,6 @@ class EvaluationStorage(IdGenerator):
         raise NotImplementedException()
 
     def create_attempt(self, evaluation_id, word, wsd, duration, owner_id):
-        logger = logging.getLogger(__name__)
-        logger.info('Starting to create the attempt for evaluationId %s and ownerId %s', evaluation_id, owner_id)
         self._check_is_owner(evaluation_id, owner_id)
         id = self.create_id('AT')
         a = Attempt(id, evaluation_id, word, wsd, duration)

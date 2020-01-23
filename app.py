@@ -83,7 +83,7 @@ def process_attempt(evaluationId):
     method = request.args.get('method')
     if method is None or method == '':
         method = 'average'
-    wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, method)
+    wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
     id = storage.create_attempt(evaluationId, word, wsd, duration, user)
     result = {
         'attemptId': id,

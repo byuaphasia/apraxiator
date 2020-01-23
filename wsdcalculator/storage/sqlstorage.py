@@ -24,7 +24,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
             raise ConnectionException(e)
 
     def _add_evaluation(self, e):
-        sql = 'INSERT INTO evaluations (evaluation_id, owner_id, ambience_threshold) VALUES (%s, %s, %s)'
+        sql = 'INSERT INTO evaluations (evaluation_id, owner_id, ambiance_threshold) VALUES (%s, %s, %s)'
         val = (e.id, e.owner_id, e.ambiance_threshold)
         self._execute_insert_query(sql, val)
         self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
@@ -48,7 +48,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         res = self._execute_select_many_query(sql, val)
         attempts = []
         for row in res:
-            attempts.append(*row)
+            attempts.append(Attempt.from_row(row))
         self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
         return attempts
 
