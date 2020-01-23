@@ -1,9 +1,8 @@
-import soundfile as sf
 import logging
 
 from .speechdetection.filterbythreshold import Filterer
 from .speechdetection.findendpoints import EndpointFinder
-from .apraxiatorexception import InvalidRequestException
+from .wavreader.wavreader import read
 
 class WSDCalculator():
     def __init__(self, storage):
@@ -15,7 +14,7 @@ class WSDCalculator():
         }
         self.logger = logging.getLogger(__name__)
 
-    def calculate_wsd(self, recording, syllable_count, evaluation_id, user_id, method='average'):
+    def calculate_wsd(self, recording, syllable_count, evaluation_id, user_id, method='endpoint'):
         """ Uses the supplied method to calculate a Word Syllable Duration (WSD) measurement.
 
         Parameters:
@@ -27,11 +26,7 @@ class WSDCalculator():
         Returns:
         float: WSD measurement, average milliseconds per syllable in the recording
         """
-        try:
-            audio, sr = sf.read(recording)
-        except Exception as e:
-            self.logger.exception('[event=read-file-failure]')
-            raise InvalidRequestException('Invalid WAV file provided', e)
+        audio, sr = read(recording)
 
         m = self.measurers.get(method, None)
         # Default is to average all methods
