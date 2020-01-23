@@ -2,13 +2,14 @@ import unittest
 import soundfile as sf
 import io
 import numpy as np
+import os
 
 from .context import SQLStorage, PermissionDeniedException
 
 storage = SQLStorage()
 owner_id = 'OWNER'
 bad_owner_id = 'NOT THE OWNER'
-sample_data = np.asarray([1,2,3,4])
+sample_data = np.zeros(8000)
 
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
@@ -57,12 +58,15 @@ class TestSQLStorage(unittest.TestCase):
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
         recording = storage.get_recording(evaluation_id, attempt_id, owner_id)
 
-        print(create_mock_recording())
-        data, sr = sf.read(create_mock_recording())
-        self.assertEqual(1, sr)
+        data, sr = sf.read(io.BytesIO(recording))
+        self.assertEqual(8000, sr)
         self.assertTrue(np.array_equal(sample_data, data))
 
+    @classmethod
+    def tearDownClass(cls):
+        os.remove('test_wav.wav')
+
 def create_mock_recording():
-        file_object = io.BytesIO()
-        sf.write(file_object, sample_data, samplerate=1, format='WAV')
-        return file_object.read()
+        sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
+        sound.write(sample_data)
+        return open('test_wav.wav', 'rb').read()

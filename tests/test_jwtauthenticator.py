@@ -4,8 +4,8 @@ import os
 
 from .context import JWTAuthenticator, TokenExpiredException
 
-ex_jwt = os.environ['APX_EX_JWT']
-ex_user = os.environ['APX_EX_USR']
+ex_jwt = os.environ.get('APX_EX_JWT', '')
+ex_user = os.environ.get('APX_EX_USR', '')
 
 class TestJWTAuthenticator(unittest.TestCase):
     def test_getUser(self):

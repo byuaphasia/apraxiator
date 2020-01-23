@@ -25,7 +25,7 @@ class TestWSDCalculator(unittest.TestCase):
             
             speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
             syllable_count = int(case['syllableCount'])
-            wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, method='endpoint')
+            wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, '', method='endpoint')
 
             expected_wsd = float(case['expectedWsd'])
 
@@ -51,7 +51,7 @@ class TestWSDCalculator(unittest.TestCase):
             
             speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
             syllable_count = int(case['syllableCount'])
-            wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, method='filter')
+            wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, '', method='filter')
 
             expected_wsd = float(case['expectedWsd'])
 
@@ -77,7 +77,7 @@ class TestWSDCalculator(unittest.TestCase):
             
             speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
             syllable_count = int(case['syllableCount'])
-            wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, method='average')
+            wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, '', method='average')
 
             expected_wsd = float(case['expectedWsd'])
 
