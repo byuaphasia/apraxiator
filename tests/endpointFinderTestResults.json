@@ -1,82 +1,82 @@
 {
     "CT/constitution.wav": {
         "expected": 958.75,
-        "actual": 1001.9954648526077
+        "actual": 974.7392290249434
     },
     "CT/flattering.wav": {
         "expected": 803.63,
-        "actual": 649.9319727891157
+        "actual": 613.2426303854876
     },
     "CT/gingerbread.wav": {
         "expected": 867.12,
-        "actual": 785.6462585034013
+        "actual": 729.5238095238095
     },
     "CT/harmonica.wav": {
         "expected": 840.93,
-        "actual": 957.4603174603175
+        "actual": 910.9750566893424
     },
     "CT/jabbering.wav": {
         "expected": 689.31,
-        "actual": 611.859410430839
+        "actual": 573.7868480725623
     },
     "CT/spaghetti.wav": {
         "expected": 771.66,
-        "actual": 843.9002267573696
+        "actual": 784.5804988662131
     },
     "CT/stethoscope.wav": {
         "expected": 936.47,
-        "actual": 1149.8639455782313
+        "actual": 1068.503401360544
     },
     "CT/thickening.wav": {
         "expected": 564.49,
-        "actual": 525.3514739229025
+        "actual": 471.13378684807253
     },
     "CT/volcano.wav": {
         "expected": 739.65,
-        "actual": 719.954648526077
+        "actual": 719.047619047619
     },
     "CT/zippering.wav": {
         "expected": 702.9,
-        "actual": 648.6167800453516
+        "actual": 638.4807256235827
     },
     "TH/constitution.wav": {
         "expected": 990.78,
-        "actual": 1079.9319727891157
+        "actual": 1017.9591836734694
     },
     "TH/flattering.wav": {
         "expected": 804.98,
-        "actual": 918.0272108843538
+        "actual": 837.1655328798186
     },
     "TH/gingerbread.wav": {
         "expected": 737.84,
-        "actual": 775.5102040816327
+        "actual": 774.6031746031746
     },
     "TH/harmonica.wav": {
         "expected": 860.61,
-        "actual": 961.9501133786848
+        "actual": 893.265306122449
     },
     "TH/jabbering.wav": {
         "expected": 737.23,
-        "actual": 648.1632653061224
+        "actual": 607.2335600907029
     },
     "TH/spaghetti.wav": {
         "expected": 715.89,
-        "actual": 794.1043083900227
+        "actual": 713.0839002267574
     },
     "TH/stethoscope.wav": {
         "expected": 1078.13,
-        "actual": 1071.0657596371882
+        "actual": 1070.1587301587301
     },
     "TH/thickening.wav": {
         "expected": 651.36,
-        "actual": 643.4013605442177
+        "actual": 618.9569160997733
     },
     "TH/volcano.wav": {
         "expected": 696.63,
-        "actual": 781.7233560090702
+        "actual": 680.3174603174604
     },
     "TH/zippering.wav": {
         "expected": 665.22,
-        "actual": 751.0204081632653
+        "actual": 652.9251700680272
     }
 }
