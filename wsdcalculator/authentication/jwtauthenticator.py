@@ -6,10 +6,11 @@ from jwcrypto import jwk
 from .unauthenticatedexceptions import TokenExpiredException, InvalidTokenException, UnauthenticatedException, MissingTokenException
 
 HEADER_KEY = 'TOKEN'
+auth_dir = '../apx-resources/auth/'
 
 class JWTAuthenticator:
     def __init__(self):
-        keys_json = open('wsdcalculator/authentication/jwk.json', 'r').read()
+        keys_json = open(auth_dir + 'jwk.json', 'r').read()
         self.keyset = jwk.JWKSet().from_json(keys_json)
         self.logger = logging.getLogger(__name__)
         self.header_key = 'TOKEN'

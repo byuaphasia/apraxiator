@@ -1,16 +1,17 @@
 import unittest
 import json
 import os
+from datetime import datetime
 
 from .context import WSDCalculator, memorystorage, get_environment_percentile
 
 results = {}
+test_dir_root = '../apx-resources/recordings/'
+test_results_dir = '../apx-resources/test-results/'
 
 class TestWSDCalculator(unittest.TestCase):
-    local_dir = os.path.dirname(__file__) + '/'
-    recordings_dir = 'recordings/'
     def setUp(self):
-        filename = os.path.abspath(self.local_dir + 'testCases.json')
+        filename = os.path.abspath(test_dir_root + 'testCases.json')
         self.test_cases = json.load(open(filename, 'r'))
         self.storage = memorystorage.MemoryStorage()
         self.calculator = WSDCalculator(self.storage)
@@ -19,11 +20,11 @@ class TestWSDCalculator(unittest.TestCase):
         for case in self.test_cases:
             basic_path = case['soundUri']
 
-            amb_path = os.path.abspath(self.local_dir + self.recordings_dir + case['ambUri'])
+            amb_path = os.path.abspath(test_dir_root + case['ambUri'])
             threshold = get_environment_percentile(amb_path)
             id = self.storage.create_evaluation(threshold, '')
             
-            speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
+            speech_path = os.path.abspath(test_dir_root + case['speechUri'])
             syllable_count = int(case['syllableCount'])
             wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, '', method='endpoint')
 
@@ -39,17 +40,17 @@ class TestWSDCalculator(unittest.TestCase):
             results[basic_path] = r
 
         for path, r in results.items():
-            self.assertAlmostEqual(r['endpointFinderActual'], r['expected'], delta=300, msg='for file: {}'.format(path))
+            self.assertAlmostEqual(r['endpointFinderActual'], r['expected'], delta=75, msg='for file: {}'.format(path))
 
     def test_wsd_filterer(self):
         for case in self.test_cases:
             basic_path = case['soundUri']
 
-            amb_path = os.path.abspath(self.local_dir + self.recordings_dir + case['ambUri'])
+            amb_path = os.path.abspath(test_dir_root + case['ambUri'])
             threshold = get_environment_percentile(amb_path)
             id = self.storage.create_evaluation(threshold, '')
             
-            speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
+            speech_path = os.path.abspath(test_dir_root + case['speechUri'])
             syllable_count = int(case['syllableCount'])
             wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, '', method='filter')
 
@@ -65,17 +66,17 @@ class TestWSDCalculator(unittest.TestCase):
             results[basic_path] = r
 
         for path, r in results.items():
-            self.assertAlmostEqual(r['filtererActual'], r['expected'], delta=300, msg='for file: {}'.format(path))
+            self.assertAlmostEqual(r['filtererActual'], r['expected'], delta=100, msg='for file: {}'.format(path))
 
     def test_wsd_average(self):
         for case in self.test_cases:
             basic_path = case['soundUri']
 
-            amb_path = os.path.abspath(self.local_dir + self.recordings_dir + case['ambUri'])
+            amb_path = os.path.abspath(test_dir_root + case['ambUri'])
             threshold = get_environment_percentile(amb_path)
             id = self.storage.create_evaluation(threshold, '')
             
-            speech_path = os.path.abspath(self.local_dir + self.recordings_dir + case['speechUri'])
+            speech_path = os.path.abspath(test_dir_root + case['speechUri'])
             syllable_count = int(case['syllableCount'])
             wsd, _ = self.calculator.calculate_wsd(speech_path, syllable_count, id, '', method='average')
 
@@ -91,9 +92,10 @@ class TestWSDCalculator(unittest.TestCase):
             results[basic_path] = r
 
         for path, r in results.items():
-            self.assertAlmostEqual(r['averageActual'], r['expected'], delta=300, msg='for file: {}'.format(path))
+            self.assertAlmostEqual(r['averageActual'], r['expected'], delta=100, msg='for file: {}'.format(path))
 
 
     @classmethod
     def tearDownClass(cls):
-        json.dump(results, open('tests/wsdCalculatorTestResults.json', 'w+'), indent=4)
+        filename = test_results_dir + 'calculateWsd' + datetime.now().isoformat() + '.json'
+        json.dump(results, open(filename, 'w+'), indent=4)
