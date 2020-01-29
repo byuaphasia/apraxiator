@@ -6,7 +6,7 @@ import pickle
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from ..models.attempt import Attempt
-from .dbexceptions import ConnectionException
+from .dbexceptions import ConnectionException, ResourceAccessException
 from .storageexceptions import PermissionDeniedException
 
 class SQLStorage(EvaluationStorage, RecordingStorage):
@@ -26,26 +26,42 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
     def _add_evaluation(self, e):
         sql = 'INSERT INTO evaluations (evaluation_id, owner_id, ambiance_threshold) VALUES (%s, %s, %s)'
         val = (e.id, e.owner_id, e.ambiance_threshold)
-        self._execute_insert_query(sql, val)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as ex:
+            self.logger.exception('[event=add-evaluation-failure][evaluationId=%s]', e.id)
+            raise ResourceAccessException(e.id, ex)
         self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
 
     def _get_threshold(self, id):
         sql = 'SELECT ambiance_threshold FROM evaluations WHERE evaluation_id = %s'
         val = (id,)
-        res = self._execute_select_query(sql, val)
+        try:
+            res = self._execute_select_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-threshold-failure][evaluationId=%s]', id)
+            raise ResourceAccessException(id, e)
         self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, res[0])
         return res[0]
     
     def _add_attempt(self, a):
         sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
         val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration)
-        self._execute_insert_query(sql, val)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=add-attempt-failure][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
+            raise ResourceAccessException(a.id, e)
         self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
 
     def _get_attempts(self, evaluation_id):
         sql = 'SELECT * FROM attempts WHERE evaluation_id = %s'
         val = (evaluation_id,)
-        res = self._execute_select_many_query(sql, val)
+        try:
+            res = self._execute_select_many_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-attempts-failure][evaluationId=%s]', evaluation_id)
+            raise ResourceAccessException(evaluation_id, e)
         attempts = []
         for row in res:
             attempts.append(Attempt.from_row(row))
@@ -83,13 +99,21 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
     def _save_recording(self, recording, attempt_id):
         sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
         val = (attempt_id, recording)
-        self._execute_insert_query(sql, val)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=save-recording-failure][attemptId=%s]', attempt_id)
+            raise ResourceAccessException(attempt_id, e)
         self.logger.info('[event=recording-saved][attemptId=%s]', attempt_id)
 
     def _get_recording(self, attempt_id):
         sql = 'SELECT recording FROM recordings WHERE attempt_id = %s'
         val = (attempt_id,)
-        res = self._execute_select_query(sql, val)
+        try:
+            res = self._execute_select_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-recording-failure][attemptId=%s]', attempt_id)
+            raise ResourceAccessException(attempt_id, e)
         self.logger.info('[event=recording-retrieved][attemptId=%s]', attempt_id)
         return res[0]
 
