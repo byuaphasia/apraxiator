@@ -4,8 +4,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.storage import memorystorage
-from wsdcalculator.speechdetection import filterbythreshold, findendpoints, clustering
+from wsdcalculator.speechdetection import filterbythreshold, findendpoints, clustering, invalidsampleexceptions
 from wsdcalculator.calculatewsd import WSDCalculator
+from wsdcalculator.wavreader.wavreader import read
 
 from wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator
 from wsdcalculator.authentication.unauthenticatedexceptions import TokenExpiredException

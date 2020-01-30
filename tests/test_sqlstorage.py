@@ -70,6 +70,6 @@ class TestSQLStorage(unittest.TestCase):
         os.remove('test_wav.wav')
 
 def create_mock_recording():
-        sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
-        sound.write(sample_data)
-        return open('test_wav.wav', 'rb').read()
+    sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
+    sound.write(sample_data)
+    return open('test_wav.wav', 'rb').read()
