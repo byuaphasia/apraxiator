@@ -44,4 +44,4 @@ class EndpointFinder(ThresholdDetector):
             end = self.find_start_point(reversed_audio, threshold, sr, window_ratio, percentile)
         except InvalidSpeechSampleException:
             raise InvalidSpeechSampleException('no end point of speech found')
-        return end
+        return len(audio) - end
