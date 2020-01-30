@@ -3,8 +3,9 @@ import json
 import os
 import soundfile as sf
 from datetime import datetime
+import numpy as np
 
-from .context import get_environment_percentile, memorystorage, findendpoints
+from .context import get_environment_percentile, memorystorage, findendpoints, invalidsampleexceptions
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
@@ -39,6 +40,15 @@ class TestEndpointFinder(unittest.TestCase):
 
         for path, r in self.results.items():
             self.assertAlmostEqual(r['actual'], r['expected'], delta=200, msg='for file: {}'.format(path))
+
+    def test_loud_threshold(self):
+        threshold = 0.5
+        audio = np.full(20000, 0.2)
+        sr = 16000
+        id = self.storage.create_evaluation(threshold, '')
+
+        with self.assertRaises(invalidsampleexceptions.InvalidSpeechSampleException):
+            self.detector.measure(audio, sr, id, '')
 
     def tearDown(self):
         filename = test_results_dir + 'findEndpoints' + datetime.now().isoformat() + '.json'

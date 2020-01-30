@@ -77,7 +77,9 @@ def process_attempt(evaluationId):
     word = request.args.get('word')
     if syllable_count is None:
         raise InvalidRequestException('Must provide syllable count')
-    if word is None:
+    elif syllable_count <= 0:
+        raise InvalidRequestException('Syllable count was {}, must be greater than 0'.format(syllable_count))
+    if word is None or word == '':
         raise InvalidRequestException('Must provide attempted word')
 
     method = request.args.get('method')

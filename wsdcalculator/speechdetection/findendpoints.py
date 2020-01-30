@@ -2,6 +2,7 @@ import soundfile as sf
 import numpy as np
 
 from .thresholddetector import ThresholdDetector
+from .invalidsampleexceptions import InvalidSpeechSampleException
 
 class EndpointFinder(ThresholdDetector):
     def get_speech_sample_count(self, audio, threshold, sr, **kwargs):
@@ -25,23 +26,22 @@ class EndpointFinder(ThresholdDetector):
     def find_start_point(self, audio, threshold, sr, window_ratio, percentile):
         window = int(sr * window_ratio)
         start = -1
-        for i in range(len(audio)):
+        for i in range(len(audio)-window):
             if audio[i] < threshold:
                 continue
             if np.percentile(np.abs(audio[i:i+window]), percentile) > threshold:
                 start = i
                 break
+        # In this case, no start point was found, so the threshold was louder than the recording sufficiently
+        if start == -1:
+            self.logger.error('[event=endpoint-not-found][threshold=%s][audioShape=%s]', threshold, audio.shape)
+            raise InvalidSpeechSampleException('no start point of speech found')
         return start
 
     def find_end_point(self, audio, threshold, sr, window_ratio, percentile):
-        window = int(sr * window_ratio)
-        end = -1
-        l = len(audio)
-        for i in range(1, l + 1):
-            if audio[l - i] < threshold:
-                continue
-            p = np.percentile(np.abs(audio[l-i-window:l-i]), percentile)
-            if p > threshold:
-                end = l - i
-                break
-        return end
+        reversed_audio = np.flip(audio)
+        try:
+            end = self.find_start_point(reversed_audio, threshold, sr, window_ratio, percentile)
+        except InvalidSpeechSampleException:
+            raise InvalidSpeechSampleException('no end point of speech found')
+        return len(audio) - end
