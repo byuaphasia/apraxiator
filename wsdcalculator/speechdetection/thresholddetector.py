@@ -1,5 +1,9 @@
 import soundfile as sf
 import numpy as np
+import logging
+
+from ..apraxiatorexception import NotImplementedException, ApraxiatorException
+from .invalidsampleexceptions import SpeechDetectionException
 
 class ThresholdDetector:
     num_milliseconds_per_second = 1000
@@ -8,11 +12,21 @@ class ThresholdDetector:
         evaluation_id (str): id connecting incoming recordings to an evaluation group
         """
         self.storage = storage
+        self.logger = logging.getLogger(__name__)
 
     def measure(self, audio, sr, evaluation_id, user_id, **kwargs):
-        audio = self.smooth(audio)
-        threshold = self.get_threshold(evaluation_id, user_id)
-        num_speech_samples = self.get_speech_sample_count(audio, threshold, sr, **kwargs)
+        try:
+            audio = self.smooth(audio)
+            threshold = self.get_threshold(evaluation_id, user_id)
+            num_speech_samples = self.get_speech_sample_count(audio, threshold, sr, **kwargs)
+        except ApraxiatorException as e:
+            raise e
+        except Exception as e:
+            self.logger.exception('[event=speech-detection-failure][evaluationId=%s]', evaluation_id)
+            raise SpeechDetectionException(e)
+        if num_speech_samples == -1:
+            raise NotImplementedException()
+
         num_speech_seconds = num_speech_samples / sr
         return num_speech_seconds * self.num_milliseconds_per_second
 
