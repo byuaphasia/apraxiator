@@ -7,6 +7,9 @@ from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.authentication.authprovider import get_auth
 from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidRequestException
 
+from waiver.waiver_sender import WaiverSender
+from waiver.waiver_generator import WaiverGenerator
+
 import logging
 from log.setup import setup_logger
 
@@ -108,6 +111,34 @@ def save_recording(evaluationId, attemptId):
         logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = storage.get_recording(evaluationId, attemptId, user)
         return send_file(io.BytesIO(f), mimetype='audio/wav')
+
+
+@app.route('/waiver/<signer>', methods=['POST'])
+def save_waiver(signer):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=save-waiver][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
+    generator = WaiverGenerator()
+    res_name = request.values.get('researchSubjectName')
+    res_email = request.values.get('researchSubjectEmail')
+    if signer == 'subject':
+        res_file = request.files['researchSubjectSignature']
+        res_date = request.values.get('researchSubjectDate')
+        report_file = generator.create_pdf_report(res_name, res_email, res_file, res_date, '', '', '', None)
+    elif signer == 'representative':
+        rep_file = request.files['representativeSignature']
+        rep_name = request.values.get('representativeName')
+        rep_relationship = request.values.get('representativeRelationship')
+        rep_date = request.values.get('representativeDate')
+        report_file = generator.create_pdf_report(
+            res_name, res_email, None, '', rep_name, rep_relationship, rep_date, rep_file
+        )
+    else:
+        raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
+#     TODO: save report in storage somewhere with other info
+    sender = WaiverSender()
+    sender.send_waiver(report_file, res_email)
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
