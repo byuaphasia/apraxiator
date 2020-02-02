@@ -119,8 +119,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
 
     def _create_tables(self):
         create_evaluations_statement = ("CREATE TABLE IF NOT EXISTS `evaluations` ("
-            "`evaluation_id` varchar(36) NOT NULL,"
-            "`owner_id` varchar(36) NOT NULL,"
+            "`evaluation_id` varchar(48) NOT NULL,"
+            "`owner_id` varchar(48) NOT NULL,"
             "`ambiance_threshold` float DEFAULT NULL,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
             "PRIMARY KEY (`evaluation_id`)"
