@@ -21,7 +21,7 @@ class WaiverSender:
         msg['From'] = self.email
         msg['To'] = to_email
         msg['Subject'] = "Signed copy of HIPAA Waiver"
-        body = "Attached below is your signed copy of the HIPAA Waiver"
+        body = "Attached below is your signed copy of the HIPAA Waiver.\n\n"
         msg.attach(MIMEText(body, 'plain'))
         filename = "Signed HIPAA Waiver.pdf"
         attachment = open(waiver_file, "rb")
