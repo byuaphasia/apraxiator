@@ -124,14 +124,14 @@ def save_waiver(signer):
     if signer == 'subject':
         res_file = request.files['researchSubjectSignature']
         res_date = request.values.get('researchSubjectDate')
-        report_file = generator.create_pdf_report(res_name, res_email, res_file, res_date, '', '', '', None)
+        report_file = generator.create_pdf_report(res_name, res_email, res_date, res_file, '', '', '', None)
     elif signer == 'representative':
         rep_file = request.files['representativeSignature']
         rep_name = request.values.get('representativeName')
         rep_relationship = request.values.get('representativeRelationship')
         rep_date = request.values.get('representativeDate')
         report_file = generator.create_pdf_report(
-            res_name, res_email, None, '', rep_name, rep_relationship, rep_date, rep_file
+            res_name, res_email, '', None, rep_name, rep_relationship, rep_date, rep_file
         )
     else:
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')

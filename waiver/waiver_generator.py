@@ -13,12 +13,10 @@ class WaiverGenerator:
         representative_signature_path = ''
         if research_subject_signature is not None:
             research_subject_signature_path = self.get_tmpfile()
-            with open(research_subject_signature_path) as tmp_file:
-                tmp_file.write(research_subject_signature)
+            research_subject_signature.save(research_subject_signature_path)
         if representative_signature is not None:
             representative_signature_path = self.get_tmpfile()
-            with open(representative_signature_path) as tmp_file:
-                tmp_file.write(representative_signature)
+            representative_signature.save(representative_signature_path)
 
         env = Environment(loader=FileSystemLoader(dir_path, encoding='utf-16'))
         template = env.get_template('waiver_template.html', )
