@@ -136,8 +136,14 @@ def save_waiver(signer):
     else:
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
 #     TODO: save report in storage somewhere with other info
+    logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
     sender = WaiverSender()
     sender.send_waiver(report_file, res_email)
+    logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
+    result = {
+        'message': 'Waiver successfully sent to %s'.format(res_email)
+    }
+    return jsonify(result)
 
 
 if __name__ == '__main__':
