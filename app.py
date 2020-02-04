@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify, send_file
-import os
 import io
 
 from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.authentication.authprovider import get_auth
 from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidRequestException
+from wsdcalculator.storage.dbexceptions import WaiverAlreadyExists
 
-from waiver.waiver_sender import WaiverSender
-from waiver.waiver_generator import WaiverGenerator
+from wsdcalculator.waiver.waiver_sender import WaiverSender
+from wsdcalculator.waiver.waiver_generator import WaiverGenerator
+from wsdcalculator.models.waiver import Waiver
 
 import logging
 from log.setup import setup_logger
@@ -20,11 +21,13 @@ app = Flask(__name__)
 try:
   from wsdcalculator.storage.sqlstorage import SQLStorage
   storage = SQLStorage()
+  print('Using SQLStorage')
 except Exception as e:
   logger.exception('Problem establishing SQL connection')
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
-  
+  print('Using MemoryStorage')
+
 calculator = WSDCalculator(storage)
 authenticator = get_auth()
 
@@ -64,7 +67,7 @@ def get_evaluation(evaluationId):
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
-        'attempts': [a.to_dict() for a in attempts]
+        'attempts': [a.to_response() for a in attempts]
     }
     return jsonify(result)
 
@@ -121,21 +124,32 @@ def save_waiver(signer):
     generator = WaiverGenerator()
     res_name = request.values.get('researchSubjectName')
     res_email = request.values.get('researchSubjectEmail')
+    rep_name = ''
+    rep_relationship = ''
     if signer == 'subject':
         res_file = request.files['researchSubjectSignature']
-        res_date = request.values.get('researchSubjectDate')
-        report_file = generator.create_pdf_report(res_name, res_email, res_date, res_file, '', '', '', None)
+        date = request.values.get('researchSubjectDate')
+        report_file = generator.create_pdf_report(res_name, res_email, date, res_file, rep_name, rep_relationship, '', None)
     elif signer == 'representative':
         rep_file = request.files['representativeSignature']
         rep_name = request.values.get('representativeName')
         rep_relationship = request.values.get('representativeRelationship')
-        rep_date = request.values.get('representativeDate')
+        date = request.values.get('representativeDate')
         report_file = generator.create_pdf_report(
-            res_name, res_email, '', None, rep_name, rep_relationship, rep_date, rep_file
+            res_name, res_email, '', None, rep_name, rep_relationship, date, rep_file
         )
     else:
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
-#     TODO: save report in storage somewhere with other info
+    waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship)
+    try:
+        storage.add_waiver(waiver)
+    except WaiverAlreadyExists:
+        logger.info('[event=waiver-exists][res_name=%s][res_email=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
+        result = {
+            'message': 'Waiver for this user already exists.'
+        }
+        return jsonify(result)
+
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
     sender = WaiverSender()
     sender.send_waiver(report_file, res_email)
@@ -144,6 +158,21 @@ def save_waiver(signer):
         'message': 'Waiver successfully sent to %s'.format(res_email)
     }
     return jsonify(result)
+
+
+@app.route('/waiver/<res_name>/<res_email>', methods=['GET'])
+def check_waivers(res_name, res_email):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
+    if res_name is None or res_email is None:
+        return InvalidRequestException('Must provide both a name and email address')
+    waivers = storage.get_valid_unexpired_waivers(res_name, res_email)
+    result = {
+        'waivers': [w.to_response() for w in waivers]
+    }
+    result = jsonify(result)
+    return result
 
 
 if __name__ == '__main__':

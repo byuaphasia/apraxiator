@@ -9,7 +9,8 @@ from email import encoders
 
 class WaiverSender:
     def __init__(self):
-        auth_dir = '../apx-resources/email/'
+        # auth_dir = '../apx-resources/email/'
+        auth_dir = '/Users/drake_wade/OneDrive - BYU Office 365/Winter 2020/CS 495/Project/apx-resources/email/'
         creds_json = open(os.path.join(auth_dir, 'creds.json'))
         creds = json.load(creds_json)
         self.email = creds['email']

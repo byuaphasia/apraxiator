@@ -14,3 +14,7 @@ class ResourceAccessException(DBException):
         self.resource_id = resource_id
     def get_message(self):
         return 'Problem Accessing Resource {} in Database'.format(self.resource_id)
+
+class WaiverAlreadyExists(DBException):
+    def get_message(self):
+        return 'A waiver is already on file for a patient with this name and email'

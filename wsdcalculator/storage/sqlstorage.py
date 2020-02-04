@@ -5,11 +5,13 @@ import pickle
 
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
+from .waiverstorage import WaiverStorage
+from ..models.waiver import Waiver
 from ..models.attempt import Attempt
-from .dbexceptions import ConnectionException, ResourceAccessException
+from .dbexceptions import ConnectionException, ResourceAccessException, WaiverAlreadyExists
 from .storageexceptions import PermissionDeniedException
 
-class SQLStorage(EvaluationStorage, RecordingStorage):
+class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     def __init__(self):
         p = os.environ.get('MYSQL_PASSWORD', None)
         self.db = pymysql.connections.Connection(user='root', password=p, database='apraxiator')
@@ -83,6 +85,12 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
+
+    def _execute_update_statement(self, sql, val):
+        self.logger.info(self._make_info_log('db-update', sql, val))
+        c = self.db.cursor()
+        c.execute(sql, val)
+        self.db.commit()
     
     def _execute_select_query(self, sql, val):
         self.logger.info(self._make_info_log('db-select', sql, val))
@@ -117,6 +125,72 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
         self.logger.info('[event=recording-retrieved][attemptId=%s]', attempt_id)
         return res[0]
 
+    def add_waiver(self, w):
+        sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s;'
+        val = (w.res_name, w.res_email)
+        try:
+            res = self._execute_select_many_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-valid-waiver-exception][subject_name=%s][subject_email=%s]',
+                                  w.res_name, w.res_email)
+            raise ResourceAccessException(None, e)
+        waivers = []
+        for row in res:
+            waivers.append(Waiver.from_row(row))
+        if len(waivers) == 1:
+            self.update_waiver(w.name, w.email, w.signed_on)
+            raise WaiverAlreadyExists()
+
+        else:
+            sql = ("INSERT INTO waivers ("
+                   "subject_name, subject_email, representative_name, representative_relationship,"
+                   "signed_on, signer, valid, filepath) "
+                   "VALUES (%s, %s, %s, %s, %s, %s, %r, %s);")
+            val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.signed_on, w.signer, w.valid, w.filepath)
+            try:
+                self._execute_insert_query(sql, val)
+            except Exception as ex:
+                self.logger.exception('[event=add-waiver-failure][subject_name=%s][subject_email=%s]', w.res_name, w.res_email)
+                raise ResourceAccessException(None, ex)
+            self.logger.info('[event=add-waiver][subject_name=%s][subject_email=%s]', w.res_name, w.res_email)
+
+    def get_valid_waivers(self, res_name, res_email):
+        sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s AND valid = %r;'
+        val = (res_name, res_email, True)
+        try:
+            res = self._execute_select_many_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-valid-waiver-exception][subject_name=%s][subject_email=%s]', res_name, res_email)
+            raise ResourceAccessException(None, e)
+        waivers = []
+        for row in res:
+            waivers.append(Waiver.from_row(row))
+        self.logger.info('[event=waivers-retrieved][subject_name=%s][subject_email=%s][waiverCount=%s]', res_name, res_email, len(waivers))
+        return waivers
+
+    def update_waiver(self, res_name, res_email, date):
+        sql = 'UPDATE waivers SET date = %s WHERE subject_name = %s AND subject_email = %s;'
+        val = (date, res_name, res_email)
+        try:
+            self._execute_update_statement(sql, val)
+            self.set_waiver_validity(res_name, res_email, True)
+        except Exception as e:
+            self.logger.exception('[event=update-waiver][subject_name=%s][subject_email=%s][date=%s][validity=%r]',
+                                  res_name, res_email, date, True)
+            raise ResourceAccessException(None, e)
+        self.logger.info('[event=update-waiver][subject_name=%s][subject_email=%s][date=%s][validity=%r]',
+                         res_name, res_email, date, True)
+
+    def set_waiver_validity(self, res_name, res_email, validity):
+        sql = 'UPDATE waivers SET valid = %r WHERE subject_name = %s AND subject_email = %s;'
+        val = (validity, res_name, res_email)
+        try:
+            self._execute_update_statement(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=waiver-set-validity][subject_name=%s][subject_email=%s][validity=%r]', res_name, res_email, validity)
+            raise ResourceAccessException(None, e)
+        return True
+
     def _create_tables(self):
         create_evaluations_statement = ("CREATE TABLE IF NOT EXISTS `evaluations` ("
             "`evaluation_id` varchar(36) NOT NULL,"
@@ -148,10 +222,23 @@ class SQLStorage(EvaluationStorage, RecordingStorage):
             "CONSTRAINT `attempt_id` FOREIGN KEY (`attempt_id`) REFERENCES `attempts` (`attempt_id`)"
             ");"
         )
+        create_waivers_statement = ("CREATE TABLE IF NOT EXISTS `waivers` ("
+            "`waiver_id` int AUTO_INCREMENT NOT NULL,"
+            "`subject_name` varchar(255) NOT NULL,"
+            "`subject_email` varchar(255) NOT NULL,"
+            "`representative_name` varchar(255),"
+            "`representative_relationship` varchar(255),"
+            "`signed_on` varchar NOT NULL,"
+            "`signer` varchar(48) NOT NULL,"
+            "`valid` boolean NOT NULL DEFAULT TRUE,"
+            "`filepath` varchar(255) NOT NULL"
+            ");"
+        )
         c = self.db.cursor()
         c.execute(create_evaluations_statement)
         c.execute(create_attempts_statement)
         c.execute(create_recordings_statement)
+        c.execute(create_waivers_statement)
 
     @staticmethod
     def _make_info_log(event, sql, val):
