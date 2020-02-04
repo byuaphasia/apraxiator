@@ -5,7 +5,6 @@ from wsdcalculator.calculatewsd import WSDCalculator
 from wsdcalculator.processenvironment import get_environment_percentile
 from wsdcalculator.authentication.authprovider import get_auth
 from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidRequestException
-from wsdcalculator.storage.dbexceptions import WaiverAlreadyExists
 
 from wsdcalculator.waiver.waiver_sender import WaiverSender
 from wsdcalculator.waiver.waiver_generator import WaiverGenerator
@@ -119,6 +118,7 @@ def save_waiver(signer):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=save-waiver][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
+
     generator = WaiverGenerator()
     res_name = request.values.get('researchSubjectName')
     res_email = request.values.get('researchSubjectEmail')
@@ -139,15 +139,9 @@ def save_waiver(signer):
         )
     else:
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
+    
     waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship)
-    try:
-        storage.add_waiver(waiver)
-    except WaiverAlreadyExists:
-        logger.info('[event=waiver-exists][res_name=%s][res_email=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
-        result = {
-            'message': 'Waiver for this user already exists.'
-        }
-        return jsonify(result)
+    storage.add_waiver(waiver)
 
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
     sender = WaiverSender()
@@ -167,7 +161,7 @@ def check_waivers(res_name, res_email):
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    waivers = storage.get_valid_waivers(res_name, res_email)
+    waivers = storage.get_valid_unexpired_waivers(res_name, res_email)
     result = {
         'waivers': [w.to_response() for w in waivers]
     }

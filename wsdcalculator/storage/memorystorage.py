@@ -1,18 +1,18 @@
 import logging
 
-from .dbexceptions import WaiverAlreadyExists
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from .waiverstorage import WaiverStorage
 from .idgenerator import IdGenerator
-from .storageexceptions import ResourceNotFoundException, PermissionDeniedException
+from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, WaiverAlreadyExists
 
-class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
+class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenerator):
     def __init__(self):
         self.evaluations = {}
         self.attempts = {}
         self.waivers = {}
         self.logger = logging.getLogger(__name__)
+        self.logger.info('[event=memory-storage-started]')
     
     def _add_evaluation(self, e):
         self.evaluations[e.id] = e
@@ -58,30 +58,22 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     def is_healthy(self):
         return True
 
-    def add_waiver(self, w):
-        for w_id, waiver in self.waivers.items():
-            if w.res_name == waiver.res_name and w.res_email == waiver.res_email:
-                self.update_waiver(w.res_name, w.res_email, w.date)
-                raise WaiverAlreadyExists()
+    def _add_waiver(self, w):
         if w.id is None:
-            id_generator = IdGenerator()
-            w.id = id_generator.create_id('waiver')
+            w.id = self.create_id('WV')
         self.waivers[w.id] = w
 
-    def get_valid_waivers(self, res_name, res_email):
+    def _get_valid_waivers(self, res_name, res_email):
         valid_waivers = []
-        for w_id, w in self.waivers.items():
+        for _, w in self.waivers.items():
             if res_name == w.res_name and res_email == w.res_email and w.valid:
                 valid_waivers.append(w)
         return valid_waivers
 
-    def update_waiver(self, res_name, res_email, date):
-        for w_id, w in self.waivers.items():
-            if res_name == w.res_name and res_email == w.res_email:
-                self.waivers[w_id].date = date
-        self.set_waiver_validity(res_name, res_email, True)
-
-    def set_waiver_validity(self, res_name, res_email, validity):
-        for w_id, w in self.waivers.items():
-            if res_name == w.res_name and res_email == w.res_email:
-                self.waivers[w_id].valid = validity
+    def _update_waiver(self, id, field, value):
+        w = self.waivers[id]
+        if field == 'date':
+            w.date = value
+        elif field == 'valid':
+            w.valid = value
+        self.waivers[id] = w

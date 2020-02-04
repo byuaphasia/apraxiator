@@ -7,7 +7,7 @@ class Attempt:
         self.duration = duration
         self.date_created = date_created
 
-    def to_dict(self):
+    def to_response(self):
         r = {
             'attemptId': self.id,
             'evaluationId': self.evaluation_id,
