@@ -14,6 +14,7 @@ class ThresholdDetector:
         self.logger = logging.getLogger(__name__)
 
     def measure(self, audio, sr, evaluation_id, user_id, **kwargs):
+        self.logger.info('[event=measuring-speech][evaluationId=%s]', evaluation_id)
         try:
             audio = self.smooth(audio)
             threshold = self.get_threshold(evaluation_id, user_id)
@@ -27,7 +28,10 @@ class ThresholdDetector:
             raise NotImplementedException()
 
         num_speech_seconds = num_speech_samples / sr
-        return num_speech_seconds * self.num_milliseconds_per_second
+        ms_speech = num_speech_seconds * self.num_milliseconds_per_second
+        
+        self.logger.info('[event=speech-measured][evaluationId=%s][totalMs=%s]', evaluation_id, ms_speech)
+        return ms_speech
 
     def get_speech_sample_count(self, audio, threshold, sr, **kwargs):
         return -1
