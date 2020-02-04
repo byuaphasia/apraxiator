@@ -174,7 +174,7 @@ def check_waivers(res_name, res_email):
     return jsonify(result)
 
 
-@app.route('/invalidate/waiver/<res_name>/res_email', methods=['PUT'])
+@app.route('/invalidate/waiver/<res_name>/<res_email>', methods=['PUT'])
 def invalidate_waiver(res_name, res_email):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
@@ -183,6 +183,7 @@ def invalidate_waiver(res_name, res_email):
         return InvalidRequestException('Must provide both a name and email address')
     storage.invalidate_waiver(res_name, res_email)
     result = {
+        'status': 'success',
         'message': 'Waiver for {} at {} has been invalidated.'.format(res_name, res_email)
     }
     return jsonify(result)
