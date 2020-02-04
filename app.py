@@ -21,12 +21,10 @@ app = Flask(__name__)
 try:
   from wsdcalculator.storage.sqlstorage import SQLStorage
   storage = SQLStorage()
-  print('Using SQLStorage')
 except Exception as e:
   logger.exception('Problem establishing SQL connection')
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
-  print('Using MemoryStorage')
 
 calculator = WSDCalculator(storage)
 authenticator = get_auth()
@@ -124,6 +122,7 @@ def save_waiver(signer):
     generator = WaiverGenerator()
     res_name = request.values.get('researchSubjectName')
     res_email = request.values.get('researchSubjectEmail')
+    clinician_email = request.values.get('clinicianEmail')
     rep_name = ''
     rep_relationship = ''
     if signer == 'subject':
@@ -152,10 +151,11 @@ def save_waiver(signer):
 
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
     sender = WaiverSender()
-    sender.send_waiver(report_file, res_email)
+    sender.send_patient_waiver(report_file, res_email)
+    sender.send_clinician_email(report_file, clinician_email, res_name)
     logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
     result = {
-        'message': 'Waiver successfully sent to %s'.format(res_email)
+        'message': 'Waiver successfully sent to {}'.format(res_email)
     }
     return jsonify(result)
 
@@ -167,12 +167,25 @@ def check_waivers(res_name, res_email):
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    waivers = storage.get_valid_unexpired_waivers(res_name, res_email)
+    waivers = storage.get_valid_waivers(res_name, res_email)
     result = {
         'waivers': [w.to_response() for w in waivers]
     }
-    result = jsonify(result)
-    return result
+    return jsonify(result)
+
+
+@app.route('/invalidate/waiver/<res_name>/res_email', methods=['PUT'])
+def invalidate_waiver(res_name, res_email):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=invalidate-waiver][user=%s][remoteAddress=%s]', user, request.remote_addr)
+    if res_name is None or res_email is None:
+        return InvalidRequestException('Must provide both a name and email address')
+    storage.invalidate_waiver(res_name, res_email)
+    result = {
+        'message': 'Waiver for {} at {} has been invalidated.'.format(res_name, res_email)
+    }
+    return jsonify(result)
 
 
 if __name__ == '__main__':
