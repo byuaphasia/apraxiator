@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 
 class ThresholdDetector:
     num_milliseconds_per_second = 1000
@@ -7,13 +8,18 @@ class ThresholdDetector:
         evaluation_id (str): id connecting incoming recordings to an evaluation group
         """
         self.storage = storage
+        self.logger = logging.getLogger(__name__)
 
     def measure(self, audio, sr, evaluation_id, user_id, **kwargs):
+        self.logger.info('[event=measuring-speech][evaluationId=%s]', evaluation_id)
         audio = self.smooth(audio)
         threshold = self.get_threshold(evaluation_id, user_id)
         num_speech_samples = self.get_speech_sample_count(audio, threshold, sr, **kwargs)
         num_speech_seconds = num_speech_samples / sr
-        return num_speech_seconds * self.num_milliseconds_per_second
+        ms_speech = num_speech_seconds * self.num_milliseconds_per_second
+        
+        self.logger.info('[event=speech-measured][evaluationId=%s][totalMs=%s]', evaluation_id, ms_speech)
+        return ms_speech
 
     def get_speech_sample_count(self, audio, threshold, sr, **kwargs):
         return -1

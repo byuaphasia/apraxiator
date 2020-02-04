@@ -1,0 +1,82 @@
+{
+    "CT/constitution.wav": {
+        "expected": 958.75,
+        "actual": 960
+    },
+    "CT/flattering.wav": {
+        "expected": 803.63,
+        "actual": 620
+    },
+    "CT/gingerbread.wav": {
+        "expected": 867.12,
+        "actual": 880
+    },
+    "CT/harmonica.wav": {
+        "expected": 840.93,
+        "actual": 740
+    },
+    "CT/jabbering.wav": {
+        "expected": 689.31,
+        "actual": 680
+    },
+    "CT/spaghetti.wav": {
+        "expected": 771.66,
+        "actual": 600
+    },
+    "CT/stethoscope.wav": {
+        "expected": 936.47,
+        "actual": 600
+    },
+    "CT/thickening.wav": {
+        "expected": 564.49,
+        "actual": 560
+    },
+    "CT/volcano.wav": {
+        "expected": 739.65,
+        "actual": 800
+    },
+    "CT/zippering.wav": {
+        "expected": 702.9,
+        "actual": 620
+    },
+    "TH/constitution.wav": {
+        "expected": 990.78,
+        "actual": 1100
+    },
+    "TH/flattering.wav": {
+        "expected": 804.98,
+        "actual": 860
+    },
+    "TH/gingerbread.wav": {
+        "expected": 737.84,
+        "actual": 780
+    },
+    "TH/harmonica.wav": {
+        "expected": 860.61,
+        "actual": 900
+    },
+    "TH/jabbering.wav": {
+        "expected": 737.23,
+        "actual": 740
+    },
+    "TH/spaghetti.wav": {
+        "expected": 715.89,
+        "actual": 760
+    },
+    "TH/stethoscope.wav": {
+        "expected": 1078.13,
+        "actual": 1080
+    },
+    "TH/thickening.wav": {
+        "expected": 651.36,
+        "actual": 760
+    },
+    "TH/volcano.wav": {
+        "expected": 696.63,
+        "actual": 680
+    },
+    "TH/zippering.wav": {
+        "expected": 665.22,
+        "actual": 660
+    }
+}
