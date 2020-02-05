@@ -69,6 +69,7 @@ def get_evaluation(evaluationId):
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
+        'success': True,
         'attempts': [a.to_response() for a in attempts]
     }
     return jsonify(result)
@@ -113,9 +114,10 @@ def save_recording(evaluationId, attemptId):
         logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = request.files['recording'].read()
         storage.save_recording(f, evaluationId, attemptId, user)
-        result = {}
-        result = jsonify(result)
-        return result
+        result = {
+            'success': True
+        }
+        return jsonify(result)
     else:
         logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = storage.get_recording(evaluationId, attemptId, user)
@@ -153,6 +155,7 @@ def save_waiver(signer):
     except WaiverAlreadyExists:
         logger.info('[event=waiver-exists][res_name=%s][res_email=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
         result = {
+            'success': True,
             'message': 'Waiver for this user already exists.'
         }
         return jsonify(result)
