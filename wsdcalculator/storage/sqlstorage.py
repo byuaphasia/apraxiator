@@ -153,17 +153,17 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=valid-waivers-retrieved][subjectName=%s][subjectEmail=%s][waiverCount=%s]', res_name, res_email, len(waivers))
         return waivers
 
-    def _update_waiver(self, res_name, res_email, field, value):
-        sql = 'UPDATE waivers SET {} = %s WHERE subject_name = %s AND subject_email = %s;'.format(field)
-        val = (value, res_name, res_email)
+    def _update_waiver(self, id, field, value):
+        sql = 'UPDATE waivers SET {} = %s WHERE waiver_id = %s;'.format(field)
+        val = (value, id)
         try:
             self._execute_update_statement(sql, val)
         except Exception as e:
-            self.logger.exception('[event=update-waiver-failure][subjectName=%s][subjectEmail=%s][field=%s][value=%r]',
-                                  res_name, res_email, field, value)
+            self.logger.exception('[event=update-waiver-failure][waiverId=%s][field=%s][value=%r]',
+                                  id, field, value)
             raise ResourceAccessException(None, e)
-        self.logger.info('[event=update-waiver][subjectName=%s][subjectEmail=%s][field=%s][value=%r]',
-                         res_name, res_email, field, value)
+        self.logger.info('[event=update-waiver][waiverId=%s][field=%s][value=%r]',
+                         id, field, value)
 
     def _create_tables(self):
         create_evaluations_statement = ("CREATE TABLE IF NOT EXISTS `evaluations` ("
