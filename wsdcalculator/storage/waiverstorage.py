@@ -33,7 +33,7 @@ class WaiverStorage(IdGenerator):
         return []
 
     def invalidate_waiver(self, res_name, res_email):
-        related_waivers = self.get_valid_unexpired_waivers(res_name, res_email)
+        related_waivers = self.get_valid_waivers(res_name, res_email)
         if len(related_waivers) == 0:
             raise ResourceNotFoundException('waiver')
         for w in related_waivers:
