@@ -4,6 +4,7 @@ from ..apraxiatorexception import NotImplementedException
 from .idgenerator import IdGenerator
 from .storageexceptions import WaiverAlreadyExists, ResourceNotFoundException
 
+
 class WaiverStorage(IdGenerator):
     def is_healthy(self):
         raise NotImplementedException()
@@ -18,7 +19,7 @@ class WaiverStorage(IdGenerator):
             self._add_waiver(w)
 
     def get_valid_unexpired_waivers(self, res_name, res_email):
-        valid_waivers = self._get_valid_waivers(res_name, res_email)
+        valid_waivers = self.get_valid_waivers(res_name, res_email)
         valid_unexpired_waivers = []
         for w in valid_waivers:
             w_date = datetime.strptime(w.date, '%B %d, %Y')
@@ -28,7 +29,7 @@ class WaiverStorage(IdGenerator):
                 valid_unexpired_waivers.append(w)
         return valid_unexpired_waivers
 
-    def _get_valid_waivers(self, res_name, res_email):
+    def get_valid_waivers(self, res_name, res_email):
         return []
 
     def invalidate_waiver(self, res_name, res_email):

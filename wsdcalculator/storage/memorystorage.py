@@ -63,7 +63,7 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
             w.id = self.create_id('WV')
         self.waivers[w.id] = w
 
-    def _get_valid_waivers(self, res_name, res_email):
+    def get_valid_waivers(self, res_name, res_email):
         valid_waivers = []
         for _, w in self.waivers.items():
             if res_name == w.res_name and res_email == w.res_email and w.valid:

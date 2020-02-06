@@ -139,7 +139,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             raise ResourceAccessException(None, ex)
         self.logger.info('[event=waiver-added][subjectName=%s][subjectEmail=%s]', w.res_name, w.res_email)
 
-    def _get_valid_waivers(self, res_name, res_email):
+    def get_valid_waivers(self, res_name, res_email):
         sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s AND valid = %r;'
         val = (res_name, res_email, True)
         try:
