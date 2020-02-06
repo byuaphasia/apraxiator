@@ -81,7 +81,7 @@ class TestSQLStorage(unittest.TestCase):
         self.assertEqual('new date', waivers[0].date)
 
     def test_invalidate_waiver(self):
-        waiver1 = Waiver('name', 'email', 'date', 'filepath', 'signer', True)
+        waiver = Waiver('the name', 'the email', 'date', 'filepath', 'signer', True)
         storage.add_waiver(waiver1)
         storage.invalidate_waiver('name', 'email')
         waivers = storage.get_valid_waivers('name', 'email')

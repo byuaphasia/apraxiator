@@ -19,4 +19,5 @@ class Waiver:
     @staticmethod
     def from_row(row):
         id, res_name, res_email, rep_name, rep_relationship, date, signer, valid, filepath = row
+        valid = bool(valid)
         return Waiver(res_name, res_email, date, filepath, signer, valid, rep_name, rep_relationship, id)
