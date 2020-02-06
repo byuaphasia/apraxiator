@@ -204,8 +204,9 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`representative_relationship` varchar(255),"
             "`signed_on` varchar NOT NULL,"
             "`signer` varchar(48) NOT NULL,"
-            "`valid` boolean NOT NULL DEFAULT TRUE,"
-            "`filepath` varchar(255) NOT NULL"
+            "`valid` boolean NOT NULL DEFAULT 1,"
+            "`filepath` varchar(255) NOT NULL,"
+            "PRIMARY KEY (`waiver_id`)"
             ");"
         )
         c = self.db.cursor()
