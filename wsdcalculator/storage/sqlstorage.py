@@ -129,7 +129,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     def _add_waiver(self, w):
         sql = ("INSERT INTO waivers ("
                 "subject_name, subject_email, representative_name, representative_relationship,"
-                "signed_on, signer, valid, filepath) "
+                "date, signer, valid, filepath) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %r, %s);")
         val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath)
         try:
@@ -202,7 +202,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`subject_email` varchar(255) NOT NULL,"
             "`representative_name` varchar(255),"
             "`representative_relationship` varchar(255),"
-            "`signed_on` varchar(255) NOT NULL,"
+            "`date` varchar(255) NOT NULL,"
             "`signer` varchar(48) NOT NULL,"
             "`valid` boolean NOT NULL DEFAULT TRUE,"
             "`filepath` varchar(255) NOT NULL,"
