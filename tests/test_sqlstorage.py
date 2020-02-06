@@ -65,6 +65,9 @@ class TestSQLStorage(unittest.TestCase):
         self.assertEqual(8000, sr)
         self.assertTrue(np.array_equal(sample_data, data))
 
+    def test_add_waiver(self):
+        pass
+
     @classmethod
     def tearDownClass(cls):
         os.remove('test_wav.wav')
