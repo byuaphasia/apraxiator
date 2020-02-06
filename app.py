@@ -85,10 +85,8 @@ def process_attempt(evaluationId):
     logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     f = request.files['recording']
-    # syllable_count = request.args.get('syllableCount')
     syllable_count = request.values.get('syllableCount')
     syllable_count = int(syllable_count)
-    # word = request.args.get('word')
     word = request.values.get('word')
     if syllable_count is None:
         raise InvalidRequestException('Must provide syllable count')
@@ -97,14 +95,12 @@ def process_attempt(evaluationId):
     if word is None or word == '':
         raise InvalidRequestException('Must provide attempted word')
 
-    # method = request.args.get('method')
     method = request.values.get('method')
     if method is None or method == '':
         method = 'average'
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
     id = storage.create_attempt(evaluationId, word, wsd, duration, user)
     result = {
-        'success': True,
         'attemptId': id,
         'wsd': wsd
     }
