@@ -32,3 +32,10 @@ class PermissionDeniedException(StorageException):
 
     def get_code(self):
         return 403
+
+class WaiverAlreadyExists(StorageException):
+    def get_message(self):
+        return 'A waiver is already on file for a patient with this name and email'
+
+    def get_code(self):
+        return 200

@@ -2,13 +2,17 @@ import logging
 
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
-from .storageexceptions import ResourceNotFoundException, PermissionDeniedException
+from .waiverstorage import WaiverStorage
+from .idgenerator import IdGenerator
+from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, WaiverAlreadyExists
 
-class MemoryStorage(EvaluationStorage, RecordingStorage):
+class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenerator):
     def __init__(self):
         self.evaluations = {}
         self.attempts = {}
+        self.waivers = {}
         self.logger = logging.getLogger(__name__)
+        self.logger.info('[event=memory-storage-started]')
     
     def _add_evaluation(self, e):
         self.evaluations[e.id] = e
@@ -53,3 +57,23 @@ class MemoryStorage(EvaluationStorage, RecordingStorage):
 
     def is_healthy(self):
         return True
+
+    def _add_waiver(self, w):
+        if w.id is None:
+            w.id = self.create_id('WV')
+        self.waivers[w.id] = w
+
+    def _get_valid_waivers(self, res_name, res_email):
+        valid_waivers = []
+        for _, w in self.waivers.items():
+            if res_name == w.res_name and res_email == w.res_email and w.valid:
+                valid_waivers.append(w)
+        return valid_waivers
+
+    def _update_waiver(self, id, field, value):
+        w = self.waivers[id]
+        if field == 'date':
+            w.date = value
+        elif field == 'valid':
+            w.valid = value
+        self.waivers[id] = w
