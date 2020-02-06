@@ -202,7 +202,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`subject_email` varchar(255) NOT NULL,"
             "`representative_name` varchar(255),"
             "`representative_relationship` varchar(255),"
-            "`signed_on` varchar NOT NULL,"
+            "`signed_on` varchar(255) NOT NULL,"
             "`signer` varchar(48) NOT NULL,"
             "`valid` boolean NOT NULL DEFAULT 1,"
             "`filepath` varchar(255) NOT NULL,"
