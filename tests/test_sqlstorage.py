@@ -3,8 +3,9 @@ import soundfile as sf
 import io
 import numpy as np
 import os
+import uuid
 
-from .context import SQLStorage, PermissionDeniedException
+from .context import SQLStorage, PermissionDeniedException, Waiver, WaiverAlreadyExists
 
 try:
     storage = SQLStorage()
@@ -66,7 +67,29 @@ class TestSQLStorage(unittest.TestCase):
         self.assertTrue(np.array_equal(sample_data, data))
 
     def test_add_waiver(self):
-        pass
+        name = str(uuid.uuid4())
+        waiver = Waiver(name, 'email', 'date', 'filepath', 'signer', True)
+        storage.add_waiver(waiver)
+        waivers = storage.get_valid_waivers(name, 'email')
+        self.assertEqual(1, len(waivers))
+        waiver.id = waivers[0].id
+        self.assertDictEqual(waiver.__dict__, waivers[0].__dict__)
+
+        with self.assertRaises(WaiverAlreadyExists):
+            waiver.date = 'new date'
+            storage.add_waiver(waiver)
+
+        waivers = storage.get_valid_waivers(name, 'email')
+        self.assertEqual(1, len(waivers))
+        self.assertEqual('new date', waivers[0].date)
+
+    def test_invalidate_waiver(self):
+        name = str(uuid.uuid4())
+        waiver = Waiver(name, 'email', 'date', 'filepath', 'signer', True)
+        storage.add_waiver(waiver)
+        storage.invalidate_waiver(name, 'email')
+        waivers = storage.get_valid_waivers(name, 'email')
+        self.assertEqual(0, len(waivers))
 
     @classmethod
     def tearDownClass(cls):

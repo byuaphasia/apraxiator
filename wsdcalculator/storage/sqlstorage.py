@@ -129,9 +129,9 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     def _add_waiver(self, w):
         sql = ("INSERT INTO waivers ("
                 "subject_name, subject_email, representative_name, representative_relationship,"
-                "signed_on, signer, valid, filepath) "
+                "date, signer, valid, filepath) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %r, %s);")
-        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.signed_on, w.signer, w.valid, w.filepath)
+        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath)
         try:
             self._execute_insert_query(sql, val)
         except Exception as ex:
@@ -153,17 +153,17 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=valid-waivers-retrieved][subjectName=%s][subjectEmail=%s][waiverCount=%s]', res_name, res_email, len(waivers))
         return waivers
 
-    def _update_waiver(self, res_name, res_email, field, value):
-        sql = 'UPDATE waivers SET {} = %s WHERE subject_name = %s AND subject_email = %s;'.format(field)
-        val = (value, res_name, res_email)
+    def _update_waiver(self, id, field, value):
+        sql = 'UPDATE waivers SET {} = %s WHERE waiver_id = %s;'.format(field)
+        val = (value, id)
         try:
             self._execute_update_statement(sql, val)
         except Exception as e:
-            self.logger.exception('[event=update-waiver-failure][subjectName=%s][subjectEmail=%s][field=%s][value=%r]',
-                                  res_name, res_email, field, value)
+            self.logger.exception('[event=update-waiver-failure][waiverId=%s][field=%s][value=%r]',
+                                  id, field, value)
             raise ResourceAccessException(None, e)
-        self.logger.info('[event=update-waiver][subjectName=%s][subjectEmail=%s][field=%s][value=%r]',
-                         res_name, res_email, field, value)
+        self.logger.info('[event=update-waiver][waiverId=%s][field=%s][value=%r]',
+                         id, field, value)
 
     def _create_tables(self):
         create_evaluations_statement = ("CREATE TABLE IF NOT EXISTS `evaluations` ("
@@ -202,10 +202,11 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`subject_email` varchar(255) NOT NULL,"
             "`representative_name` varchar(255),"
             "`representative_relationship` varchar(255),"
-            "`signed_on` varchar NOT NULL,"
+            "`date` varchar(255) NOT NULL,"
             "`signer` varchar(48) NOT NULL,"
             "`valid` boolean NOT NULL DEFAULT TRUE,"
-            "`filepath` varchar(255) NOT NULL"
+            "`filepath` varchar(255) NOT NULL,"
+            "PRIMARY KEY (`waiver_id`)"
             ");"
         )
         c = self.db.cursor()
