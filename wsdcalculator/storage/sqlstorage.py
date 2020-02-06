@@ -131,7 +131,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
                 "subject_name, subject_email, representative_name, representative_relationship,"
                 "signed_on, signer, valid, filepath) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %r, %s);")
-        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.signed_on, w.signer, w.valid, w.filepath)
+        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath)
         try:
             self._execute_insert_query(sql, val)
         except Exception as ex:
@@ -204,7 +204,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`representative_relationship` varchar(255),"
             "`signed_on` varchar(255) NOT NULL,"
             "`signer` varchar(48) NOT NULL,"
-            "`valid` boolean NOT NULL DEFAULT 1,"
+            "`valid` boolean NOT NULL DEFAULT TRUE,"
             "`filepath` varchar(255) NOT NULL,"
             "PRIMARY KEY (`waiver_id`)"
             ");"
