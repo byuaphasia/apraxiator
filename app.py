@@ -173,7 +173,7 @@ def check_waivers(res_name, res_email):
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    waivers = storage.get_valid_unexpired_waivers(res_name, res_email)
+    waivers = storage.get_valid_waivers(res_name, res_email)
     result = {
         'waivers': [w.to_response() for w in waivers]
     }
