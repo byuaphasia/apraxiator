@@ -10,7 +10,7 @@ class WaiverStorage(IdGenerator):
         raise NotImplementedException()
 
     def add_waiver(self, w):
-        related_waivers = self.get_valid_unexpired_waivers(w.res_name, w.res_email)
+        related_waivers = self.get_valid_waivers(w.res_name, w.res_email)
         if len(related_waivers) > 0:
             prev_waiver = related_waivers[0]
             self._refresh_waiver(prev_waiver.id, w.date)
