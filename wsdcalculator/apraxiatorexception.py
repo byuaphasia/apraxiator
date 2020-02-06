@@ -8,7 +8,7 @@ class ApraxiatorException(Exception):
     def get_code(self):
         return 500
 
-    def to_dict(self):
+    def to_response(self):
         r = {
             'errorMessage': self.get_message()
         }

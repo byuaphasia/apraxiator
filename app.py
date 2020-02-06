@@ -29,20 +29,26 @@ except Exception as e:
 calculator = WSDCalculator(storage)
 authenticator = get_auth()
 
-@app.errorhandler(ApraxiatorException)
-def handle_failure(error: ApraxiatorException):
-    result = jsonify(error.to_dict())
-    result.status_code = error.get_code()
+def form_result(content, code=200):
+    result = jsonify(content)
+    result.status_code = code
     return result
+
+@app.errorhandler(Exception)
+def handle_failure(error: Exception):
+    if isinstance(error, ApraxiatorException):
+        return form_result(error.to_response(), error.get_code())
+    else:
+        logger.error('Unknown error: %s', error)
+        return form_result({'errorMessage': 'An unknown error occurred.'}, 500)
 
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
     storage.is_healthy()
     result = {
-        'success': True,
         'message': 'all is well'
     }
-    return jsonify(result)
+    return form_result(result)
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
@@ -56,10 +62,9 @@ def create_evaluation():
     threshold = get_environment_percentile(f)
     id = storage.create_evaluation(threshold, user)
     result = {
-        'success': True,
         'evaluationId': id
     }
-    return jsonify(result)
+    return form_result(result)
 
 @app.route('/evaluation/<evaluationId>', methods=['GET'])
 def get_evaluation(evaluationId):
@@ -69,10 +74,9 @@ def get_evaluation(evaluationId):
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
-        'success': True,
         'attempts': [a.to_response() for a in attempts]
     }
-    return jsonify(result)
+    return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
 def process_attempt(evaluationId):
@@ -104,7 +108,7 @@ def process_attempt(evaluationId):
         'attemptId': id,
         'wsd': wsd
     }
-    return jsonify(result)
+    return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
@@ -114,10 +118,7 @@ def save_recording(evaluationId, attemptId):
         logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = request.files['recording'].read()
         storage.save_recording(f, evaluationId, attemptId, user)
-        result = {
-            'success': True
-        }
-        return jsonify(result)
+        return form_result({})
     else:
         logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = storage.get_recording(evaluationId, attemptId, user)
@@ -157,20 +158,16 @@ def save_waiver(signer):
     except WaiverAlreadyExists:
         logger.info('[event=waiver-exists][resName=%s][resEmail=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
         result = {
-            'success': True,
             'message': 'Waiver for this user already exists.'
         }
-        return jsonify(result)
+        return form_result(result)
 
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
     sender = WaiverSender()
     sender.send_patient_waiver(report_file, res_email)
     sender.send_clinician_email(report_file, clinician_email, res_name)
     logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
-    result = {
-        'success': True
-    }
-    return jsonify(result)
+    return form_result({})
 
 
 @app.route('/waiver/<res_name>/<res_email>', methods=['GET'])
@@ -182,10 +179,9 @@ def check_waivers(res_name, res_email):
         return InvalidRequestException('Must provide both a name and email address')
     waivers = storage.get_valid_unexpired_waivers(res_name, res_email)
     result = {
-        'success': True,
         'waivers': [w.to_response() for w in waivers]
     }
-    return jsonify(result)
+    return form_result(result)
 
 
 @app.route('/invalidate/waiver/<res_name>/<res_email>', methods=['PUT'])
@@ -196,10 +192,7 @@ def invalidate_waiver(res_name, res_email):
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
     storage.invalidate_waiver(res_name, res_email)
-    result = {
-        'success': True,
-    }
-    return jsonify(result)
+    return form_result({})
 
 
 if __name__ == '__main__':
