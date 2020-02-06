@@ -70,6 +70,7 @@ class TestSQLStorage(unittest.TestCase):
         storage.add_waiver(waiver1)
         waivers = storage.get_valid_waivers('name', 'email')
         self.assertEqual(1, len(waivers))
+        waiver1.id = waivers[0].id
         self.assertDictEqual(waiver1.__dict__, waivers[0].__dict__)
 
         with self.assertRaises(WaiverAlreadyExists):
@@ -82,7 +83,7 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_invalidate_waiver(self):
         waiver = Waiver('the name', 'the email', 'date', 'filepath', 'signer', True)
-        storage.add_waiver(waiver1)
+        storage.add_waiver(waiver)
         storage.invalidate_waiver('name', 'email')
         waivers = storage.get_valid_waivers('name', 'email')
         self.assertEqual(0, len(waivers))
