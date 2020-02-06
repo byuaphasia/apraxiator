@@ -4,7 +4,7 @@ import io
 import numpy as np
 import os
 
-from .context import SQLStorage, PermissionDeniedException
+from .context import SQLStorage, PermissionDeniedException, Waiver, WaiverAlreadyExists
 
 try:
     storage = SQLStorage()
@@ -66,7 +66,26 @@ class TestSQLStorage(unittest.TestCase):
         self.assertTrue(np.array_equal(sample_data, data))
 
     def test_add_waiver(self):
-        pass
+        waiver1 = Waiver('name', 'email', 'date', 'filepath', 'signer', True)
+        storage.add_waiver(waiver1)
+        waivers = storage.get_valid_waivers('name', 'email')
+        self.assertEqual(1, len(waivers))
+        self.assertDictEqual(waiver1.__dict__, waivers[0].__dict__)
+
+        with self.assertRaises(WaiverAlreadyExists):
+            waiver1.date = 'new date'
+            storage.add_waiver(waiver1)
+
+        waivers = storage.get_valid_waivers('name', 'email')
+        self.assertEqual(1, len(waivers))
+        self.assertEqual('new date', waivers[0].date)
+
+    def test_invalidate_waiver(self):
+        waiver1 = Waiver('name', 'email', 'date', 'filepath', 'signer', True)
+        storage.add_waiver(waiver1)
+        storage.invalidate_waiver('name', 'email')
+        waivers = storage.get_valid_waivers('name', 'email')
+        self.assertEqual(0, len(waivers))
 
     @classmethod
     def tearDownClass(cls):
