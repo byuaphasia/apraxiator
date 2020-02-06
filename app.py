@@ -9,6 +9,7 @@ from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidReques
 from wsdcalculator.waiver.waiver_sender import WaiverSender
 from wsdcalculator.waiver.waiver_generator import WaiverGenerator
 from wsdcalculator.models.waiver import Waiver
+from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
 
 import logging
 from log.setup import setup_logger
@@ -38,6 +39,7 @@ def handle_failure(error: ApraxiatorException):
 def healthcheck():
     storage.is_healthy()
     result = {
+        'success': True,
         'message': 'all is well'
     }
     return jsonify(result)
@@ -49,9 +51,12 @@ def create_evaluation():
     logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
 
     f = request.files['recording']
+    if f is None:
+        raise InvalidRequestException('Must attach a file called "recording"')
     threshold = get_environment_percentile(f)
     id = storage.create_evaluation(threshold, user)
     result = {
+        'success': True,
         'evaluationId': id
     }
     return jsonify(result)
@@ -64,6 +69,7 @@ def get_evaluation(evaluationId):
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
+        'success': True,
         'attempts': [a.to_response() for a in attempts]
     }
     return jsonify(result)
@@ -75,9 +81,11 @@ def process_attempt(evaluationId):
     logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     f = request.files['recording']
-    syllable_count = request.args.get('syllableCount')
+    # syllable_count = request.args.get('syllableCount')
+    syllable_count = request.values.get('syllableCount')
     syllable_count = int(syllable_count)
-    word = request.args.get('word')
+    # word = request.args.get('word')
+    word = request.values.get('word')
     if syllable_count is None:
         raise InvalidRequestException('Must provide syllable count')
     elif syllable_count <= 0:
@@ -85,12 +93,14 @@ def process_attempt(evaluationId):
     if word is None or word == '':
         raise InvalidRequestException('Must provide attempted word')
 
-    method = request.args.get('method')
+    # method = request.args.get('method')
+    method = request.values.get('method')
     if method is None or method == '':
         method = 'average'
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
     id = storage.create_attempt(evaluationId, word, wsd, duration, user)
     result = {
+        'success': True,
         'attemptId': id,
         'wsd': wsd
     }
@@ -104,9 +114,10 @@ def save_recording(evaluationId, attemptId):
         logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = request.files['recording'].read()
         storage.save_recording(f, evaluationId, attemptId, user)
-        result = {}
-        result = jsonify(result)
-        return result
+        result = {
+            'success': True
+        }
+        return jsonify(result)
     else:
         logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
         f = storage.get_recording(evaluationId, attemptId, user)
@@ -141,7 +152,15 @@ def save_waiver(signer):
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
     
     waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship)
-    storage.add_waiver(waiver)
+    try:
+        storage.add_waiver(waiver)
+    except WaiverAlreadyExists:
+        logger.info('[event=waiver-exists][resName=%s][resEmail=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
+        result = {
+            'success': True,
+            'message': 'Waiver for this user already exists.'
+        }
+        return jsonify(result)
 
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
     sender = WaiverSender()
@@ -149,7 +168,7 @@ def save_waiver(signer):
     sender.send_clinician_email(report_file, clinician_email, res_name)
     logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
     result = {
-        'message': 'Waiver successfully sent to {}'.format(res_email)
+        'success': True
     }
     return jsonify(result)
 
@@ -163,12 +182,13 @@ def check_waivers(res_name, res_email):
         return InvalidRequestException('Must provide both a name and email address')
     waivers = storage.get_valid_unexpired_waivers(res_name, res_email)
     result = {
+        'success': True,
         'waivers': [w.to_response() for w in waivers]
     }
     return jsonify(result)
 
 
-@app.route('/invalidate/waiver/<res_name>/res_email', methods=['PUT'])
+@app.route('/invalidate/waiver/<res_name>/<res_email>', methods=['PUT'])
 def invalidate_waiver(res_name, res_email):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
@@ -177,7 +197,7 @@ def invalidate_waiver(res_name, res_email):
         return InvalidRequestException('Must provide both a name and email address')
     storage.invalidate_waiver(res_name, res_email)
     result = {
-        'message': 'Waiver for {} at {} has been invalidated.'.format(res_name, res_email)
+        'success': True,
     }
     return jsonify(result)
 
