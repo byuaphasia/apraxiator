@@ -3,10 +3,11 @@ import logging
 
 from ..apraxiatorexception import NotImplementedException, ApraxiatorException
 from .invalidsampleexceptions import SpeechDetectionException
+from ..storage.evaluationstorage import EvaluationStorage
 
 class ThresholdDetector:
     num_milliseconds_per_second = 1000
-    def __init__(self, storage):
+    def __init__(self, storage: EvaluationStorage):
         """
         evaluation_id (str): id connecting incoming recordings to an evaluation group
         """
@@ -43,4 +44,4 @@ class ThresholdDetector:
         return smoothed
 
     def get_threshold(self, evaluation_id, user_id):
-        return self.storage.fetch_evaluation(evaluation_id, user_id)
+        return self.storage.fetch_threshold(evaluation_id, user_id)

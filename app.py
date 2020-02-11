@@ -37,9 +37,10 @@ def form_result(content, code=200):
 @app.errorhandler(Exception)
 def handle_failure(error: Exception):
     if isinstance(error, ApraxiatorException):
+        logger.error('[event=returning-error][errorMessage=%s][errorCode=%s]', error.get_message(), error.get_code())
         return form_result(error.to_response(), error.get_code())
     else:
-        logger.error('Unknown error: %s', error)
+        logger.error('[event=returning-unknown-error][error=%s]', error)
         return form_result({'errorMessage': 'An unknown error occurred.'}, 500)
 
 @app.route('/healthcheck', methods=['GET'])
@@ -50,27 +51,53 @@ def healthcheck():
     }
     return form_result(result)
 
+@app.route('/evaluation', methods=['GET'])
+def list_evaluations():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=list-evaluations][user=%s][remoteAddress=%s]', user, request.remote_addr)
+
+    evaluations = storage.list_evaluations(user)
+    result = {
+        'evaluations': [e.to_list_response() for e in evaluations]
+    }
+    return form_result(result)
+
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
 
+    content = request.json
+    try:
+        age = content['age']
+        gender = content['gender']
+        impression = content['impression']
+    except KeyError as e:
+        msg = f'Must provide {e.args[0]}'
+        raise InvalidRequestException(msg, e)
+    storage.create_evaluation(age, gender, impression, user)
+
+@app.route('/evaluation/<evaluationId>/ambiance', methods=['POST'])
+def add_ambiance(evaluationId):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=add-ambiance][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
+
     f = request.files['recording']
     if f is None:
         raise InvalidRequestException('Must attach a file called "recording"')
     threshold = get_environment_percentile(f)
-    id = storage.create_evaluation(threshold, user)
-    result = {
-        'evaluationId': id
-    }
-    return form_result(result)
 
-@app.route('/evaluation/<evaluationId>', methods=['GET'])
-def get_evaluation(evaluationId):
+    storage.add_threshold(evaluationId, threshold, user)
+    return form_result({})
+
+@app.route('/evaluation/<evaluationId>/attempts', methods=['GET'])
+def get_attempts(evaluationId):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=get-evaluation][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
+    logger.info('[event=get-attempts][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
 
     attempts = storage.fetch_attempts(evaluationId, user)
     result = {
