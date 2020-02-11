@@ -16,3 +16,8 @@ class Evaluation:
             'impression': self.impression,
             'dateCreated': self.date_created
         }
+
+    @staticmethod
+    def from_row(row):
+        id, age, gender, impression, owner_id, date_created = row
+        return Evaluation(id, age, gender, impression, owner_id, date_created)
