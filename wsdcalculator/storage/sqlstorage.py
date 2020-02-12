@@ -126,12 +126,12 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=recording-retrieved][attemptId=%s]', attempt_id)
         return res[0]
 
-    def _add_waiver(self, w):
+    def _add_waiver(self, w, user):
         sql = ("INSERT INTO waivers ("
                 "subject_name, subject_email, representative_name, representative_relationship,"
-                "date, signer, valid, filepath) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %r, %s);")
-        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath)
+                "date, signer, valid, filepath, owner_id) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %r, %s, %s);")
+        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath, user)
         try:
             self._execute_insert_query(sql, val)
         except Exception as ex:
@@ -139,9 +139,9 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             raise ResourceAccessException(None, ex)
         self.logger.info('[event=waiver-added][subjectName=%s][subjectEmail=%s]', w.res_name, w.res_email)
 
-    def get_valid_waivers(self, res_name, res_email):
-        sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s AND valid = %r;'
-        val = (res_name, res_email, True)
+    def get_valid_waivers(self, res_name, res_email, user):
+        sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s AND valid = %r AND owner_id = %s;'
+        val = (res_name, res_email, True, user)
         try:
             res = self._execute_select_many_query(sql, val)
         except Exception as e:
@@ -207,6 +207,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`valid` boolean NOT NULL DEFAULT TRUE,"
             "`filepath` varchar(255) NOT NULL,"
             "PRIMARY KEY (`waiver_id`)"
+            "`owner_id` varchar(48) NOT NULL,"
             ");"
         )
         c = self.db.cursor()

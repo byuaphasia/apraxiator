@@ -150,7 +150,7 @@ def save_waiver(signer):
     
     waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship)
     try:
-        storage.add_waiver(waiver)
+        storage.add_waiver(waiver, user)
     except WaiverAlreadyExists:
         logger.info('[event=waiver-exists][resName=%s][resEmail=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
         result = {
@@ -173,7 +173,7 @@ def check_waivers(res_name, res_email):
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    waivers = storage.get_valid_waivers(res_name, res_email)
+    waivers = storage.get_valid_waivers(res_name, res_email, user)
     result = {
         'waivers': [w.to_response() for w in waivers]
     }
@@ -187,7 +187,7 @@ def invalidate_waiver(res_name, res_email):
     logger.info('[event=invalidate-waiver][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    storage.invalidate_waiver(res_name, res_email)
+    storage.invalidate_waiver(res_name, res_email, user)
     return form_result({})
 
 
