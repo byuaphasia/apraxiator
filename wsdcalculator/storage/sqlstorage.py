@@ -30,8 +30,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     ''' Evaluation Storage Methods '''
 
     def _add_evaluation(self, e):
-        sql = 'INSERT INTO evaluations (evaluation_id, owner_id, ambiance_threshold) VALUES (%s, %s, %s)'
-        val = (e.id, e.owner_id, e.ambiance_threshold)
+        sql = 'INSERT INTO evaluations (evaluation_id, age, gender, impression, owner_id,) VALUES (%s, %s, %s, %s, %s)'
+        val = (e.id, e.age, e.gender, e.impression, e.owner_id)
         try:
             self._execute_insert_query(sql, val)
         except Exception as ex:
