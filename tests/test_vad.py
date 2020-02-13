@@ -22,7 +22,7 @@ class TestVad(unittest.TestCase):
             
             speech_path = os.path.abspath(test_dir_root + basic_path)
             audio, sr = sf.read(speech_path)
-            speech_duration = self.detector.measure(audio, sr, id, '')
+            speech_duration = self.detector.measure(audio, sr, '', '')
 
             expected_duration = float(case['speechDuration'])
 

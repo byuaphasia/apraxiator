@@ -4,7 +4,7 @@ import os
 import soundfile as sf
 from datetime import datetime
 
-from .context import get_environment_percentile, memorystorage, filterbythreshold
+from .context import get_ambiance_threshold, memorystorage, filterbythreshold
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
@@ -22,14 +22,15 @@ class TestEndpointFinder(unittest.TestCase):
     def test_measurements_separate_env(self):
         for case in self.test_cases:
             basic_path = case['soundUri']
+            id = self.storage.create_evaluation('age', 'gender', 'impression', 'owner')
 
             amb_path = os.path.abspath(test_dir_root + case['ambUri'])
-            threshold = get_environment_percentile(amb_path)
-            id = self.storage.create_evaluation(threshold, '')
+            threshold = get_ambiance_threshold(amb_path)
+            self.storage.add_threshold(id, threshold, 'owner')
             
             speech_path = os.path.abspath(test_dir_root + case['speechUri'])
             audio, sr = sf.read(speech_path)
-            speech_duration = self.detector.measure(audio, sr, id, '')
+            speech_duration = self.detector.measure(audio, sr, id, 'owner')
 
             expected_duration = float(case['speechDuration'])
 

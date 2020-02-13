@@ -1,10 +1,8 @@
 from flask import Flask, request, jsonify, send_file
 import io
 
-from wsdcalculator.calculatewsd import WSDCalculator
-from wsdcalculator.processenvironment import get_environment_percentile
+from wsdcalculator import WSDCalculator, ApraxiatorException, InvalidRequestException, get_ambiance_threshold
 from wsdcalculator.authentication.authprovider import get_auth
-from wsdcalculator.apraxiatorexception import ApraxiatorException, InvalidRequestException
 
 from wsdcalculator.waiver.waiver_sender import WaiverSender
 from wsdcalculator.waiver.waiver_generator import WaiverGenerator
@@ -88,7 +86,7 @@ def add_ambiance(evaluationId):
     f = request.files['recording']
     if f is None:
         raise InvalidRequestException('Must attach a file called "recording"')
-    threshold = get_environment_percentile(f)
+    threshold = get_ambiance_threshold(f)
 
     storage.add_threshold(evaluationId, threshold, user)
     return form_result({})

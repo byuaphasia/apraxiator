@@ -47,8 +47,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         except Exception as e:
             self.logger.exception('[event=update-evaluation-failure][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
             raise ResourceAccessException(id, e)
-        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
-            
+        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)        
 
     def _get_threshold(self, id):
         sql = 'SELECT ambiance_threshold FROM evaluations WHERE evaluation_id = %s'

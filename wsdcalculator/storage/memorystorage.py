@@ -38,7 +38,7 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
 
     def _get_threshold(self, id):
         e = self.evaluations.get(id, None)
-        if e is not None:
+        if e is not None and e.ambiance_threshold is not None:
             t = e.ambiance_threshold
             self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, t)
             return t
