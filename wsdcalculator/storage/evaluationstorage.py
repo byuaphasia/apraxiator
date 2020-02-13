@@ -15,7 +15,7 @@ class EvaluationStorage(IdGenerator):
 
     def add_threshold(self, id, threshold, owner_id):
         self._check_is_owner(id, owner_id)
-        self._update_evaluation(id, 'threshold', threshold)
+        self._update_evaluation(id, 'ambiance_threshold', threshold)
 
     def create_attempt(self, evaluation_id, word, wsd, duration, owner_id):
         self._check_is_owner(evaluation_id, owner_id)

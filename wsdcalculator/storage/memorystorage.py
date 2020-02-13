@@ -26,7 +26,7 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
     def _update_evaluation(self, id, field, value):
         e = self.evaluations.get(id, None)
         if e is not None:
-            if field == 'threshold':
+            if field == 'ambiance_threshold':
                 e.ambiance_threshold = value
                 self.evaluations[id] = e 
             else:
