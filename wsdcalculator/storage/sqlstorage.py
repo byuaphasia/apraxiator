@@ -41,7 +41,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
 
     def _update_evaluation(self, id, field, value):
         sql = 'UPDATE evaluations SET {} = %s WHERE evaluation_id = %s'.format(field)
-        val = (value,)
+        val = (value, id)
         try:
             self._execute_update_statement(sql, val)
         except Exception as e:
