@@ -4,7 +4,7 @@ from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from .waiverstorage import WaiverStorage
 from .idgenerator import IdGenerator
-from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, WaiverAlreadyExists
+from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, WaiverAlreadyExists, StorageException
 
 class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenerator):
     def __init__(self):
@@ -13,14 +13,32 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
         self.waivers = {}
         self.logger = logging.getLogger(__name__)
         self.logger.info('[event=memory-storage-started]')
-    
+  
+    def is_healthy(self):
+        return True
+  
+    ''' Evaluation Storage Methods '''
+
     def _add_evaluation(self, e):
         self.evaluations[e.id] = e
         self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
 
-    def _get_threshold(self, id):
+    def _update_evaluation(self, id, field, value):
         e = self.evaluations.get(id, None)
         if e is not None:
+            if field == 'ambiance_threshold':
+                e.ambiance_threshold = value
+                self.evaluations[id] = e 
+            else:
+                self.logger.error('[event=update-evaluation-failure][evaluationId=%s][message=cannot update field "%s"]', id, field)
+                raise StorageException()
+        else:
+            self.logger.error('[event=update-evaluation-error][evaluationId=%s][error=resource not found]', id)
+            raise ResourceNotFoundException(id)     
+
+    def _get_threshold(self, id):
+        e = self.evaluations.get(id, None)
+        if e is not None and e.ambiance_threshold is not None:
             t = e.ambiance_threshold
             self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, t)
             return t
@@ -33,6 +51,14 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
         prev.append(a)
         self.attempts[a.evaluation_id] = prev
         self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s][attemptCount=%s]', a.evaluation_id, a.id, len(prev))
+
+    def _get_evaluations(self, owner_id):
+        evaluations = []
+        for e in self.evaluations.values():
+            if e.owner_id == owner_id:
+                evaluations.append(e)
+        self.logger.info('[event=evaluations-retrieved][ownerId=%s][evaluationCount=%s]', owner_id, len(evaluations))
+        return evaluations
 
     def _get_attempts(self, evaluation_id):
         attempts = self.attempts.get(evaluation_id, None)
@@ -55,8 +81,7 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
             self.logger.error('[event=check-owner-error][resourceId=%s][error=resource not found]', evaluation_id)
             raise ResourceNotFoundException(id)
 
-    def is_healthy(self):
-        return True
+    ''' Waiver Storage Methods '''
 
     def _add_waiver(self, w):
         if w.id is None:
