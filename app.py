@@ -67,15 +67,15 @@ def create_evaluation():
     user = authenticator.get_user(token)
     logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
 
-    content = request.json
     try:
-        age = content['age']
-        gender = content['gender']
-        impression = content['impression']
+        age = request.values.get('age')
+        gender = request.values.get('gender')
+        impression = request.values.get('impression')
     except KeyError as e:
         msg = f'Must provide {e.args[0]}'
         raise InvalidRequestException(msg, e)
-    storage.create_evaluation(age, gender, impression, user)
+    eval_id = storage.create_evaluation(age, gender, impression, user)
+    return form_result({'evaluationId': eval_id})
 
 @app.route('/evaluation/<evaluationId>/ambiance', methods=['POST'])
 def add_ambiance(evaluationId):
