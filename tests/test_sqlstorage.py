@@ -8,7 +8,7 @@ import uuid
 from .context import SQLStorage, PermissionDeniedException, Waiver, WaiverAlreadyExists
 
 try:
-    storage = SQLStorage()
+    storage = SQLStorage(name='test')
 except Exception:
     storage = None
 owner_id = 'OWNER'
@@ -17,19 +17,35 @@ sample_data = np.zeros(8000)
 
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
+        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
         self.assertEqual('EV-', evaluation_id[0:3])
 
-    def test_fetch_evaluation(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        thresh = storage.fetch_evaluation(evaluation_id, owner_id)
+    def test_fetch_threshold(self):
+        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
+        storage.add_threshold(evaluation_id, 0, owner_id)
+        thresh = storage.fetch_threshold(evaluation_id, owner_id)
         self.assertEqual(0, thresh)
 
         with self.assertRaises(PermissionDeniedException):
-            storage.fetch_evaluation(evaluation_id, bad_owner_id)
+            storage.fetch_threshold(evaluation_id, bad_owner_id)
+
+    def test_list_evaluations(self):
+        ids = []
+        count = 5
+        for _ in range(count):
+            ids.append(storage.create_evaluation('60', 'male', 'normal', 'LIST OWNER'))
+        evaluations = storage.list_evaluations('LIST OWNER')
+        self.assertEqual(count, len(evaluations))
+
+        for e in evaluations:
+            self.assertIn(e.id, ids)
+            self.assertEqual('LIST OWNER', e.owner_id)
+
+        empty_evaluations = storage.list_evaluations('OWNER OF NOTHING')
+        self.assertEqual(0, len(empty_evaluations))
 
     def test_create_attempt(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
+        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
         attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         self.assertEqual('AT-', attempt_id[0:3])
 
@@ -37,7 +53,7 @@ class TestSQLStorage(unittest.TestCase):
             storage.create_attempt(evaluation_id, 'word', 4, 12, bad_owner_id)
 
     def test_fetch_attempts(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
+        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
         attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         attempts = storage.fetch_attempts(evaluation_id, owner_id)
         self.assertEqual(1, len(attempts))
@@ -48,7 +64,7 @@ class TestSQLStorage(unittest.TestCase):
             storage.fetch_attempts(evaluation_id, bad_owner_id)
 
     def test_save_recording(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
+        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
         attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
 
@@ -57,7 +73,7 @@ class TestSQLStorage(unittest.TestCase):
 
 
     def test_get_recording(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
+        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
         attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
         recording = storage.get_recording(evaluation_id, attempt_id, owner_id)
@@ -94,6 +110,11 @@ class TestSQLStorage(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.remove('test_wav.wav')
+        c = storage.db.cursor()
+        c.execute('DROP TABLE recordings')
+        c.execute('DROP TABLE waivers')
+        c.execute('DROP TABLE attempts')
+        c.execute('DROP TABLE evaluations')
 
 def create_mock_recording():
     sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
