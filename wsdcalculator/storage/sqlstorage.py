@@ -126,12 +126,12 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=recording-retrieved][attemptId=%s]', attempt_id)
         return res[0]
 
-    def _add_waiver(self, w, user):
+    def _add_waiver(self, w):
         sql = ("INSERT INTO waivers ("
                 "subject_name, subject_email, representative_name, representative_relationship,"
                 "date, signer, valid, filepath, owner_id) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %r, %s, %s);")
-        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath, user)
+        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath, w.owner_id)
         try:
             self._execute_insert_query(sql, val)
         except Exception as ex:
@@ -206,8 +206,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`signer` varchar(48) NOT NULL,"
             "`valid` boolean NOT NULL DEFAULT TRUE,"
             "`filepath` varchar(255) NOT NULL,"
-            "PRIMARY KEY (`waiver_id`)"
             "`owner_id` varchar(48) NOT NULL,"
+            "PRIMARY KEY (`waiver_id`)"
             ");"
         )
         c = self.db.cursor()

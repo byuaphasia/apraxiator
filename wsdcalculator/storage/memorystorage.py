@@ -58,26 +58,22 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
     def is_healthy(self):
         return True
 
-    def _add_waiver(self, w, user):
+    def _add_waiver(self, w):
         if w.id is None:
             w.id = self.create_id('WV')
-        if user not in self.waivers:
-            self.waivers[user] = {}
-        self.waivers[user][w.id] = w
+        self.waivers[w.id] = w
 
     def get_valid_waivers(self, res_name, res_email, user):
         valid_waivers = []
-        if user in self.waivers:
-            for _, w in self.waivers[user].items():
-                if res_name == w.res_name and res_email == w.res_email and w.valid:
-                    valid_waivers.append(w)
+        for _, w in self.waivers.items():
+            if res_name == w.res_name and res_email == w.res_email and w.valid and w.owner_id == user:
+                valid_waivers.append(w)
         return valid_waivers
 
     def _update_waiver(self, id, field, value):
-        for user_id, user_waivers in self.waivers.items():
-            if id in user_waivers:
-                if field == 'date':
-                    self.waivers[user_id][id].date = value
-                elif field == 'valid':
-                    self.waivers[user_id][id].valid = value
-                return
+        if id in self.waivers:
+            if field == 'date':
+                self.waivers[id].date = value
+            elif field == 'valid':
+                self.waivers[id].valid = value
+            return

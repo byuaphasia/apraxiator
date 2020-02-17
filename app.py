@@ -148,9 +148,9 @@ def save_waiver(signer):
     else:
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
     
-    waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship)
+    waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship, user)
     try:
-        storage.add_waiver(waiver, user)
+        storage.add_waiver(waiver)
     except WaiverAlreadyExists:
         logger.info('[event=waiver-exists][resName=%s][resEmail=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
         result = {
