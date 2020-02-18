@@ -3,10 +3,10 @@ import logging
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from .waiverstorage import WaiverStorage
-from .idgenerator import IdGenerator
-from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, WaiverAlreadyExists, StorageException
+from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, StorageException
 
-class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenerator):
+
+class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     def __init__(self):
         self.evaluations = {}
         self.attempts = {}
@@ -84,11 +84,9 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IdGenera
     ''' Waiver Storage Methods '''
 
     def _add_waiver(self, w):
-        if w.id is None:
-            w.id = self.create_id('WV')
         self.waivers[w.id] = w
 
-    def get_valid_waivers(self, res_name, res_email):
+    def get_valid_waivers(self, res_name, res_email, user):
         valid_waivers = []
         for _, w in self.waivers.items():
             if res_name == w.res_name and res_email == w.res_email and w.valid:

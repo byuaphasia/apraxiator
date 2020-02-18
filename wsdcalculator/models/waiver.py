@@ -1,5 +1,11 @@
+from ..storage.idgenerator import IdGenerator
+
+
 class Waiver:
     def __init__(self, res_name, res_email, date, filepath, signer, valid, rep_name=None, rep_relationship=None, id=None, owner_id=None):
+        if id is None:
+            generator = IdGenerator()
+            id = generator.create_id('WV')
         self.id = id
         self.res_name = res_name
         self.res_email = res_email

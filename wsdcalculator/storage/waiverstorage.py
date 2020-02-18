@@ -1,11 +1,10 @@
 from datetime import datetime
 
 from ..apraxiatorexception import NotImplementedException
-from .idgenerator import IdGenerator
 from .storageexceptions import WaiverAlreadyExists, ResourceNotFoundException
 
 
-class WaiverStorage(IdGenerator):
+class WaiverStorage:
     def is_healthy(self):
         raise NotImplementedException()
 
