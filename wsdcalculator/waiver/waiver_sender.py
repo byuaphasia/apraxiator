@@ -30,7 +30,7 @@ class WaiverSender:
                 <html>
                 <head></head>
                 <body>
-                <p>Attached below is a signed copy of the HIPAA Waiver for{}.</p>
+                <p>Attached below is a signed copy of the HIPAA Waiver for {}.</p>
                 </body>
                 </html>
                 """.format(patient_name)
