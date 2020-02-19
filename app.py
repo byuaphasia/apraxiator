@@ -184,9 +184,8 @@ def save_waiver(signer):
         return form_result(result)
 
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
-    sender = WaiverSender()
-    sender.send_patient_waiver(report_file, res_email)
-    sender.send_clinician_email(report_file, clinician_email, res_name)
+    WaiverSender.send_patient_email(report_file, res_email)
+    WaiverSender.send_clinician_email(report_file, clinician_email, res_name)
     logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
     return form_result({})
 

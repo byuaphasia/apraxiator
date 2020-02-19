@@ -1,59 +1,65 @@
 import os
-import smtplib
-import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
+import boto3
+from botocore.exceptions import ClientError
+from email.mime.application import MIMEApplication
+from .waiversenderexception import WaiverSenderException
 
 
 class WaiverSender:
-    def __init__(self):
-        auth_dir = '../apx-resources/email/'
-        creds_json = open(os.path.join(auth_dir, 'creds.json'))
-        creds = json.load(creds_json)
-        self.email = creds['email']
-        self.username = creds['username']
-        self.password = creds['password']
+    @staticmethod
+    def send_patient_email(waiver_file, to_email):
+        subject = "Signed Copy of HIPAA Waiver"
+        body_text = "Attached below is your signed copy of the HIPAA Waiver.\n\n"
+        body_html = """\
+        <html>
+        <head></head>
+        <body>
+        <p>Attached below is your signed copy of the HIPAA Waiver.</p>
+        </body>
+        </html>
+        """
+        WaiverSender.send_email(to_email, subject, body_text, body_html, waiver_file)
 
-    def send_patient_waiver(self, waiver_file, to_email):
-        msg = MIMEMultipart()
-        msg['From'] = self.email
-        msg['To'] = to_email
-        msg['Subject'] = "Signed copy of HIPAA Waiver"
-        body = "Attached below is your signed copy of the HIPAA Waiver.\n\n"
-        msg.attach(MIMEText(body, 'plain'))
-        filename = "Signed HIPAA Waiver.pdf"
-        attachment = open(waiver_file, "rb")
-        p = MIMEBase('application', 'octet-stream')
-        p.set_payload(attachment.read())
-        encoders.encode_base64(p)
-        p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
-        msg.attach(p)
-        s = smtplib.SMTP('smtp.gmail.com', 587)
-        s.starttls()
-        s.login(self.email, self.password)
-        text = msg.as_string()
-        s.sendmail(self.email, to_email, text)
-        s.quit()
+    @staticmethod
+    def send_clinician_email(waiver_file, to_email, patient_name):
+        subject = "HIPAA Waiver"
+        body_text = "Attached below is a signed copy of the HIPAA Waiver for {}.\n\n".format(patient_name)
+        body_html = """\
+                <html>
+                <head></head>
+                <body>
+                <p>Attached below is a signed copy of the HIPAA Waiver for{}.</p>
+                </body>
+                </html>
+                """.format(patient_name)
+        WaiverSender.send_email(to_email, subject, body_text, body_html, waiver_file)
 
-    def send_clinician_email(self, waiver_file, to_email, patient_name):
-        msg = MIMEMultipart()
-        msg['From'] = self.email
+    @staticmethod
+    def send_email(to_email, subject, body_text, body_html, waiver_file):
+        sender = "Tyson Harmon <projectapraxia@gmail.com>"
+        aws_region = "us-west-2"
+        charset = "utf-8"
+        client = boto3.client('ses', region_name=aws_region)
+        msg = MIMEMultipart('mixed')
+        msg['Subject'] = subject
+        msg['From'] = sender
         msg['To'] = to_email
-        msg['Subject'] = "HIPAA Waiver"
-        body = "Attached below is a signed copy of the HIPAA Waiver for {}.\n\n".format(patient_name)
-        msg.attach(MIMEText(body, 'plain'))
-        filename = "Signed HIPAA Waiver.pdf"
-        attachment = open(waiver_file, "rb")
-        p = MIMEBase('application', 'octet-stream')
-        p.set_payload(attachment.read())
-        encoders.encode_base64(p)
-        p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
-        msg.attach(p)
-        s = smtplib.SMTP('smtp.gmail.com', 587)
-        s.starttls()
-        s.login(self.email, self.password)
-        text = msg.as_string()
-        s.sendmail(self.email, to_email, text)
-        s.quit()
+        msg_body = MIMEMultipart('alternative')
+        text_part = MIMEText(body_text.encode(charset), 'plain', charset)
+        html_part = MIMEText(body_html.encode(charset), 'html', charset)
+        msg_body.attach(text_part)
+        msg_body.attach(html_part)
+        att = MIMEApplication(open(waiver_file, 'rb').read())
+        att.add_header('Content-Disposition', 'attachment', filename=os.path.basename(waiver_file))
+        msg.attach(msg_body)
+        msg.attach(att)
+        try:
+            client.send_raw_email(
+                Source=sender,
+                Destinations=[to_email],
+                RawMessage={'Data': msg.as_string()},
+            )
+        except ClientError:
+            raise WaiverSenderException()
