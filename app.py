@@ -173,7 +173,7 @@ def save_waiver(signer):
     else:
         raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
     
-    waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship)
+    waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship, None, user)
     try:
         storage.add_waiver(waiver)
     except WaiverAlreadyExists:
@@ -184,9 +184,8 @@ def save_waiver(signer):
         return form_result(result)
 
     logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
-    sender = WaiverSender()
-    sender.send_patient_waiver(report_file, res_email)
-    sender.send_clinician_email(report_file, clinician_email, res_name)
+    WaiverSender.send_patient_email(report_file, res_email)
+    WaiverSender.send_clinician_email(report_file, clinician_email, res_name)
     logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
     return form_result({})
 
@@ -198,7 +197,7 @@ def check_waivers(res_name, res_email):
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    waivers = storage.get_valid_waivers(res_name, res_email)
+    waivers = storage.get_valid_waivers(res_name, res_email, user)
     result = {
         'waivers': [w.to_response() for w in waivers]
     }
@@ -212,7 +211,7 @@ def invalidate_waiver(res_name, res_email):
     logger.info('[event=invalidate-waiver][user=%s][remoteAddress=%s]', user, request.remote_addr)
     if res_name is None or res_email is None:
         return InvalidRequestException('Must provide both a name and email address')
-    storage.invalidate_waiver(res_name, res_email)
+    storage.invalidate_waiver(res_name, res_email, user)
     return form_result({})
 
 

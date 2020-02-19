@@ -1,5 +1,11 @@
+from ..storage.idgenerator import IdGenerator
+
+
 class Waiver:
-    def __init__(self, res_name, res_email, date, filepath, signer, valid, rep_name=None, rep_relationship=None, id=None):
+    def __init__(self, res_name, res_email, date, filepath, signer, valid, rep_name=None, rep_relationship=None, id=None, owner_id=None):
+        if id is None:
+            generator = IdGenerator()
+            id = generator.create_id('WV')
         self.id = id
         self.res_name = res_name
         self.res_email = res_email
@@ -9,6 +15,7 @@ class Waiver:
         self.valid = valid
         self.rep_name = rep_name
         self.rep_relationship = rep_relationship
+        self.owner_id = owner_id
 
     def to_response(self):
         return {
@@ -18,6 +25,6 @@ class Waiver:
 
     @staticmethod
     def from_row(row):
-        id, res_name, res_email, rep_name, rep_relationship, date, signer, valid, filepath = row
+        id, res_name, res_email, rep_name, rep_relationship, date, signer, valid, filepath, owner_id = row
         valid = bool(valid)
-        return Waiver(res_name, res_email, date, filepath, signer, valid, rep_name, rep_relationship, id)
+        return Waiver(res_name, res_email, date, filepath, signer, valid, rep_name, rep_relationship, id, owner_id)
