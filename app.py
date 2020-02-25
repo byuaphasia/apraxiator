@@ -159,7 +159,9 @@ def update_attempt(evaluationId, attemptId):
         values = body
     include = values.get('include')
     if include is not None:
-        storage.update_include_attempt(evaluationId, attemptId, include != 'false', user)
+        if isinstance(include, str):
+            include = include != 'false'
+        storage.update_include_attempt(evaluationId, attemptId, include, user)
     return form_result({})
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
