@@ -84,6 +84,17 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
         return attempts
 
+    def _update_attempt(self, id, field, value):
+        sql = 'UPDATE attempts SET {} = %s WHERE attempt_id = %s'.format(field)
+        val = (value, id)
+        try:
+            self._execute_update_statement(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=update-attempt-failure][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)
+            raise ResourceAccessException(id, e)
+        self.logger.info('[event=attempt-updated][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)  
+
+
     def _get_evaluations(self, owner_id):
         sql = 'SELECT evaluation_id, age, gender, impression, owner_id, date_created FROM evaluations WHERE owner_id = %s'
         val = (owner_id,)
@@ -218,6 +229,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`attempt_id` varchar(48) NOT NULL,"
             "`wsd` float NOT NULL,"
             "`duration` float NOT NULL,"
+            "`include` boolean NOT NULL DEFAULT TRUE,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
             "PRIMARY KEY (`attempt_id`),"
             "KEY `evaluation_id_idx` (`evaluation_id`),"
@@ -260,7 +272,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
 
         str_vals = []
         for v in val:
-            if isinstance(v, str):
+            if isinstance(v, str) or isinstance(v, float) or isinstance(v, int):
                 str_vals.append(v)
             else:
                 str_vals.append('nonstring')
