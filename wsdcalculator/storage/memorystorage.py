@@ -56,7 +56,7 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         if field != 'include':
             self.logger.error('[event=update-attempt-failure][attemptId=%s][message=cannot update field "%s"]', id, field)
             raise StorageException()
-        for _, attempts in self.attempts:
+        for _, attempts in self.attempts.items():
             for a in attempts:
                 if a.id == id:
                     a.include = value
