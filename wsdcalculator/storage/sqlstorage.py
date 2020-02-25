@@ -279,8 +279,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
 
         if sql[0] == 'I':
             sql_msg = sql.split('VALUE', 0)[0]
-        elif sql[0] == 'S':
-            sql_msg = sql.split('=', 0)[0]
+        elif sql[0] in 'SU':
+            sql_msg = sql
         else:
             sql_msg = 'unrecognized sql'
         return fmt.format(event=event, sql=sql_msg, vals='-'.join(str_vals))

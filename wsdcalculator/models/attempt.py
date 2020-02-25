@@ -1,5 +1,5 @@
 class Attempt:
-    def __init__(self, id, evaluation_id, word, wsd, duration, date_created=None, include=False):
+    def __init__(self, id, evaluation_id, word, wsd, duration, date_created=None, include=True):
         self.id = id
         self.evaluation_id = evaluation_id
         self.word = word

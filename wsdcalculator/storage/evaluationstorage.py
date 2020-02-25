@@ -23,6 +23,10 @@ class EvaluationStorage(IdGenerator):
         a = Attempt(id, evaluation_id, word, wsd, duration)
         self._add_attempt(a)
         return id
+    
+    def update_include_attempt(self, evaluation_id, attempt_id, include, owner_id):
+        self._check_is_owner(evaluation_id, owner_id)
+        self._update_attempt(attempt_id, 'include', include)
 
     def fetch_threshold(self, id, owner_id):
         self._check_is_owner(id, owner_id)
@@ -51,6 +55,9 @@ class EvaluationStorage(IdGenerator):
         raise NotImplementedException()
 
     def _add_attempt(self, a):
+        raise NotImplementedException()
+
+    def _update_attempt(self, id, field, value):
         raise NotImplementedException()
 
     def _get_evaluations(self, owner_id):

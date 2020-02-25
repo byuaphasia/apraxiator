@@ -52,6 +52,16 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.attempts[a.evaluation_id] = prev
         self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s][attemptCount=%s]', a.evaluation_id, a.id, len(prev))
 
+    def _update_attempt(self, id, field, value):
+        if field != 'include':
+            self.logger.error('[event=update-attempt-failure][attemptId=%s][message=cannot update field "%s"]', id, field)
+            raise StorageException()
+        for _, attempts in self.attempts:
+            for a in attempts:
+                if a.id == id:
+                    a.include = value
+                    return
+
     def _get_evaluations(self, owner_id):
         evaluations = []
         for e in self.evaluations.values():
