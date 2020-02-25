@@ -9,12 +9,12 @@ For each endpoint, a cognito signed JWT token is expected to identify the user. 
 Creates a new evaluation. This expects a json body in this form:
 ```json
 {
-  "age": "50", // string version of age or 'no answer'
+  "age": "50",
   "gender": "male",
-  "impression": "apraxia,aphasia" // comma delimited list of impressions
+  "impression": "apraxia,aphasia"
 }
 ```
-This will return a json response in this form:
+The age is expected to be a string version of the age or "no answer". The impression is expected to be a comma delimited list of impressions. This will return a json response in this form:
 ```json
 { 
   "evaluationId": "EV-1234"
@@ -51,6 +51,7 @@ Returns all attempts tied to the provided evaluationId. This will return a json 
       "word": "gingerbread",
       "wsd": 256.79,
       "duration": 770.37,
+      "include": true,
       "dateCreated": "25/12/2042"
     }
   ]
@@ -58,13 +59,16 @@ Returns all attempts tied to the provided evaluationId. This will return a json 
 ```
   
 ### POST /evaluation/\<evaluationId>/attempt?syllableCount=3&word=gingerbread
-Creates a new attempt tied to the provided evaluation. Requires that the syllableCount and word are set in the query parameters or multipart form body. An optional parameter "method" allows selection between the different approaches to calculating WSD. Available options are "filterer", "endpoint", or "average". Like /evaluation, a wav file should be in the multipart request body under the key "recording" which represents the repitition attempt. Returns a json response in this form:
+Creates a new attempt tied to the provided evaluation. Requires that the syllableCount and word are set in the query parameters or multipart form body. An optional parameter "method" allows selection between the different approaches to calculating WSD. Available options are "filterer", "endpoint", "vad", or "average". Another optional parameter defines whether the attached recording will be saved in connection with the attempt. Unless the parameter "save" is set to false, the default will be to save the recording. Like /evaluation, a wav file should be in the multipart request body under the key "recording" which represents the repitition attempt. Returns a json response in this form:
 ```json
 {
   "attemptId": "AT-1234",
   "wsd": 256.79
 }
 ```
+
+### PUT /evaluation/\<evaluationId>/attempt/\<attemptId>
+Allows for changing the "include" status of an attempt. Expects "include" to be set to true or false in the params, form, or json body. Returns empty json object.
   
 ### POST /evaluation/\<evaluationId>/attempt/\<attemptId>/recording
 Saves a recording and ties it to the specified evaluation and attempt. Expects a wav file in the multipart request body under the key "recording". Returns empty json object.
