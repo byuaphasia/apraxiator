@@ -2,15 +2,15 @@ import logging
 
 from .speechdetection.filterbythreshold import Filterer
 from .speechdetection.findendpoints import EndpointFinder
+from .speechdetection.voiceactivitydetector import VoiceActivityDetector
 from .wavreader.wavreader import read
 
 class WSDCalculator():
     def __init__(self, storage):
-        filterer = Filterer(storage)
-        endpoint_finder = EndpointFinder(storage)
         self.measurers = {
-            'filter': filterer,
-            'endpoint': endpoint_finder
+            'filter': Filterer(storage),
+            'endpoint': EndpointFinder(storage),
+            'vad': VoiceActivityDetector(storage)
         }
         self.logger = logging.getLogger(__name__)
 
