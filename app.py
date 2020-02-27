@@ -251,13 +251,12 @@ def invalidate_waiver(res_name, res_email):
     storage.invalidate_waiver(res_name, res_email, user)
     return form_result({})
 
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
-
 @app.route('/export', methods=['POST'])
 def export():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     export_file = exportController.handle_export(request, user)
     return send_file(export_file)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
