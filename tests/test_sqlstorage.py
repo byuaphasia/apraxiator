@@ -55,13 +55,13 @@ class TestSQLStorage(unittest.TestCase):
     def test_update_attempt(self):
         evaluation_id = storage.create_evaluation('60', 'male', 'normal', owner_id)
         attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
-        storage.update_include_attempt(evaluation_id, attempt_id, False, owner_id)
+        storage.update_active_attempt(evaluation_id, attempt_id, False, owner_id)
         attempts = storage.fetch_attempts(evaluation_id, 'OWNER')
         self.assertEqual(attempt_id, attempts[0].id)
-        self.assertEqual(False, attempts[0].include)
+        self.assertEqual(False, attempts[0].active)
 
         with self.assertRaises(PermissionDeniedException):
-            storage.update_include_attempt(evaluation_id, attempt_id, False, bad_owner_id)
+            storage.update_active_attempt(evaluation_id, attempt_id, False, bad_owner_id)
 
     def test_fetch_attempts(self):
         evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
@@ -70,7 +70,7 @@ class TestSQLStorage(unittest.TestCase):
         self.assertEqual(1, len(attempts))
         self.assertEqual(attempt_id, attempts[0].id)
         self.assertEqual(evaluation_id, attempts[0].evaluation_id)
-        self.assertEqual(True, attempts[0].include)
+        self.assertEqual(True, attempts[0].active)
 
         with self.assertRaises(PermissionDeniedException):
             storage.fetch_attempts(evaluation_id, bad_owner_id)

@@ -51,7 +51,7 @@ Returns all attempts tied to the provided evaluationId. This will return a json 
       "word": "gingerbread",
       "wsd": 256.79,
       "duration": 770.37,
-      "include": true,
+      "active": true,
       "dateCreated": "25/12/2042"
     }
   ]
@@ -68,7 +68,7 @@ Creates a new attempt tied to the provided evaluation. Requires that the syllabl
 ```
 
 ### PUT /evaluation/\<evaluationId>/attempt/\<attemptId>
-Allows for changing the "include" status of an attempt. Expects "include" to be set to true or false in the params, form, or json body. Returns empty json object.
+Allows for changing the "active" status of an attempt. Expects "active" to be set to true or false in the params, form, or json body. Returns empty json object.
   
 ### POST /evaluation/\<evaluationId>/attempt/\<attemptId>/recording
 Saves a recording and ties it to the specified evaluation and attempt. Expects a wav file in the multipart request body under the key "recording". Returns empty json object.

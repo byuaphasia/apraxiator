@@ -229,7 +229,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`attempt_id` varchar(48) NOT NULL,"
             "`wsd` float NOT NULL,"
             "`duration` float NOT NULL,"
-            "`include` boolean NOT NULL DEFAULT TRUE,"
+            "`active` boolean NOT NULL DEFAULT TRUE,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
             "PRIMARY KEY (`attempt_id`),"
             "KEY `evaluation_id_idx` (`evaluation_id`),"

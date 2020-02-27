@@ -24,9 +24,9 @@ class EvaluationStorage(IdGenerator):
         self._add_attempt(a)
         return id
     
-    def update_include_attempt(self, evaluation_id, attempt_id, include, owner_id):
+    def update_active_attempt(self, evaluation_id, attempt_id, active, owner_id):
         self._check_is_owner(evaluation_id, owner_id)
-        self._update_attempt(attempt_id, 'include', include)
+        self._update_attempt(attempt_id, 'active', active)
 
     def fetch_threshold(self, id, owner_id):
         self._check_is_owner(id, owner_id)
