@@ -209,6 +209,26 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=waiver-updated][waiverId=%s][field=%s][value=%r]',
                          id, field, value)
 
+    ''' Data Export Method '''
+    def _filtered_join_query(self, start_date, end_date):
+        sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression, recordings.recording"
+            "FROM attempts "
+            "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id "
+            "INNER JOIN recordings ON attempts.attempt_id = recordings.attempt_id "
+            "WHERE attempts.date_created > %s and attempts.date_created < %s;"
+        )
+        val = (start_date, end_date)
+        self.logger(self._make_info_log('super-query', 'large sql query', val))
+        try:
+            c = self.db.cursor()
+            c.execute(sql, val)
+            results = c.fetchall()
+            self.logger.info('[event=super-query-complete][startDate=%s][endDate=%s][resultCount=%s]', start_date, end_date, len(results))
+            return results
+        except Exception as e:
+            self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
+            raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
+
     ''' Table Setup '''
 
     def _create_tables(self):
@@ -260,11 +280,17 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "PRIMARY KEY (`waiver_id`)"
             ");"
         )
+        create_admins_statement = ("CREATE TABLE IF NOT EXISTS `admins` ("
+            "`id` varchar(48) NOT NULL,"
+            "PRIMARY KEY (`id`)"
+            ");"
+        )
         c = self.db.cursor()
         c.execute(create_evaluations_statement)
         c.execute(create_attempts_statement)
         c.execute(create_recordings_statement)
         c.execute(create_waivers_statement)
+        c.execute(create_admins_statement)
 
     @staticmethod
     def _make_info_log(event, sql, val):
