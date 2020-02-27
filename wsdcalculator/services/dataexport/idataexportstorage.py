@@ -1,4 +1,4 @@
-class DataExportStorage:
+class IDataExportStorage:
     def export_data(self, start_date, end_date, user):
         self._confirm_export_access(user)
         return self._export_data(start_date, end_date)

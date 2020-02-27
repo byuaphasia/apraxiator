@@ -3,6 +3,7 @@ import os
 import logging
 import pickle
 
+from ..services import IDataExportStorage
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
 from .waiverstorage import WaiverStorage
@@ -12,7 +13,7 @@ from ..models.evaluation import Evaluation
 from .dbexceptions import ConnectionException, ResourceAccessException
 from .storageexceptions import PermissionDeniedException
 
-class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
+class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExportStorage):
     def __init__(self, name='apraxiator'):
         p = os.environ.get('MYSQL_PASSWORD', None)
         self.db = pymysql.connections.Connection(user='root', password=p, database=name)
@@ -210,7 +211,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
                          id, field, value)
 
     ''' Data Export Method '''
-    def _filtered_join_query(self, start_date, end_date):
+    def _export_data(self, start_date, end_date):
         sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression, recordings.recording"
             "FROM attempts "
             "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id "
@@ -228,6 +229,16 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         except Exception as e:
             self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
             raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
+
+    def _confirm_export_access(self, user):
+        sql = "SELECT * FROM admins WHERE id = %s"
+        val = (user,)
+        res = self._execute_select_query(sql, val)
+        if res[0] != user:
+            self.logger.error('[event=export-access-denied][userId=%s]', user)
+            raise PermissionDeniedException('export', user)
+        else:
+            self.logger.info('[event=admin-verified][userId=%s]', user)
 
     ''' Table Setup '''
 

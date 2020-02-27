@@ -8,6 +8,8 @@ from wsdcalculator.waiver.waiver_sender import WaiverSender
 from wsdcalculator.waiver.waiver_generator import WaiverGenerator
 from wsdcalculator.models.waiver import Waiver
 from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
+from wsdcalculator.controllers import DataExportController
+from wsdcalculator.services import DataExportService
 
 import logging
 from log.setup import setup_logger
@@ -23,6 +25,8 @@ except Exception as e:
   logger.exception('Problem establishing SQL connection')
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
+
+exportController = DataExportController(DataExportService(storage))
 
 calculator = WSDCalculator(storage)
 authenticator = get_auth()
@@ -253,3 +257,10 @@ def invalidate_waiver(res_name, res_email):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
+
+@app.route('/export', methods=['POST'])
+def export():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    export_file = exportController.handle_export(request, user)
+    return send_file(export_file)
