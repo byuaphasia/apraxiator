@@ -6,8 +6,8 @@ class DataExportService:
         self.storage = storage
 
     def export(self, start_date, end_date, user, include_recordings=True):
-        data = self.storage.export_data(start_date, end_date)
-        data_export = DataExport(start_date, end_date)
+        data = self.storage.export_data(start_date, end_date, user)
+        data_export = DataExport()
 
         for row in data:
             data_export.add_row(row)

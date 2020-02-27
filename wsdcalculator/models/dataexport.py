@@ -7,9 +7,7 @@ import os
 from .modelexceptions import ExportDataException
 
 class DataExport:
-    def __init__(self, start_date, end_date):
-        self.start_date = start_date
-        self.end_date = end_date
+    def __init__(self):
         self.data = []
         self.columns = [
             ('evaluationId', str),
@@ -61,7 +59,8 @@ class DataExport:
 
     def clean(self):
         try:
-            os.remove(self.zipname)
+            if self.zipname != '':
+                os.remove(self.zipname)
             for f in self.files:
                 os.remove(f)
             self.zipname = ''
