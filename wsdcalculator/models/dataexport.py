@@ -38,7 +38,6 @@ class DataExport:
             with open(filename, 'wb') as f:
                 f.write(recording)
             self.files.append(filename)
-            return filename
         except Exception as e:
             raise ExportDataException('Problem saving recording as wav', e)
 
@@ -47,19 +46,16 @@ class DataExport:
             df = pd.DataFrame.from_records(self.data, columns=[i[0] for i in self.columns])
             df.to_csv(filename, index=False)
             self.files.append(filename)
-            return filename
         except Exception as e:
             raise ExportDataException('Problem saving data as csv', e)
 
-    def to_zip(self):
+    def to_zip(self, filename):
         try:
-            zipname = f'{self.start_date}.{self.end_date}.zip'
-            z = zipfile.ZipFile(zipname, 'w')
+            z = zipfile.ZipFile(filename, 'w')
             for f in self.files:
                 z.write(f)
             z.close()
-            self.zipname = zipname
-            return zipname
+            self.zipname = filename
         except Exception as e:
             raise ExportDataException('Problem saving data as zip', e)
 
