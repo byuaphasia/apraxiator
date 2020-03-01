@@ -122,25 +122,25 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     ''' General MySQL Interaction Methods '''
 
     def _execute_insert_query(self, sql, val):
-        self.logger.info(self._make_info_log('db-insert', sql, val))
+        self.logger.info(self._make_info_log('db-insert', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
 
     def _execute_update_statement(self, sql, val):
-        self.logger.info(self._make_info_log('db-update', sql, val))
+        self.logger.info(self._make_info_log('db-update', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
     
     def _execute_select_query(self, sql, val):
-        self.logger.info(self._make_info_log('db-select', sql, val))
+        self.logger.info(self._make_info_log('db-select', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchone()
 
     def _execute_select_many_query(self, sql, val):
-        self.logger.info(self._make_info_log('db-select-many', sql, val))
+        self.logger.info(self._make_info_log('db-select-many', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchall()

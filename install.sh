@@ -10,6 +10,8 @@ sudo apt install python3-pip
 sudo apt-get install libsndfile1
 pip3 install pysoundfile
 pip3 install numpy
+pip3 install librosa
+pip3 install webrtcvad
 
 ## Auth packages
 pip3 install jwcrypto

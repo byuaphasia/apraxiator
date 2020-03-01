@@ -30,7 +30,10 @@ authenticator = get_auth()
 def form_result(content, code=200):
     result = jsonify(content)
     result.status_code = code
-    logger.info('[event=form-response][code=%s][content=%s]', code, result.msg)
+    log_msg = ''
+    if hasattr(result, 'msg'):
+        log_msg = result.msg
+    logger.info('[event=form-response][code=%s][content=%s]', code, log_msg)
     return result
 
 @app.errorhandler(Exception)
