@@ -84,6 +84,17 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
         return attempts
 
+    def _update_attempt(self, id, field, value):
+        sql = 'UPDATE attempts SET {} = %s WHERE attempt_id = %s'.format(field)
+        val = (value, id)
+        try:
+            self._execute_update_statement(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=update-attempt-failure][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)
+            raise ResourceAccessException(id, e)
+        self.logger.info('[event=attempt-updated][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)  
+
+
     def _get_evaluations(self, owner_id):
         sql = 'SELECT evaluation_id, age, gender, impression, owner_id, date_created FROM evaluations WHERE owner_id = %s'
         val = (owner_id,)
@@ -111,25 +122,25 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     ''' General MySQL Interaction Methods '''
 
     def _execute_insert_query(self, sql, val):
-        self.logger.info(self._make_info_log('db-insert', sql, val))
+        self.logger.info(self._make_info_log('db-insert', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
 
     def _execute_update_statement(self, sql, val):
-        self.logger.info(self._make_info_log('db-update', sql, val))
+        self.logger.info(self._make_info_log('db-update', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
     
     def _execute_select_query(self, sql, val):
-        self.logger.info(self._make_info_log('db-select', sql, val))
+        self.logger.info(self._make_info_log('db-select', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchone()
 
     def _execute_select_many_query(self, sql, val):
-        self.logger.info(self._make_info_log('db-select-many', sql, val))
+        self.logger.info(self._make_info_log('db-select-many', sql, (str(i) for i in val)))
         c = self.db.cursor()
         c.execute(sql, val)
         return c.fetchall()
@@ -218,6 +229,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`attempt_id` varchar(48) NOT NULL,"
             "`wsd` float NOT NULL,"
             "`duration` float NOT NULL,"
+            "`active` boolean NOT NULL DEFAULT TRUE,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
             "PRIMARY KEY (`attempt_id`),"
             "KEY `evaluation_id_idx` (`evaluation_id`),"
@@ -260,15 +272,15 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
 
         str_vals = []
         for v in val:
-            if isinstance(v, str):
+            if isinstance(v, str) or isinstance(v, float) or isinstance(v, int):
                 str_vals.append(v)
             else:
                 str_vals.append('nonstring')
 
         if sql[0] == 'I':
             sql_msg = sql.split('VALUE', 0)[0]
-        elif sql[0] == 'S':
-            sql_msg = sql.split('=', 0)[0]
+        elif sql[0] in 'SU':
+            sql_msg = sql
         else:
             sql_msg = 'unrecognized sql'
         return fmt.format(event=event, sql=sql_msg, vals='-'.join(str_vals))

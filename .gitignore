@@ -116,3 +116,7 @@ sprint2/
 
 # Authentication
 jwk.json
+
+# Saved Waivers
+wsdcalculator/waiver/signed_waivers/*
+wsdcalculator/waiver/tmp/*

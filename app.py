@@ -30,6 +30,10 @@ authenticator = get_auth()
 def form_result(content, code=200):
     result = jsonify(content)
     result.status_code = code
+    log_msg = ''
+    if hasattr(result, 'msg'):
+        log_msg = result.msg
+    logger.info('[event=form-response][code=%s][content=%s]', code, log_msg)
     return result
 
 @app.errorhandler(Exception)
@@ -67,13 +71,20 @@ def create_evaluation():
     user = authenticator.get_user(token)
     logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
 
+    body = request.get_json(silent=True)
+    if body is None:
+        # If no/bad json body, pull values from request form or query params
+        values = request.values
+    else:
+        values = body
     try:
-        age = request.values.get('age')
-        gender = request.values.get('gender')
-        impression = request.values.get('impression')
+        age = values['age']
+        gender = values['gender']
+        impression = values['impression']
     except KeyError as e:
         msg = f'Must provide {e.args[0]}'
         raise InvalidRequestException(msg, e)
+
     eval_id = storage.create_evaluation(age, gender, impression, user)
     return form_result({'evaluationId': eval_id})
 
@@ -122,14 +133,39 @@ def process_attempt(evaluationId):
 
     method = request.values.get('method')
     if method is None or method == '':
-        method = 'average'
+        method = 'endpoint'
+
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
     id = storage.create_attempt(evaluationId, word, wsd, duration, user)
+
+    save = request.values.get('save')
+    if save is None or save != 'false':
+        logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s][save=%s]', user, evaluationId, id, save)
+        storage.save_recording(f.read(), evaluationId, id, user)
+
     result = {
         'attemptId': id,
         'wsd': wsd
     }
     return form_result(result)
+
+@app.route('/evaluation/<evaluationId>/attempt/<attemptId>', methods=['PUT'])
+def update_attempt(evaluationId, attemptId):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
+
+    body = request.get_json(silent=True)
+    if body is None:
+        values = request.values
+    else:
+        values = body
+    active = values.get('active')
+    if active is not None:
+        if isinstance(active, str):
+            active = active != 'false'
+        storage.update_active_attempt(evaluationId, attemptId, active, user)
+    return form_result({})
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
