@@ -47,7 +47,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         except Exception as e:
             self.logger.exception('[event=update-evaluation-failure][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
             raise ResourceAccessException(id, e)
-        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)        
+        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
 
     def _get_threshold(self, id):
         sql = 'SELECT ambiance_threshold FROM evaluations WHERE evaluation_id = %s'
@@ -59,7 +59,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             raise ResourceAccessException(id, e)
         self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, res[0])
         return res[0]
-    
+
     def _add_attempt(self, a):
         sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
         val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration)
@@ -92,7 +92,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         except Exception as e:
             self.logger.exception('[event=update-attempt-failure][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)
             raise ResourceAccessException(id, e)
-        self.logger.info('[event=attempt-updated][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)  
+        self.logger.info('[event=attempt-updated][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)
 
 
     def _get_evaluations(self, owner_id):
@@ -132,7 +132,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
-    
+
     def _execute_select_query(self, sql, val):
         self.logger.info(self._make_info_log('db-select', sql, (str(i) for i in val)))
         c = self.db.cursor()
@@ -170,6 +170,9 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
 
     ''' Waiver Storage Methods '''
 
+
+
+
     def _add_waiver(self, w):
         sql = ("INSERT INTO waivers ("
                 "subject_name, subject_email, representative_name, representative_relationship,"
@@ -183,18 +186,18 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             raise ResourceAccessException(None, ex)
         self.logger.info('[event=waiver-added][subjectName=%s][subjectEmail=%s]', w.res_name, w.res_email)
 
-    def get_valid_waivers(self, res_name, res_email, user):
-        sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s AND valid = %r AND owner_id = %s;'
-        val = (res_name, res_email, True, user)
+    def get_valid_waivers(self, res_email, user):
+        sql = 'SELECT * FROM waivers WHERE subject_email = %s AND valid = %r AND owner_id = %s;'
+        val = (res_email, True, user)
         try:
             res = self._execute_select_many_query(sql, val)
         except Exception as e:
-            self.logger.exception('[event=get-valid-waiver-failure][subjectName=%s][subjectEmail=%s]', res_name, res_email)
+            self.logger.exception('[event=get-valid-waiver-failure][subjectEmail=%s]', res_email)
             raise ResourceAccessException(None, e)
         waivers = []
         for row in res:
             waivers.append(Waiver.from_row(row))
-        self.logger.info('[event=valid-waivers-retrieved][subjectName=%s][subjectEmail=%s][waiverCount=%s]', res_name, res_email, len(waivers))
+        self.logger.info('[event=valid-waivers-retrieved][subjectEmail=%s][waiverCount=%s]', res_email, len(waivers))
         return waivers
 
     def _update_waiver(self, id, field, value):
@@ -208,6 +211,16 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             raise ResourceAccessException(None, e)
         self.logger.info('[event=waiver-updated][waiverId=%s][field=%s][value=%r]',
                          id, field, value)
+
+    def _check_is_owner_waiver(self, waiver_id, owner_id):
+        sql = 'SELECT owner_id FROM waivers WHERE waiver_id = %s'
+        val = (waiver_id,)
+        res = self._execute_select_query(sql, val)
+        if res[0] != owner_id:
+            self.logger.error('[event=access-denied][waiverId=%s][userId=%s]', waiver_id, owner_id)
+            raise PermissionDeniedException(waiver_id, owner_id)
+        else:
+            self.logger.info('[event=owner-verified][waiverId=%s][userId=%s]', waiver_id, owner_id)
 
     ''' Table Setup '''
 

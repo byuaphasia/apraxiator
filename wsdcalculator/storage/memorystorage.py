@@ -96,10 +96,10 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
     def _add_waiver(self, w):
         self.waivers[w.id] = w
 
-    def get_valid_waivers(self, res_name, res_email, user):
+    def get_valid_waivers(self, res_email, user):
         valid_waivers = []
         for _, w in self.waivers.items():
-            if res_name == w.res_name and res_email == w.res_email and w.valid:
+            if res_email == w.res_email and w.valid and w.owner_id == user:
                 valid_waivers.append(w)
         return valid_waivers
 
@@ -110,3 +110,15 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         elif field == 'valid':
             w.valid = value
         self.waivers[id] = w
+
+    def _check_is_owner_waiver(self, waiver_id, owner_id):
+        w = self.waivers.get(waiver_id, None)
+        if w is not None:
+            if w.owner_id != owner_id:
+                self.logger.error('[event=access-denied][waiverId=%s][userId=%s]', waiver_id, owner_id)
+                raise PermissionDeniedException(waiver_id, owner_id)
+            else:
+                self.logger.info('[event=owner-verified][evaluationId=%s][ownerId=%s]', waiver_id, owner_id)
+        else:
+            self.logger.error('[event=check-owner-error][resourceId=%s][error=resource not found]', waiver_id)
+            raise ResourceNotFoundException(id)

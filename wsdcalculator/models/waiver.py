@@ -21,6 +21,8 @@ class Waiver:
         return {
             'subjectName': self.res_name,
             'subjectEmail': self.res_email,
+            'date': self.date,
+            'waiverId': str(self.id)
         }
 
     @staticmethod
