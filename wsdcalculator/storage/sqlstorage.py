@@ -61,8 +61,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         return res[0]
     
     def _add_attempt(self, a):
-        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
-        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration)
+        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration, syllables) VALUE (%s, %s, %s, %s, %s, %s)'
+        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllables)
         try:
             self._execute_insert_query(sql, val)
         except Exception as e:
@@ -110,7 +110,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         return evaluations
 
     def _check_is_owner(self, evaluation_id, owner_id):
-        sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
+        sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s;'
         val = (evaluation_id,)
         res = self._execute_select_query(sql, val)
         if res[0] != owner_id:
@@ -211,6 +211,37 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
 
     ''' Table Setup '''
 
+    def _get_active_attempts(self, evaluation_id):
+        sql = 'SELECT * FROM attempts WHERE evaluation_id = %s AND active = %s'
+        val = (evaluation_id, True)
+        try:
+            res = self._execute_select_many_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-active-attempts-failure][evaluationId=%s]', evaluation_id)
+            raise ResourceAccessException(evaluation_id, e)
+        attempts = []
+        for row in res:
+            attempts.append(Attempt.from_row(row))
+        self.logger.info('[event=active-attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
+        return attempts
+
+    def _get_evaluation_data(self, evaluation_id):
+        sql = 'SELECT date_created, gender, age, impression FROM evaluations WHERE evaluation_id = %s;'
+        val = (evaluation_id,)
+        try:
+            res = self._execute_select_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-evaluation-date-failure][evaluationId=%s]', evaluation_id)
+            raise ResourceAccessException(None, e)
+        self.logger.info('[event=get-evaluation-date][evaluationId=%s]', evaluation_id)
+        data = {
+            'date': str(res[0]),
+            'gender': res[1],
+            'age': res[2],
+            'impression': res[3]
+        }
+        return data
+
     def _create_tables(self):
         create_evaluations_statement = ("CREATE TABLE IF NOT EXISTS `evaluations` ("
             "`evaluation_id` varchar(48) NOT NULL,"
@@ -231,7 +262,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`duration` float NOT NULL,"
             "`active` boolean NOT NULL DEFAULT TRUE,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-            "PRIMARY KEY (`attempt_id`),"
+            "`syllables` integer NOT NULL,"
+            " KEY (`attempt_id`),"
             "KEY `evaluation_id_idx` (`evaluation_id`),"
             "CONSTRAINT `evaluation_id` FOREIGN KEY (`evaluation_id`) REFERENCES `evaluations` (`evaluation_id`)"
             ");"
