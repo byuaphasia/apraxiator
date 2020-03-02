@@ -26,7 +26,7 @@ class Attempt:
         r = {
             'word': self.word,
             'syllables': self.syllables,
-            'wsd': self.wsd,
+            'wsd': '{0:.2f}'.format(self.wsd),
         }
         return r
 

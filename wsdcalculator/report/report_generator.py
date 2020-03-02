@@ -14,7 +14,7 @@ class ReportGenerator:
             'eval_id': eval_id,
             'date': date,
             'attempts': attempts,
-            'total_wsd': total_wsd,
+            'total_wsd': '{0:.2f}'.format(total_wsd),
             'gender': gender,
             'age': age,
             'impression': impression
