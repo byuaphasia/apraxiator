@@ -268,6 +268,7 @@ def send_report():
     sum_wsd = 0
     for attempt in eval_report['attempts']:
         sum_wsd += attempt['wsd']
+        attempt['wsd'] = '{0:.2f}'.format(attempt['wsd'])
     avg_wsd = sum_wsd / len(eval_report['attempts'])
     report_generator = ReportGenerator()
     report_file = report_generator.create_pdf_report(eval_id, eval_report['date'], name, eval_report['attempts'], avg_wsd, eval_report['gender'], eval_report['age'], eval_report['impression'])
