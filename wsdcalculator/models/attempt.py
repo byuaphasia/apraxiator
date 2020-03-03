@@ -24,4 +24,4 @@ class Attempt:
     def from_row(row):
         evaluation_id, word, id, wsd, duration, active, date_created = row
         active = bool(active)
-        return Attempt(id, evaluation_id, word, wsd, duration, date_created)
+        return Attempt(id, evaluation_id, word, wsd, duration, date_created, active)

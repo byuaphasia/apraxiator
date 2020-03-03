@@ -9,3 +9,7 @@ class DummyRequest:
     def set_values(self, values):
         self.values = values
         return self
+
+    def set_files(self, files):
+        self.files = files
+        return self
