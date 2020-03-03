@@ -3,6 +3,7 @@ import logging
 
 from ..services import EvaluationService
 from ..apraxiatorexception import InvalidRequestException
+from ..utils import read_wav
 
 class EvaluationController:
     def __init__(self, service: EvaluationService):
@@ -19,11 +20,8 @@ class EvaluationController:
 
     def handle_add_ambiance(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=add-ambiance][user=%s][evaluationId=%s]', user, evaluation_id)
-        age, gender, impression = self.get_request_data(r)
-        self.validate_str_field('age', age)
-        self.validate_str_field('gender', gender)
-        self.validate_str_field('impression', impression, length=255)
-        return self.service.create_evaluation(age, gender, impression, user)
+        data, sr = self.get_request_wav_file(r)
+        return self.service.add_ambiance(data, sr, user)
 
     @staticmethod
     def validate_str_field(field, value, length=16):
@@ -52,5 +50,8 @@ class EvaluationController:
         return age, gender, impression
 
     @staticmethod
-    def get_add_ambiance_data(r: Request):
-        f = r.files['recording']
+    def get_request_wav_file(r: Request):
+        f = r.files.get('recording')
+        if f is None:
+            raise InvalidRequestException("Must provide file named 'recording'")
+        return read_wav(f)
