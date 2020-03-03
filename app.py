@@ -31,6 +31,10 @@ exportController = DataExportController(DataExportService(storage))
 calculator = WSDCalculator(storage)
 authenticator = get_auth()
 
+@app.before_request
+def log_access():
+    logger.info(f'[event=endpoint-call][endpoint={request.endpoint}][remoteAddress={request.remote_addr}]')
+
 def form_result(content, code=200):
     result = jsonify(content)
     result.status_code = code

@@ -35,25 +35,28 @@ class TestDataExportController(unittest.TestCase):
             'endDate': good_date
         }
         req = DummyRequest()
-        p0, p1, p2 = controller.get_export_params(req.set_body(body))
+        p0, p1, p2 = controller.get_request_data(req.set_body(body))
         self.assertEqual(good_date, p0)        
         self.assertEqual(good_date, p1)
         self.assertTrue(p2)
 
         with self.assertRaises(InvalidRequestException):
-            controller.get_export_params(req.set_body(None))
+            controller.get_request_data(req.set_body(None))
         
         body['includeRecordings'] = True
-        _, _, p2 = controller.get_export_params(req.set_body(body))
+        _, _, p2 = controller.get_request_data(req.set_body(body))
         self.assertTrue(p2)
 
         body['includeRecordings'] = False
-        _, _, p2 = controller.get_export_params(req.set_body(body))
+        _, _, p2 = controller.get_request_data(req.set_body(body))
         self.assertFalse(p2)
 
-        body['includeRecordings'] = 'not bool'
         with self.assertRaises(InvalidRequestException):
-            controller.get_export_params(req.set_body(body))
+            controller.get_request_data(req.set_body({}))
 
+    def test_validate_include_recordings(self):
+        controller.validate_include_recordings(True)
+        controller.validate_include_recordings(False)
+            
         with self.assertRaises(InvalidRequestException):
-            controller.get_export_params(req.set_body({}))
+            controller.validate_include_recordings('not bool')
