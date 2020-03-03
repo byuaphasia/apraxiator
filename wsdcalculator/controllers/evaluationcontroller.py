@@ -31,14 +31,14 @@ class EvaluationController:
     def handle_add_ambiance(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=add-ambiance][user=%s][evaluationId=%s]', user, evaluation_id)
         data, sr = self.get_request_wav_file(r)
-        self.validate_id(evaluation_id, IdPrefix.EVALUATION)
+        self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
         self.service.add_ambiance(user, evaluation_id, data, sr)
         return {}
 
 
     def handle_get_attempts(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=get-attempts][user=%s][evaluationId=%s]', user, evaluation_id)
-        self.validate_id(evaluation_id, IdPrefix.EVALUATION)
+        self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
         attempts = self.service.get_attempts(user, evaluation_id)
         return {
             'attempts': [a.to_response() for a in attempts]
@@ -48,12 +48,12 @@ class EvaluationController:
         self.logger.info('[event=create-attempt][user=%s][evaluationId=%s]', user, evaluation_id)
         audio, sr = self.get_request_wav_file(r)
         word, syllable_count, method, save = self.get_create_attempt_data(r)
-        self.validate_id(evaluation_id, IdPrefix.EVALUATION)
+        self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
         self.validate_int_field('syllableCount', syllable_count, high=20)
         attempt_id, wsd = self.service.process_attempt(user, evaluation_id, word, syllable_count, method, audio, sr)
         if save:
             self.logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s]', user, evaluation_id, attempt_id)
-            self.service.save_attempt_recording(attempt_id, self.get_request_file_raw(r))
+            self.service.save_attempt_recording(user, evaluation_id, attempt_id, self.get_request_file_raw(r))
         return {
             'attemptId': attempt_id,
             'wsd': wsd
@@ -62,8 +62,8 @@ class EvaluationController:
     def handle_update_attempt(self, r: Request, user: str, evaluation_id: str, attempt_id: str):
         self.logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s]', user, evaluation_id, attempt_id)
         active = self.get_update_attempt_data(r)
-        self.validate_id(evaluation_id, IdPrefix.EVALUATION)
-        self.validate_id(attempt_id, IdPrefix.ATTEMPT)
+        self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
+        self.validate_id(attempt_id, IdPrefix.ATTEMPT.value)
         self.service.update_active_status(user, evaluation_id, attempt_id, active)
         return {}
 

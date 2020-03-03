@@ -3,7 +3,7 @@ from ..utils import IdGenerator, IdPrefix
 class Waiver(IdGenerator):
     def __init__(self, res_name, res_email, date, filepath, signer, valid, rep_name=None, rep_relationship=None, id=None, owner_id=None):
         if id is None:
-            id = self.create_id(IdPrefix.WAIVER)
+            id = self.create_id(IdPrefix.WAIVER.value)
         self.id = id
         self.res_name = res_name
         self.res_email = res_email
