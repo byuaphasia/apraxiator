@@ -3,8 +3,7 @@ import os
 import logging
 import pickle
 
-from ..services import IDataExportStorage
-from .evaluationstorage import EvaluationStorage
+from ..services import IDataExportStorage, IEvaluationStorage
 from .recordingstorage import RecordingStorage
 from .waiverstorage import WaiverStorage
 from ..models.waiver import Waiver
@@ -13,7 +12,7 @@ from ..models.evaluation import Evaluation
 from .dbexceptions import ConnectionException, ResourceAccessException
 from .storageexceptions import PermissionDeniedException
 
-class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExportStorage):
+class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExportStorage):
     def __init__(self, name='apraxiator'):
         p = os.environ.get('MYSQL_PASSWORD', None)
         self.db = pymysql.connections.Connection(user='root', password=p, database=name)
@@ -30,7 +29,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
 
     ''' Evaluation Storage Methods '''
 
-    def _add_evaluation(self, e):
+    def create_evaluation(self, e):
         sql = 'INSERT INTO evaluations (evaluation_id, age, gender, impression, owner_id) VALUES (%s, %s, %s, %s, %s)'
         val = (e.id, e.age, e.gender, e.impression, e.owner_id)
         try:
@@ -40,7 +39,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
             raise ResourceAccessException(e.id, ex)
         self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
 
-    def _update_evaluation(self, id, field, value):
+    def update_evaluation(self, id, field, value):
         sql = 'UPDATE evaluations SET {} = %s WHERE evaluation_id = %s'.format(field)
         val = (value, id)
         try:
@@ -50,8 +49,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
             raise ResourceAccessException(id, e)
         self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)        
 
-    def _get_threshold(self, id):
-        sql = 'SELECT ambiance_threshold FROM evaluations WHERE evaluation_id = %s'
+    def get_evaluation(self, id):
+        sql = 'SELECT * FROM evaluations WHERE evaluation_id = %s'
         val = (id,)
         try:
             res = self._execute_select_query(sql, val)
@@ -59,9 +58,10 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
             self.logger.exception('[event=get-threshold-failure][evaluationId=%s]', id)
             raise ResourceAccessException(id, e)
         self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, res[0])
-        return res[0]
+        evaluation = Evaluation.from_row(res)
+        return evaluation
     
-    def _add_attempt(self, a):
+    def create_attempt(self, a):
         sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
         val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration)
         try:
@@ -71,7 +71,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
             raise ResourceAccessException(a.id, e)
         self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
 
-    def _get_attempts(self, evaluation_id):
+    def get_attempts(self, evaluation_id):
         sql = 'SELECT * FROM attempts WHERE evaluation_id = %s'
         val = (evaluation_id,)
         try:
@@ -85,7 +85,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
         self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
         return attempts
 
-    def _update_attempt(self, id, field, value):
+    def update_attempt(self, id, field, value):
         sql = 'UPDATE attempts SET {} = %s WHERE attempt_id = %s'.format(field)
         val = (value, id)
         try:
@@ -96,7 +96,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
         self.logger.info('[event=attempt-updated][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)  
 
 
-    def _get_evaluations(self, owner_id):
+    def list_evaluations(self, owner_id):
         sql = 'SELECT evaluation_id, age, gender, impression, owner_id, date_created FROM evaluations WHERE owner_id = %s'
         val = (owner_id,)
         try:
@@ -110,7 +110,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
         self.logger.info('[event=evaluations-retrieved][ownerId=%s][evaluationCount=%s]', owner_id, len(evaluations))
         return evaluations
 
-    def _check_is_owner(self, evaluation_id, owner_id):
+    def check_is_owner(self, evaluation_id, owner_id):
         sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
         val = (evaluation_id,)
         res = self._execute_select_query(sql, val)
