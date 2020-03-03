@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 import io
 
-from wsdcalculator import WSDCalculator, ApraxiatorException, InvalidRequestException, get_ambiance_threshold
+from wsdcalculator import ApraxiatorException, InvalidRequestException
 from wsdcalculator.authentication.authprovider import get_auth
 
 from wsdcalculator.waiver.waiver_sender import WaiverSender
@@ -29,7 +29,6 @@ except Exception as e:
 export_controller = DataExportController(DataExportService(storage))
 evaluation_controller = EvaluationController(EvaluationService(storage))
 
-calculator = WSDCalculator(storage)
 authenticator = get_auth()
 
 @app.before_request
