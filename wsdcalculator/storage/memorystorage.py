@@ -1,4 +1,5 @@
 import logging
+import datetime
 
 from .evaluationstorage import EvaluationStorage
 from .recordingstorage import RecordingStorage
@@ -122,3 +123,31 @@ class MemoryStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         else:
             self.logger.error('[event=check-owner-error][resourceId=%s][error=resource not found]', waiver_id)
             raise ResourceNotFoundException(id)
+
+    def _get_active_attempts(self, evaluation_id):
+        attempts = self.attempts.get(evaluation_id, None)
+        if attempts is not None:
+            output = []
+            for attempt in attempts:
+                if attempt.active:
+                    output.append(attempt)
+            return output
+        else:
+            self.logger.error('[event=get-active-attempts-error][evaluationId=%s][error=resource not found]', evaluation_id)
+            raise ResourceNotFoundException(evaluation_id)
+
+    def _get_evaluation_data(self, evaluation_id):
+        e = self.evaluations.get(evaluation_id, None)
+        if e is not None:
+            date = e.date_created
+            if date is None:
+                date = str(datetime.datetime.today().strftime('%d-%b-%Y'))
+            return {
+                'date': date,
+                'gender': e.gender,
+                'age': e.age,
+                'impression': e.impression
+            }
+        else:
+            self.logger.error('[event=get-evaluation-date-error][evaluationId=%s][error=resource not found]', evaluation_id)
+            raise ResourceNotFoundException(evaluation_id)

@@ -46,15 +46,15 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_create_attempt(self):
         evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id, 1)
         self.assertEqual('AT-', attempt_id[0:3])
 
         with self.assertRaises(PermissionDeniedException):
-            storage.create_attempt(evaluation_id, 'word', 4, 12, bad_owner_id)
+            storage.create_attempt(evaluation_id, 'word', 4, 12, bad_owner_id, 1)
     
     def test_update_attempt(self):
         evaluation_id = storage.create_evaluation('60', 'male', 'normal', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id, 0)
         storage.update_active_attempt(evaluation_id, attempt_id, False, owner_id)
         attempts = storage.fetch_attempts(evaluation_id, 'OWNER')
         self.assertEqual(attempt_id, attempts[0].id)
@@ -65,7 +65,7 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_fetch_attempts(self):
         evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id, 1)
         attempts = storage.fetch_attempts(evaluation_id, owner_id)
         self.assertEqual(1, len(attempts))
         self.assertEqual(attempt_id, attempts[0].id)
@@ -77,7 +77,7 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_save_recording(self):
         evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id, 1)
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
 
         with self.assertRaises(PermissionDeniedException):
@@ -86,7 +86,7 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_get_recording(self):
         evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id, 1)
         storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
         recording = storage.get_recording(evaluation_id, attempt_id, owner_id)
 

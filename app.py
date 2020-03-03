@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify, send_file
 import io
 
@@ -8,6 +9,8 @@ from wsdcalculator.waiver.waiver_sender import WaiverSender
 from wsdcalculator.waiver.waiver_generator import WaiverGenerator
 from wsdcalculator.models.waiver import Waiver
 from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
+from wsdcalculator.report.report_sender import ReportSender
+from wsdcalculator.report.report_generator import ReportGenerator
 
 import logging
 from log.setup import setup_logger
@@ -136,7 +139,7 @@ def process_attempt(evaluationId):
         method = 'endpoint'
 
     wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
-    id = storage.create_attempt(evaluationId, word, wsd, duration, user)
+    id = storage.create_attempt(evaluationId, word, wsd, duration, user, syllable_count)
 
     save = request.values.get('save')
     if save is None or save != 'false':
@@ -248,6 +251,30 @@ def invalidate_waiver(waiver_id):
     if waiver_id is None:
         return InvalidRequestException('Must provide a waiver_id')
     storage.invalidate_waiver(waiver_id, user)
+    return form_result({})
+
+
+@app.route('/sendReport', methods=['POST'])
+def send_report():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    eval_id = request.values.get('evalId')
+    email = request.values.get('email')
+    if email is None or eval_id is None:
+        return InvalidRequestException('Must provide both an email address and evaluation ID')
+    logger.info('[event=send-report][user=%s][remoteAddress=%s][evalId=%s]', user, request.remote_addr, eval_id)
+    name = request.values.get('name')
+    eval_report = storage.get_evaluation_report(eval_id, user)
+    sum_wsd = 0
+    for attempt in eval_report['attempts']:
+        sum_wsd += attempt['wsd']
+        attempt['wsd'] = '{0:.2f}'.format(attempt['wsd'])
+    avg_wsd = sum_wsd / len(eval_report['attempts'])
+    report_generator = ReportGenerator()
+    report_file = report_generator.create_pdf_report(eval_id, eval_report['date'], name, eval_report['attempts'], avg_wsd, eval_report['gender'], eval_report['age'], eval_report['impression'])
+    ReportSender.send_report_email(report_file, email, eval_id)
+    if os.path.isfile(report_file):
+        os.remove(report_file)
     return form_result({})
 
 
