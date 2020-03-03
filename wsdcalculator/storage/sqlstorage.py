@@ -210,8 +210,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
         self.logger.info('[event=waiver-updated][waiverId=%s][field=%s][value=%r]',
                          id, field, value)
 
-    ''' Data Export Method '''
-    def _export_data(self, start_date, end_date):
+    ''' Data Export Methods '''
+    def export_data(self, start_date, end_date):
         sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression, recordings.recording"
             "FROM attempts "
             "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id "
@@ -230,7 +230,7 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage, IDataExport
             self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
             raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
 
-    def _confirm_export_access(self, user):
+    def confirm_export_access(self, user):
         sql = "SELECT * FROM admins WHERE id = %s"
         val = (user,)
         res = self._execute_select_query(sql, val)

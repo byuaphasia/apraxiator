@@ -12,3 +12,6 @@ class EvaluationService:
         # Calculate WSD
         # Add attempt to DB
         pass
+
+    def update_active_status(self, user: str, evaluation_id: str, attempt_id: str, active: bool):
+        pass
