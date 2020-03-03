@@ -64,6 +64,22 @@ class TestEvaluations(unittest.TestCase):
         a = controller.handle_get_attempts(None, 'update', e_id)['attempts'][0]
         self.assertFalse(a['active'])
 
+    def test_get_evaluation_report(self):
+        e_id = create_evaluation(controller, 'report')['evaluationId']
+        add_ambiance(controller, 'report', e_id)
+        active_id = create_attempt(controller, 'report', e_id)['attemptId']
+        inactive_id = create_attempt(controller, 'report', e_id)['attemptId']
+        body = {'active': False}
+        r = DummyRequest().set_body(body)
+        controller.handle_update_attempt(r, 'report', e_id, inactive_id)
+        result = controller.handle_get_evaluation_report(None, 'report', e_id)
+        self.assertTrue('date' in result)
+        self.assertTrue('age' in result)
+        self.assertTrue('gender' in result)
+        self.assertTrue('impression' in result)
+        self.assertTrue('attempts' in result)
+        self.assertEqual(1, len(result['attempts']))
+
     @classmethod
     def tearDownClass(cls):
         if mode == 'db':
