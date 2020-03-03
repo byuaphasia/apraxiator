@@ -110,7 +110,7 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
         self.logger.info('[event=evaluations-retrieved][ownerId=%s][evaluationCount=%s]', owner_id, len(evaluations))
         return evaluations
 
-    def check_is_owner(self, evaluation_id, owner_id):
+    def check_is_owner(self, owner_id, evaluation_id):
         sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
         val = (evaluation_id,)
         res = self._execute_select_query(sql, val)
