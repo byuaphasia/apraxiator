@@ -17,6 +17,14 @@ class Evaluation:
             'dateCreated': self.date_created
         }
 
+    def to_report(self):
+        return {
+            'date': self.date_created,
+            'gender': self.gender,
+            'age': self.age,
+            'impression': self.impression
+        }
+
     @staticmethod
     def from_row(row):
         id, age, gender, impression, owner_id, amb, date_created = row

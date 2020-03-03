@@ -31,7 +31,7 @@ class EvaluationService(IdGenerator):
         threshold = evaluation.ambiance_threshold
         wsd, duration = self.calculator.calculate_wsd(audio, sr, syllable_count, method, threshold)
         attempt_id = self.create_id(IdPrefix.ATTEMPT.value)
-        a = Attempt(attempt_id, evaluation_id, word, wsd, duration)
+        a = Attempt(attempt_id, evaluation_id, word, wsd, duration, syllable_count)
         self.storage.create_attempt(a)
         return attempt_id, wsd
 
@@ -47,3 +47,13 @@ class EvaluationService(IdGenerator):
     def save_attempt_recording(self, user: str, evaluation_id: str, attempt_id: str, recording):
         self.storage.check_is_owner(user, evaluation_id)
         self.storage.save_recording(attempt_id, recording)
+
+    def get_evaluation_report(self, user: str, evaluation_id: str):
+        self.storage.check_is_owner(user, evaluation_id)
+        unfiltered = self.storage.get_attempts(evaluation_id)
+        attempts = []
+        for a in unfiltered:
+            if a.active:
+                attempts.append(a)
+        evaluation = self.storage.get_evaluation(evaluation_id)
+        return attempts, evaluation

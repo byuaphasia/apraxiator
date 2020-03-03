@@ -67,6 +67,16 @@ class EvaluationController:
         self.service.update_active_status(user, evaluation_id, attempt_id, active)
         return {}
 
+    def handle_get_evaluation_report(self, r: Request, user: str, evaluation_id: str):
+        self.logger.info('[event=get-evaluation-report][user=%s][evaluationId=%s]', user, evaluation_id)
+        self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
+        attempts, evaluation = self.service.get_evaluation_report(user, evaluation_id)
+        result = {
+            'attempts': [a.to_report() for a in attempts]
+        }
+        result.update(evaluation.to_report())
+        return result
+
     @staticmethod
     def validate_id(id: str, expected_prefix: str):
         if not len(id) > len(expected_prefix):

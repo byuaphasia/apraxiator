@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify, send_file
 import io
 
@@ -10,6 +11,8 @@ from wsdcalculator.models.waiver import Waiver
 from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
 from wsdcalculator.controllers import DataExportController, EvaluationController
 from wsdcalculator.services import DataExportService, EvaluationService
+from wsdcalculator.report.report_sender import ReportSender
+from wsdcalculator.report.report_generator import ReportGenerator
 
 import logging
 from log.setup import setup_logger
@@ -195,6 +198,30 @@ def export():
     user = authenticator.get_user(token)
     export_file = export_controller.handle_export(request, user)
     return send_file(export_file)
+
+@app.route('/sendReport', methods=['POST'])
+def send_report():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    eval_id = request.values.get('evalId')
+    email = request.values.get('email')
+    if email is None or eval_id is None:
+        return InvalidRequestException('Must provide both an email address and evaluation ID')
+    logger.info('[event=send-report][user=%s][remoteAddress=%s][evalId=%s]', user, request.remote_addr, eval_id)
+    name = request.values.get('name')
+    eval_report = evaluation_controller.handle_get_evaluation_report(request, user, eval_id)
+    sum_wsd = 0
+    for attempt in eval_report['attempts']:
+        sum_wsd += attempt['wsd']
+        attempt['wsd'] = '{0:.2f}'.format(attempt['wsd'])
+    avg_wsd = sum_wsd / len(eval_report['attempts'])
+    report_generator = ReportGenerator()
+    report_file = report_generator.create_pdf_report(eval_id, eval_report['date'], name, eval_report['attempts'], avg_wsd, eval_report['gender'], eval_report['age'], eval_report['impression'])
+    ReportSender.send_report_email(report_file, email, eval_id)
+    if os.path.isfile(report_file):
+        os.remove(report_file)
+    return form_result({})
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))

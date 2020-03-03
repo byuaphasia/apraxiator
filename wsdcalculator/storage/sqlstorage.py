@@ -64,8 +64,8 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
         return evaluation
     
     def create_attempt(self, a):
-        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration) VALUE (%s, %s, %s, %s, %s)'
-        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration)
+        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration, syllable_count) VALUE (%s, %s, %s, %s, %s, %s)'
+        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllable_count)
         try:
             self._execute_insert_query(sql, val)
         except Exception as e:
@@ -266,6 +266,7 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
             "`wsd` float NOT NULL,"
             "`duration` float NOT NULL,"
             "`active` boolean NOT NULL DEFAULT TRUE,"
+            "`syllable_count` integer NOT NULL,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
             "PRIMARY KEY (`attempt_id`),"
             "KEY `evaluation_id_idx` (`evaluation_id`),"
