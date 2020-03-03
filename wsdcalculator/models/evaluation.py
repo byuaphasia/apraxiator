@@ -19,5 +19,5 @@ class Evaluation:
 
     @staticmethod
     def from_row(row):
-        id, age, gender, impression, owner_id, date_created = row
-        return Evaluation(id, age, gender, impression, owner_id, date_created)
+        id, age, gender, impression, owner_id, amb, date_created = row
+        return Evaluation(id, age, gender, impression, owner_id, amb, date_created)

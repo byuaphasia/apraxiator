@@ -55,9 +55,9 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
         try:
             res = self._execute_select_query(sql, val)
         except Exception as e:
-            self.logger.exception('[event=get-threshold-failure][evaluationId=%s]', id)
+            self.logger.exception('[event=get-evaluation-failure][evaluationId=%s]', id)
             raise ResourceAccessException(id, e)
-        self.logger.info('[event=threshold-retrieved][evaluationId=%s][threshold=%s]', id, res[0])
+        self.logger.info('[event=evaluation-retrieved][evaluationId=%s]', id)
         evaluation = Evaluation.from_row(res)
         return evaluation
     
@@ -97,7 +97,7 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
 
 
     def list_evaluations(self, owner_id):
-        sql = 'SELECT evaluation_id, age, gender, impression, owner_id, date_created FROM evaluations WHERE owner_id = %s'
+        sql = 'SELECT * FROM evaluations WHERE owner_id = %s'
         val = (owner_id,)
         try:
             res = self._execute_select_many_query(sql, val)
