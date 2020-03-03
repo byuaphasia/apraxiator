@@ -104,19 +104,8 @@ def process_attempt(evaluationId):
 def update_attempt(evaluationId, attemptId):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
-
-    body = request.get_json(silent=True)
-    if body is None:
-        values = request.values
-    else:
-        values = body
-    active = values.get('active')
-    if active is not None:
-        if isinstance(active, str):
-            active = active != 'false'
-        storage.update_active_attempt(evaluationId, attemptId, active, user)
-    return form_result({})
+    result = evaluation_controller.handle_update_attempt(request, user, evaluationId, attemptId)
+    return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
 def save_recording(evaluationId, attemptId):
