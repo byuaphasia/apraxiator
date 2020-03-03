@@ -8,8 +8,8 @@ from wsdcalculator.waiver.waiver_sender import WaiverSender
 from wsdcalculator.waiver.waiver_generator import WaiverGenerator
 from wsdcalculator.models.waiver import Waiver
 from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
-from wsdcalculator.controllers import DataExportController
-from wsdcalculator.services import DataExportService
+from wsdcalculator.controllers import DataExportController, EvaluationController
+from wsdcalculator.services import DataExportService, EvaluationService
 
 import logging
 from log.setup import setup_logger
@@ -26,7 +26,8 @@ except Exception as e:
   from wsdcalculator.storage.memorystorage import MemoryStorage
   storage = MemoryStorage()
 
-exportController = DataExportController(DataExportService(storage))
+export_controller = DataExportController(DataExportService(storage))
+evaluation_controller = EvaluationController(EvaluationService(storage))
 
 calculator = WSDCalculator(storage)
 authenticator = get_auth()
@@ -49,6 +50,9 @@ def handle_failure(error: Exception):
     if isinstance(error, ApraxiatorException):
         logger.error('[event=returning-error][errorMessage=%s][errorCode=%s]', error.get_message(), error.get_code())
         return form_result(error.to_response(), error.get_code())
+    elif isinstance(error, NotImplementedError):
+        logger.error('[event=returning-notimplementederror][error=%r]', error)
+        return form_result({'errorMessage': 'Sorry, that request cannot be completed'}, 418)
     else:
         logger.error('[event=returning-unknown-error][error=%s]', error)
         return form_result({'errorMessage': 'An unknown error occurred.'}, 500)
@@ -65,96 +69,35 @@ def healthcheck():
 def list_evaluations():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=list-evaluations][user=%s][remoteAddress=%s]', user, request.remote_addr)
-
-    evaluations = storage.list_evaluations(user)
-    result = {
-        'evaluations': [e.to_list_response() for e in evaluations]
-    }
+    result = evaluation_controller.handle_list_evaluations(request, user)
     return form_result(result)
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
-
-    body = request.get_json(silent=True)
-    if body is None:
-        # If no/bad json body, pull values from request form or query params
-        values = request.values
-    else:
-        values = body
-    try:
-        age = values['age']
-        gender = values['gender']
-        impression = values['impression']
-    except KeyError as e:
-        msg = f'Must provide {e.args[0]}'
-        raise InvalidRequestException(msg, e)
-
-    eval_id = storage.create_evaluation(age, gender, impression, user)
-    return form_result({'evaluationId': eval_id})
+    result = evaluation_controller.handle_create_evaluation(request, user)
+    return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/ambiance', methods=['POST'])
 def add_ambiance(evaluationId):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=add-ambiance][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
-
-    f = request.files['recording']
-    if f is None:
-        raise InvalidRequestException('Must attach a file called "recording"')
-    threshold = get_ambiance_threshold(f)
-
-    storage.add_threshold(evaluationId, threshold, user)
-    return form_result({})
+    result = evaluation_controller.handle_add_ambiance(request, user, evaluationId)
+    return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/attempts', methods=['GET'])
 def get_attempts(evaluationId):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=get-attempts][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
-
-    attempts = storage.fetch_attempts(evaluationId, user)
-    result = {
-        'attempts': [a.to_response() for a in attempts]
-    }
+    result = evaluation_controller.handle_get_attempts(request, user, evaluationId)
     return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
 def process_attempt(evaluationId):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
-
-    f = request.files['recording']
-    syllable_count = request.values.get('syllableCount')
-    syllable_count = int(syllable_count)
-    word = request.values.get('word')
-    if syllable_count is None:
-        raise InvalidRequestException('Must provide syllable count')
-    elif syllable_count <= 0:
-        raise InvalidRequestException('Syllable count was {}, must be greater than 0'.format(syllable_count))
-    if word is None or word == '':
-        raise InvalidRequestException('Must provide attempted word')
-
-    method = request.values.get('method')
-    if method is None or method == '':
-        method = 'endpoint'
-
-    wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
-    id = storage.create_attempt(evaluationId, word, wsd, duration, user)
-
-    save = request.values.get('save')
-    if save is None or save != 'false':
-        logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s][save=%s]', user, evaluationId, id, save)
-        storage.save_recording(f.read(), evaluationId, id, user)
-
-    result = {
-        'attemptId': id,
-        'wsd': wsd
-    }
+    result = evaluation_controller.handle_create_attempt(request, user, evaluationId)
     return form_result(result)
 
 @app.route('/evaluation/<evaluationId>/attempt/<attemptId>', methods=['PUT'])
@@ -262,7 +205,7 @@ def invalidate_waiver(res_name, res_email):
 def export():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    export_file = exportController.handle_export(request, user)
+    export_file = export_controller.handle_export(request, user)
     return send_file(export_file)
 
 if __name__ == '__main__':
