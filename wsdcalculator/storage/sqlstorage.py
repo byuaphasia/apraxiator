@@ -10,7 +10,7 @@ from ..models.waiver import Waiver
 from ..models.attempt import Attempt
 from ..models.evaluation import Evaluation
 from .dbexceptions import ConnectionException, ResourceAccessException
-from .storageexceptions import PermissionDeniedException
+from .storageexceptions import PermissionDeniedException, ResourceNotFoundException
 
 class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExportStorage):
     def __init__(self, name='apraxiator'):
@@ -114,6 +114,9 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
         sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
         val = (evaluation_id,)
         res = self._execute_select_query(sql, val)
+        if res is None:
+            self.logger.error('[event=check-owner-failure][evaluationId=%s][userId=%s][message=no evaluation found]', evaluation_id, owner_id)
+            raise ResourceNotFoundException(evaluation_id)
         if res[0] != owner_id:
             self.logger.error('[event=access-denied][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
             raise PermissionDeniedException(evaluation_id, owner_id)
