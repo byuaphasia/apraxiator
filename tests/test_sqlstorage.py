@@ -51,11 +51,11 @@ class TestSQLStorage(unittest.TestCase):
         storage.create_attempt(make_attempt('att', 'att'))
 
     def test_update_attempt(self):
-        storage.create_evaluation(make_evaluation('att'))
-        storage.create_attempt(make_attempt('att', 'att'))
-        storage.update_attempt('att', 'active', False)
-        attempts = storage.get_attempts('att')
-        self.assertEqual('att', attempts[0].id)
+        storage.create_evaluation(make_evaluation('update'))
+        storage.create_attempt(make_attempt('update', 'update'))
+        storage.update_attempt('update', 'active', False)
+        attempts = storage.get_attempts('update')
+        self.assertEqual('update', attempts[0].id)
         self.assertEqual(False, attempts[0].active)
 
     def test_fetch_attempts(self):

@@ -57,6 +57,8 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
         except Exception as e:
             self.logger.exception('[event=get-evaluation-failure][evaluationId=%s]', id)
             raise ResourceAccessException(id, e)
+        if res is None:
+            raise ResourceNotFoundException(id)
         self.logger.info('[event=evaluation-retrieved][evaluationId=%s]', id)
         evaluation = Evaluation.from_row(res)
         return evaluation
