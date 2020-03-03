@@ -6,6 +6,7 @@ class DataExportService:
         self.storage = storage
 
     def export(self, user, start_date, end_date, include_recordings=True):
+        self.storage.confirm_export_access(user)
         data = self.storage.export_data(start_date, end_date, user)
         data_export = DataExport()
 
