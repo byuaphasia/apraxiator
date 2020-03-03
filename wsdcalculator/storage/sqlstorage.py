@@ -61,8 +61,8 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
         return res[0]
     
     def _add_attempt(self, a):
-        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration, syllables) VALUE (%s, %s, %s, %s, %s, %s)'
-        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllables)
+        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration, syllable_count) VALUE (%s, %s, %s, %s, %s, %s)'
+        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllable_count)
         try:
             self._execute_insert_query(sql, val)
         except Exception as e:
@@ -261,9 +261,9 @@ class SQLStorage(EvaluationStorage, RecordingStorage, WaiverStorage):
             "`wsd` float NOT NULL,"
             "`duration` float NOT NULL,"
             "`active` boolean NOT NULL DEFAULT TRUE,"
+            "`syllable_count` integer NOT NULL,"
             "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-            "`syllables` integer NOT NULL,"
-            " KEY (`attempt_id`),"
+            "PRIMARY KEY (`attempt_id`),"
             "KEY `evaluation_id_idx` (`evaluation_id`),"
             "CONSTRAINT `evaluation_id` FOREIGN KEY (`evaluation_id`) REFERENCES `evaluations` (`evaluation_id`)"
             ");"

@@ -1,5 +1,5 @@
 class Attempt:
-    def __init__(self, id, evaluation_id, word, wsd, duration, syllables, date_created=None, active=True):
+    def __init__(self, id, evaluation_id, word, wsd, duration, syllable_count, date_created=None, active=True):
         self.id = id
         self.evaluation_id = evaluation_id
         self.word = word
@@ -7,7 +7,7 @@ class Attempt:
         self.duration = duration
         self.date_created = date_created
         self.active = active
-        self.syllables = syllables
+        self.syllable_count = syllable_count
 
     def to_response(self):
         r = {
@@ -18,20 +18,20 @@ class Attempt:
             'duration': self.duration,
             'active': self.active,
             'dateCreated': self.date_created,
-            'syllables': self.syllables
+            'syllableCount': self.syllable_count
         }
         return r
 
     def to_report(self):
         r = {
             'word': self.word,
-            'syllables': self.syllables,
+            'syllables': self.syllable_count,
             'wsd': self.wsd,
         }
         return r
 
     @staticmethod
     def from_row(row):
-        evaluation_id, word, id, wsd, duration, active, date_created, syllables = row
+        evaluation_id, word, id, wsd, duration, active, syllable_count, date_created = row
         active = bool(active)
-        return Attempt(id, evaluation_id, word, wsd, duration, syllables, date_created, active)
+        return Attempt(id, evaluation_id, word, wsd, duration, syllable_count, date_created, active)
