@@ -17,10 +17,10 @@ class EvaluationStorage(IdGenerator):
         self._check_is_owner(id, owner_id)
         self._update_evaluation(id, 'ambiance_threshold', threshold)
 
-    def create_attempt(self, evaluation_id, word, wsd, duration, owner_id):
+    def create_attempt(self, evaluation_id, word, wsd, duration, owner_id, syllables):
         self._check_is_owner(evaluation_id, owner_id)
         id = self.create_id('AT')
-        a = Attempt(id, evaluation_id, word, wsd, duration)
+        a = Attempt(id, evaluation_id, word, wsd, duration, syllables)
         self._add_attempt(a)
         return id
     
@@ -39,6 +39,12 @@ class EvaluationStorage(IdGenerator):
         self._check_is_owner(evaluation_id, owner_id)
         return self._get_attempts(evaluation_id)
 
+    def get_evaluation_report(self, evaluation_id, owner_id):
+        self._check_is_owner(evaluation_id, owner_id)
+        raw_attempts = self._get_active_attempts(evaluation_id)
+        attempts = [a.to_report() for a in raw_attempts]
+        evaluation_data = self._get_evaluation_data(evaluation_id)
+        return {'attempts': attempts, 'date': evaluation_data['date'], 'gender': evaluation_data['gender'], 'age': evaluation_data['age'], 'impression': evaluation_data['impression']}
 
     ''' Abstract internal methods implemented by child classes '''
 
@@ -64,4 +70,10 @@ class EvaluationStorage(IdGenerator):
         raise NotImplementedException()
 
     def _get_attempts(self, evaluation_id):
+        raise NotImplementedException()
+
+    def _get_active_attempts(self, evaluation_id):
+        raise NotImplementedException()
+
+    def _get_evaluation_data(self, evaluation_id):
         raise NotImplementedException()

@@ -38,15 +38,15 @@ class TestMemoryStorage(unittest.TestCase):
 
     def test_create_attempt(self):
         evaluation_id = storage.create_evaluation('60', 'male', 'normal', 'OWNER')
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, 'OWNER')
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, 'OWNER', 0)
         self.assertEqual('AT-', attempt_id[0:3])
 
         with self.assertRaises(PermissionDeniedException):
-            storage.create_attempt(evaluation_id, 'word', 0, 0, 'NOT THE OWNER')
+            storage.create_attempt(evaluation_id, 'word', 0, 0, 'NOT THE OWNER', 0)
 
     def test_update_attempt(self):
         evaluation_id = storage.create_evaluation('60', 'male', 'normal', 'OWNER')
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, 'OWNER')
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, 'OWNER', 0)
         storage.update_active_attempt(evaluation_id, attempt_id, False, 'OWNER')
         attempts = storage.fetch_attempts(evaluation_id, 'OWNER')
         self.assertEqual(attempt_id, attempts[0].id)
@@ -57,7 +57,7 @@ class TestMemoryStorage(unittest.TestCase):
 
     def test_fetch_attempts(self):
         evaluation_id = storage.create_evaluation('60', 'male', 'normal', 'OWNER')
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, 'OWNER')
+        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, 'OWNER', 0)
         attempts = storage.fetch_attempts(evaluation_id, 'OWNER')
         self.assertEqual(1, len(attempts))
         self.assertEqual(attempt_id, attempts[0].id)
