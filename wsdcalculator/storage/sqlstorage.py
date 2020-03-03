@@ -161,7 +161,7 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
             raise ResourceAccessException(attempt_id, e)
         self.logger.info('[event=recording-saved][attemptId=%s]', attempt_id)
 
-    def _get_recording(self, attempt_id):
+    def get_recording(self, attempt_id):
         sql = 'SELECT recording FROM recordings WHERE attempt_id = %s'
         val = (attempt_id,)
         try:

@@ -13,10 +13,12 @@ filename = 'exporttest'
 num_rows = 3
 
 class DummyDataExportStorage(IDataExportStorage):
-    def export_data(self, start_date, end_date, user):
-        if user != admin:
-            raise PermissionDeniedException('export', user)
+    def export_data(self, start_date, end_date):
         return gen_export_data(num_rows)
+    
+    def confirm_export_access(self, user):
+        if user != 'admin':
+            raise PermissionDeniedException('export data', user)
 
 s = DataExportService(DummyDataExportStorage())
 

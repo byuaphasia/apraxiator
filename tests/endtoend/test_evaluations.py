@@ -66,11 +66,12 @@ class TestEvaluations(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        c = storage.db.cursor()
-        c.execute('DROP TABLE recordings')
-        c.execute('DROP TABLE waivers')
-        c.execute('DROP TABLE attempts')
-        c.execute('DROP TABLE evaluations')
+        if mode == 'db':
+            c = storage.db.cursor()
+            c.execute('DROP TABLE recordings')
+            c.execute('DROP TABLE waivers')
+            c.execute('DROP TABLE attempts')
+            c.execute('DROP TABLE evaluations')
 
 def add_ambiance(c, user, evaluation_id):
     files = {

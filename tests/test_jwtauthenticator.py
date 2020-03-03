@@ -2,7 +2,7 @@ import unittest
 import json
 import os
 
-from .context import JWTAuthenticator, TokenExpiredException
+from ..wsdcalculator.authentication.jwtauthenticator import JWTAuthenticator, TokenExpiredException
 
 example = json.load(open('../apx-resources/auth/test_example.json', 'r'))
 ex_jwt = example.get('token', '')

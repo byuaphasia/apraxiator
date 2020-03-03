@@ -5,7 +5,9 @@ import numpy as np
 import os
 import uuid
 
-from .context import SQLStorage, PermissionDeniedException, Waiver, WaiverAlreadyExists
+from ..wsdcalculator.models import Attempt, Evaluation, Waiver
+from ..wsdcalculator.storage import SQLStorage
+from ..wsdcalculator.storage.storageexceptions import ResourceNotFoundException, WaiverAlreadyExists
 
 try:
     storage = SQLStorage(name='test')
@@ -17,78 +19,70 @@ sample_data = np.zeros(8000)
 
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
-        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        self.assertEqual('EV-', evaluation_id[0:3])
+        storage.create_evaluation(make_evaluation('create'))
 
-    def test_fetch_threshold(self):
-        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        storage.add_threshold(evaluation_id, 0, owner_id)
-        thresh = storage.fetch_threshold(evaluation_id, owner_id)
-        self.assertEqual(0, thresh)
+    def test_get_evaluation(self):
+        storage.create_evaluation(make_evaluation('get'))
+        storage.update_evaluation('get', 'ambiance_threshold', 0)
+        result = storage.get_evaluation('get')
+        self.assertEqual(0, result.ambiance_threshold)
 
-        with self.assertRaises(PermissionDeniedException):
-            storage.fetch_threshold(evaluation_id, bad_owner_id)
+        with self.assertRaises(ResourceNotFoundException):
+            storage.get_evaluation('bad')
 
     def test_list_evaluations(self):
         ids = []
         count = 5
-        for _ in range(count):
-            ids.append(storage.create_evaluation('60', 'male', 'normal', 'LIST OWNER'))
-        evaluations = storage.list_evaluations('LIST OWNER')
+        for i in range(count):
+            storage.create_evaluation(make_evaluation(f'list{i}', 'list owner'))
+            ids.append(f'list{i}')
+        evaluations = storage.list_evaluations('list owner')
         self.assertEqual(count, len(evaluations))
 
         for e in evaluations:
             self.assertIn(e.id, ids)
-            self.assertEqual('LIST OWNER', e.owner_id)
+            self.assertEqual('list owner', e.owner_id)
 
-        empty_evaluations = storage.list_evaluations('OWNER OF NOTHING')
+        empty_evaluations = storage.list_evaluations('owner of nothing')
         self.assertEqual(0, len(empty_evaluations))
 
     def test_create_attempt(self):
-        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        self.assertEqual('AT-', attempt_id[0:3])
+        storage.create_evaluation(make_evaluation('att'))
+        storage.create_attempt(make_attempt('att', 'att'))
 
-        with self.assertRaises(PermissionDeniedException):
-            storage.create_attempt(evaluation_id, 'word', 4, 12, bad_owner_id)
-    
     def test_update_attempt(self):
-        evaluation_id = storage.create_evaluation('60', 'male', 'normal', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 0, 0, owner_id)
-        storage.update_active_attempt(evaluation_id, attempt_id, False, owner_id)
-        attempts = storage.fetch_attempts(evaluation_id, 'OWNER')
-        self.assertEqual(attempt_id, attempts[0].id)
+        storage.create_evaluation(make_evaluation('att'))
+        storage.create_attempt(make_attempt('att', 'att'))
+        storage.update_attempt('att', 'active', False)
+        attempts = storage.get_attempts('att')
+        self.assertEqual('att', attempts[0].id)
         self.assertEqual(False, attempts[0].active)
 
-        with self.assertRaises(PermissionDeniedException):
-            storage.update_active_attempt(evaluation_id, attempt_id, False, bad_owner_id)
-
     def test_fetch_attempts(self):
-        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        attempts = storage.fetch_attempts(evaluation_id, owner_id)
-        self.assertEqual(1, len(attempts))
-        self.assertEqual(attempt_id, attempts[0].id)
-        self.assertEqual(evaluation_id, attempts[0].evaluation_id)
-        self.assertEqual(True, attempts[0].active)
-
-        with self.assertRaises(PermissionDeniedException):
-            storage.fetch_attempts(evaluation_id, bad_owner_id)
+        storage.create_evaluation(make_evaluation('get atts'))
+        ids = []
+        count = 5
+        for i in range(count):
+            storage.create_attempt(make_attempt(f'att{i}', 'get atts'))
+            ids.append(f'att{i}')
+        attempts = storage.get_attempts('get atts')
+        self.assertEqual(count, len(attempts))
+        for a in attempts:
+            self.assertIn(a.id, ids)
+            self.assertEqual('get atts', a.evaluation_id)
+            self.assertEqual(True, a.active)
 
     def test_save_recording(self):
-        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
-
-        with self.assertRaises(PermissionDeniedException):
-            storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, bad_owner_id)
+        storage.create_evaluation(make_evaluation('rec'))
+        storage.create_attempt(make_attempt('rec', 'rec'))
+        storage.save_recording('rec', create_mock_recording())
 
 
     def test_get_recording(self):
-        evaluation_id = storage.create_evaluation('age', 'gender', 'impression', owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
-        recording = storage.get_recording(evaluation_id, attempt_id, owner_id)
+        storage.create_evaluation(make_evaluation('get rec'))
+        storage.create_attempt(make_attempt('get rec', 'get rec'))
+        storage.save_recording('get rec', create_mock_recording())
+        recording = storage.get_recording('get rec')
 
         data, sr = sf.read(io.BytesIO(recording))
         self.assertEqual(8000, sr)
@@ -132,3 +126,9 @@ def create_mock_recording():
     sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
     sound.write(sample_data)
     return open('test_wav.wav', 'rb').read()
+
+def make_evaluation(id, owner='owner'):
+    return Evaluation(id, '60', 'male', 'normal', owner)
+
+def make_attempt(id, evaluation_id):
+    return Attempt(id, evaluation_id, 'word', 0.0, 0.0, 0)
