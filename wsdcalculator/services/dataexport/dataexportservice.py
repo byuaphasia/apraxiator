@@ -5,7 +5,7 @@ class DataExportService:
     def __init__(self, storage: IDataExportStorage):
         self.storage = storage
 
-    def export(self, start_date, end_date, user, include_recordings=True):
+    def export(self, user, start_date, end_date, include_recordings=True):
         data = self.storage.export_data(start_date, end_date, user)
         data_export = DataExport()
 

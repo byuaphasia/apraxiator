@@ -16,7 +16,7 @@ class DataExportController:
         self.validate_date_format(start_date)
         self.validate_date_format(end_date)
         self.validate_include_recordings(include_recordings)
-        return self.service.export(start_date, end_date, user, include_recordings)
+        return self.service.export(user, start_date, end_date, include_recordings)
 
     # Validates that the date string passed in is in ISO YYYY-MM-DD format
     @staticmethod
