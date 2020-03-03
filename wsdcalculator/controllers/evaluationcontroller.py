@@ -61,7 +61,10 @@ class EvaluationController:
 
     def handle_update_attempt(self, r: Request, user: str, evaluation_id: str, attempt_id: str):
         self.logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s]', user, evaluation_id, attempt_id)
-        # TODO: finish
+        active = self.get_update_attempt_data(r)
+        self.validate_id(evaluation_id, IdPrefix.EVALUATION)
+        self.validate_id(attempt_id, IdPrefix.ATTEMPT)
+        self.service.update_active_status(user, evaluation_id, attempt_id, active)
         return {}
 
     @staticmethod
@@ -127,6 +130,22 @@ class EvaluationController:
         else:
             save = True
         return word, syllable_count, method, save
+
+    @staticmethod
+    def get_update_attempt_data(r: Request):
+        body = r.get_json(silent=True)
+        if body is None:
+            values = r.values
+        else:
+            values = body
+        active = values.get('active')
+        if active is None:
+            raise InvalidRequestException("Only updating 'active' status is supported, must provide 'active' field")
+        if active == 'false' or active == False:
+            active = False
+        else:
+            active = True
+        return active
 
     @staticmethod
     def get_request_wav_file(r: Request):
