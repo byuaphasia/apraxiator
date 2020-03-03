@@ -64,6 +64,14 @@ class TestEvaluations(unittest.TestCase):
         a = controller.handle_get_attempts(None, 'update', e_id)['attempts'][0]
         self.assertFalse(a['active'])
 
+    @classmethod
+    def tearDownClass(cls):
+        c = storage.db.cursor()
+        c.execute('DROP TABLE recordings')
+        c.execute('DROP TABLE waivers')
+        c.execute('DROP TABLE attempts')
+        c.execute('DROP TABLE evaluations')
+
 def add_ambiance(c, user, evaluation_id):
     files = {
         'recording': open('tests/utils/exampleAmb.wav', 'rb')
