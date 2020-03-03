@@ -151,7 +151,7 @@ class SQLStorage(IEvaluationStorage, RecordingStorage, WaiverStorage, IDataExpor
 
     ''' Recording Storage Methods '''
 
-    def save_recording(self, recording, attempt_id):
+    def save_recording(self, attempt_id, recording):
         sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
         val = (attempt_id, recording)
         try:
