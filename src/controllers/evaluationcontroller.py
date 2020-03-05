@@ -4,13 +4,17 @@ import logging
 from ..services import EvaluationService
 from ..apraxiatorexception import InvalidRequestException
 from ..utils import read_wav, IdPrefix
+from .controllerbase import ControllerBase, authenticate_request
+from .authentication import IAuthenticator
 
 
-class EvaluationController:
-    def __init__(self, service: EvaluationService):
+class EvaluationController(ControllerBase):
+    def __init__(self, authenticator: IAuthenticator, service: EvaluationService):
+        super().__init__(authenticator)
         self.service = service
         self.logger = logging.getLogger(__name__)
 
+    @authenticate_request
     def handle_create_evaluation(self, r: Request, user: str):
         self.logger.info('[event=create-evaluation][user=%s]', user)
         age, gender, impression = self.get_create_evaluation_data(r)
@@ -22,6 +26,7 @@ class EvaluationController:
             'evaluationId': evaluation_id
         }
 
+    @authenticate_request
     def handle_list_evaluations(self, r: Request, user: str):
         self.logger.info('[event=list-evaluations][user=%s]', user)
         evaluations = self.service.list_evaluations(user)
@@ -29,6 +34,7 @@ class EvaluationController:
             'evaluations': [e.to_list_response() for e in evaluations]
         }
 
+    @authenticate_request
     def handle_add_ambiance(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=add-ambiance][user=%s][evaluationId=%s]', user, evaluation_id)
         data, sr = self.get_request_wav_file(r)
@@ -36,6 +42,7 @@ class EvaluationController:
         self.service.add_ambiance(user, evaluation_id, data, sr)
         return {}
 
+    @authenticate_request
     def handle_get_attempts(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=get-attempts][user=%s][evaluationId=%s]', user, evaluation_id)
         self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
@@ -44,6 +51,7 @@ class EvaluationController:
             'attempts': [a.to_response() for a in attempts]
         }
 
+    @authenticate_request
     def handle_create_attempt(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=create-attempt][user=%s][evaluationId=%s]', user, evaluation_id)
         audio, sr = self.get_request_wav_file(r)
@@ -59,6 +67,7 @@ class EvaluationController:
             'wsd': wsd
         }
 
+    @authenticate_request
     def handle_update_attempt(self, r: Request, user: str, evaluation_id: str, attempt_id: str):
         self.logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s]', user, evaluation_id, attempt_id)
         active = self.get_update_attempt_data(r)
@@ -67,6 +76,7 @@ class EvaluationController:
         self.service.update_active_status(user, evaluation_id, attempt_id, active)
         return {}
 
+    @authenticate_request
     def handle_get_evaluation_report(self, r: Request, user: str, evaluation_id: str):
         self.logger.info('[event=get-evaluation-report][user=%s][evaluationId=%s]', user, evaluation_id)
         self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)

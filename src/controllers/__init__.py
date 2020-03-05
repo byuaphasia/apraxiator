@@ -1,2 +1,3 @@
 from .dataexportcontroller import DataExportController
 from .evaluationcontroller import EvaluationController
+from .controllerbase import authenticate_request

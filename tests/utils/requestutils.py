@@ -18,3 +18,15 @@ class DummyRequest:
     def set_files(self, files):
         self.files = files
         return self
+
+
+class DummyAuth:
+    def __init__(self):
+        self.user = None
+    
+    def set_user(self, user):
+        self.user = user
+        return self
+    
+    def get_user(self, r):
+        return self.user

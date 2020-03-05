@@ -4,13 +4,17 @@ import logging
 
 from ..services import DataExportService
 from ..apraxiatorexception import InvalidRequestException
+from .controllerbase import ControllerBase, authenticate_request
+from .authentication import IAuthenticator
 
 
-class DataExportController:
-    def __init__(self, service: DataExportService):
+class DataExportController(ControllerBase):
+    def __init__(self, authenticator: IAuthenticator, service: DataExportService):
+        super().__init__(authenticator)
         self.service = service
         self.logger = logging.getLogger(__name__)
 
+    @authenticate_request
     def handle_export(self, r: Request, user: str):
         self.logger.info('[event=export-data][user=%s]', user)
         start_date, end_date, include_recordings = self.get_request_data(r)

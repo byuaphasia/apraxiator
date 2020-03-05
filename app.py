@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify, send_file
 
 from src import ApraxiatorException, InvalidRequestException
-from src.authentication.authprovider import get_auth
+from src.controllers.authentication.authprovider import get_auth
 
 from src.waiver.waiver_sender import WaiverSender
 from src.waiver.waiver_generator import WaiverGenerator
@@ -30,15 +30,14 @@ except ConnectionException as e:
     from src.storage.memorystorage import MemoryStorage
     storage = MemoryStorage()
 
-export_controller = DataExportController(DataExportService(storage))
-evaluation_controller = EvaluationController(EvaluationService(storage))
-
 authenticator = get_auth()
+export_controller = DataExportController(authenticator, DataExportService(storage))
+evaluation_controller = EvaluationController(authenticator, EvaluationService(storage))
 
 
 @app.before_request
 def log_access():
-    logger.info(f'[event=endpoint-call][endpoint={request.endpoint}][remoteAddress={request.remote_addr}]')
+    logger.info('[event=endpoint-call][endpoint=%s][remoteAddress=%s]', request.endpoint, request.remote_addr)
 
 
 def form_result(content, code=200):
@@ -75,49 +74,37 @@ def healthcheck():
 
 @app.route('/evaluation', methods=['GET'])
 def list_evaluations():
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_list_evaluations(request, user)
+    result = evaluation_controller.handle_list_evaluations(request)
     return form_result(result)
 
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_create_evaluation(request, user)
+    result = evaluation_controller.handle_create_evaluation(request)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/ambiance', methods=['POST'])
 def add_ambiance(evaluation_id):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_add_ambiance(request, user, evaluation_id)
+    result = evaluation_controller.handle_add_ambiance(request, evaluation_id)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/attempts', methods=['GET'])
 def get_attempts(evaluation_id):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_get_attempts(request, user, evaluation_id)
+    result = evaluation_controller.handle_get_attempts(request, evaluation_id)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/attempt', methods=['POST'])
 def process_attempt(evaluation_id):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_create_attempt(request, user, evaluation_id)
+    result = evaluation_controller.handle_create_attempt(request, evaluation_id)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/attempt/<attempt_id>', methods=['PUT'])
 def update_attempt(evaluation_id, attempt_id):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_update_attempt(request, user, evaluation_id, attempt_id)
+    result = evaluation_controller.handle_update_attempt(request, evaluation_id, attempt_id)
     return form_result(result)
 
 
@@ -192,9 +179,7 @@ def invalidate_waiver(res_name, res_email):
 
 @app.route('/export', methods=['POST'])
 def export():
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    export_file = export_controller.handle_export(request, user)
+    export_file = export_controller.handle_export(request)
     return send_file(export_file)
 
 
