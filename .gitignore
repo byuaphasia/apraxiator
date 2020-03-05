@@ -118,8 +118,8 @@ sprint2/
 jwk.json
 
 # Saved Waivers
-wsdcalculator/waiver/signed_waivers/*
-wsdcalculator/waiver/tmp/*
+src/waiver/signed_waivers/*
+src/waiver/tmp/*
 
 # Any generated reports
-wsdcalculator/report/tmp_reports/*
+src/report/tmp_reports/*
