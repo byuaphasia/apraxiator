@@ -1,18 +1,19 @@
 import os
 from flask import Flask, request, jsonify, send_file
-import io
 
-from wsdcalculator import ApraxiatorException, InvalidRequestException
-from wsdcalculator.authentication.authprovider import get_auth
+from src import ApraxiatorException, InvalidRequestException
+from src.authentication.authprovider import get_auth
 
-from wsdcalculator.waiver.waiver_sender import WaiverSender
-from wsdcalculator.waiver.waiver_generator import WaiverGenerator
-from wsdcalculator.models.waiver import Waiver
-from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
-from wsdcalculator.controllers import DataExportController, EvaluationController
-from wsdcalculator.services import DataExportService, EvaluationService
-from wsdcalculator.report.report_sender import ReportSender
-from wsdcalculator.report.report_generator import ReportGenerator
+from src.waiver.waiver_sender import WaiverSender
+from src.waiver.waiver_generator import WaiverGenerator
+from src.models.waiver import Waiver
+from src.storage.storageexceptions import WaiverAlreadyExists
+from src.controllers import DataExportController, EvaluationController
+from src.services import DataExportService, EvaluationService
+from src.report.report_sender import ReportSender
+from src.report.report_generator import ReportGenerator
+from src.storage.dbexceptions import ConnectionException
+
 
 import logging
 from log.setup import setup_logger
@@ -22,21 +23,23 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 try:
-  from wsdcalculator.storage.sqlstorage import SQLStorage
-  storage = SQLStorage()
-except Exception as e:
-  logger.exception('Problem establishing SQL connection')
-  from wsdcalculator.storage.memorystorage import MemoryStorage
-  storage = MemoryStorage()
+    from src.storage.sqlstorage import SQLStorage
+    storage = SQLStorage()
+except ConnectionException as e:
+    logger.exception('Problem establishing SQL connection')
+    from src.storage.memorystorage import MemoryStorage
+    storage = MemoryStorage()
 
 export_controller = DataExportController(DataExportService(storage))
 evaluation_controller = EvaluationController(EvaluationService(storage))
 
 authenticator = get_auth()
 
+
 @app.before_request
 def log_access():
     logger.info(f'[event=endpoint-call][endpoint={request.endpoint}][remoteAddress={request.remote_addr}]')
+
 
 def form_result(content, code=200):
     result = jsonify(content)
@@ -46,6 +49,7 @@ def form_result(content, code=200):
         log_msg = result.msg
     logger.info('[event=form-response][code=%s][content=%s]', code, log_msg)
     return result
+
 
 @app.errorhandler(Exception)
 def handle_failure(error: Exception):
@@ -59,6 +63,7 @@ def handle_failure(error: Exception):
         logger.error('[event=returning-unknown-error][error=%s]', error)
         return form_result({'errorMessage': 'An unknown error occurred.'}, 500)
 
+
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
     storage.is_healthy()
@@ -67,12 +72,14 @@ def healthcheck():
     }
     return form_result(result)
 
+
 @app.route('/evaluation', methods=['GET'])
 def list_evaluations():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     result = evaluation_controller.handle_list_evaluations(request, user)
     return form_result(result)
+
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
@@ -81,47 +88,37 @@ def create_evaluation():
     result = evaluation_controller.handle_create_evaluation(request, user)
     return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/ambiance', methods=['POST'])
-def add_ambiance(evaluationId):
+
+@app.route('/evaluation/<evaluation_id>/ambiance', methods=['POST'])
+def add_ambiance(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    result = evaluation_controller.handle_add_ambiance(request, user, evaluationId)
+    result = evaluation_controller.handle_add_ambiance(request, user, evaluation_id)
     return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/attempts', methods=['GET'])
-def get_attempts(evaluationId):
+
+@app.route('/evaluation/<evaluation_id>/attempts', methods=['GET'])
+def get_attempts(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    result = evaluation_controller.handle_get_attempts(request, user, evaluationId)
+    result = evaluation_controller.handle_get_attempts(request, user, evaluation_id)
     return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
-def process_attempt(evaluationId):
+
+@app.route('/evaluation/<evaluation_id>/attempt', methods=['POST'])
+def process_attempt(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    result = evaluation_controller.handle_create_attempt(request, user, evaluationId)
+    result = evaluation_controller.handle_create_attempt(request, user, evaluation_id)
     return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/attempt/<attemptId>', methods=['PUT'])
-def update_attempt(evaluationId, attemptId):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_update_attempt(request, user, evaluationId, attemptId)
-    return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
-def save_recording(evaluationId, attemptId):
+@app.route('/evaluation/<evaluation_id>/attempt/<attempt_id>', methods=['PUT'])
+def update_attempt(evaluation_id, attempt_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    if request.method == 'POST':
-        logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
-        f = request.files['recording'].read()
-        storage.save_recording(f, evaluationId, attemptId, user)
-        return form_result({})
-    else:
-        logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
-        f = storage.get_recording(evaluationId, attemptId, user)
-        return send_file(io.BytesIO(f), mimetype='audio/wav')
+    result = evaluation_controller.handle_update_attempt(request, user, evaluation_id, attempt_id)
+    return form_result(result)
 
 
 @app.route('/waiver/<signer>', methods=['POST'])
@@ -192,12 +189,14 @@ def invalidate_waiver(res_name, res_email):
     storage.invalidate_waiver(res_name, res_email, user)
     return form_result({})
 
+
 @app.route('/export', methods=['POST'])
 def export():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     export_file = export_controller.handle_export(request, user)
     return send_file(export_file)
+
 
 @app.route('/sendReport', methods=['POST'])
 def send_report():

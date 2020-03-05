@@ -4,10 +4,11 @@ import os
 import soundfile as sf
 from datetime import datetime
 
-from ....wsdcalculator.services.evaluation.calculators.voiceactivitydetector import VoiceActivityDetector
+from ....src.services.evaluation.calculators.voiceactivitydetector import VoiceActivityDetector
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
+
 
 class TestVad(unittest.TestCase):
     def setUp(self):

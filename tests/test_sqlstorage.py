@@ -1,21 +1,22 @@
 import unittest
 import soundfile as sf
-import io
 import numpy as np
 import os
 import uuid
 
-from ..wsdcalculator.models import Attempt, Evaluation, Waiver
-from ..wsdcalculator.storage import SQLStorage
-from ..wsdcalculator.storage.storageexceptions import ResourceNotFoundException, WaiverAlreadyExists
+from ..src.models import Attempt, Evaluation, Waiver
+from ..src.storage import SQLStorage
+from ..src.storage.dbexceptions import ConnectionException
+from ..src.storage.storageexceptions import ResourceNotFoundException, WaiverAlreadyExists
 
 try:
     storage = SQLStorage(name='test')
-except Exception:
+except ConnectionException:
     storage = None
 owner_id = 'OWNER'
 bad_owner_id = 'NOT THE OWNER'
 sample_data = np.zeros(8000)
+
 
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
@@ -77,17 +78,6 @@ class TestSQLStorage(unittest.TestCase):
         storage.create_attempt(make_attempt('rec', 'rec'))
         storage.save_recording('rec', create_mock_recording())
 
-
-    def test_get_recording(self):
-        storage.create_evaluation(make_evaluation('get rec'))
-        storage.create_attempt(make_attempt('get rec', 'get rec'))
-        storage.save_recording('get rec', create_mock_recording())
-        recording = storage.get_recording('get rec')
-
-        data, sr = sf.read(io.BytesIO(recording))
-        self.assertEqual(8000, sr)
-        self.assertTrue(np.array_equal(sample_data, data))
-
     def test_add_waiver(self):
         name = str(uuid.uuid4())
         waiver = Waiver(name, 'email', 'date', 'filepath', 'signer', True, owner_id=owner_id)
@@ -122,13 +112,16 @@ class TestSQLStorage(unittest.TestCase):
         c.execute('DROP TABLE attempts')
         c.execute('DROP TABLE evaluations')
 
+
 def create_mock_recording():
     sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
     sound.write(sample_data)
     return open('test_wav.wav', 'rb').read()
 
+
 def make_evaluation(id, owner='owner'):
     return Evaluation(id, '60', 'male', 'normal', owner)
+
 
 def make_attempt(id, evaluation_id):
     return Attempt(id, evaluation_id, 'word', 0.0, 0.0, 0)

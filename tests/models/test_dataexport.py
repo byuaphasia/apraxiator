@@ -1,7 +1,8 @@
 import unittest
 
 from ..utils import gen_export_data
-from ...wsdcalculator.models import DataExport, DataExportException
+from ...src.models import DataExport, DataExportException
+
 
 class TestDataExport(unittest.TestCase):
     def test_validate_row(self):

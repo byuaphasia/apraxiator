@@ -1,11 +1,11 @@
 import unittest
 import os
 
-from ...wsdcalculator.controllers import EvaluationController
-from ...wsdcalculator.services import EvaluationService
-from ...wsdcalculator.storage import MemoryStorage, SQLStorage
+from ...src.controllers import EvaluationController
+from ...src.services import EvaluationService
+from ...src.storage import MemoryStorage, SQLStorage
 from ..utils import DummyRequest
-from ...wsdcalculator.utils import IdPrefix
+from ...src.utils import IdPrefix
 
 mode = os.environ.get('APX_TEST_MODE', 'mem')
 if mode == 'db':
@@ -14,6 +14,7 @@ else:
     storage = MemoryStorage()
 service = EvaluationService(storage)
 controller = EvaluationController(service)
+
 
 class TestEvaluations(unittest.TestCase):
     def test_create_evaluation(self):
@@ -89,6 +90,7 @@ class TestEvaluations(unittest.TestCase):
             c.execute('DROP TABLE attempts')
             c.execute('DROP TABLE evaluations')
 
+
 def add_ambiance(c, user, evaluation_id):
     files = {
         'recording': open('tests/utils/exampleAmb.wav', 'rb')
@@ -96,6 +98,7 @@ def add_ambiance(c, user, evaluation_id):
     r = DummyRequest().set_files(files)
     result = controller.handle_add_ambiance(r, user, evaluation_id)
     return result
+
 
 def create_attempt(c, user, evaluation_id):
     files = {
@@ -108,6 +111,7 @@ def create_attempt(c, user, evaluation_id):
     r = DummyRequest().set_files(files).set_values(values)
     result = c.handle_create_attempt(r, user, evaluation_id)
     return result
+
 
 def create_evaluation(c, user):
     body = {

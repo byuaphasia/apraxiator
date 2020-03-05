@@ -1,16 +1,16 @@
 import unittest
 import json
 import os
-import soundfile as sf
 from datetime import datetime
 import numpy as np
 
-from ....wsdcalculator.services.evaluation.calculators import WsdCalculatorBase, InvalidSpeechSampleException
-from ....wsdcalculator.services.evaluation.calculators.findendpoints import EndpointFinder
-from ....wsdcalculator.utils import read_wav
+from ....src.services.evaluation.calculators import WsdCalculatorBase, InvalidSpeechSampleException
+from ....src.services.evaluation.calculators.findendpoints import EndpointFinder
+from ....src.utils import read_wav
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
+
 
 class TestEndpointFinder(unittest.TestCase):
     def setUp(self):
@@ -18,7 +18,6 @@ class TestEndpointFinder(unittest.TestCase):
         self.test_cases = json.load(open(filename, 'r'))
         self.detector = EndpointFinder()
         self.results = {}
-
 
     def test_measure(self):
         tests = []

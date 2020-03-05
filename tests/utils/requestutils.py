@@ -1,4 +1,9 @@
 class DummyRequest:
+    def __init__(self):
+        self.body = None
+        self.values = None
+        self.files = None
+
     def set_body(self, body):
         self.body = body
         return self

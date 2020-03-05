@@ -3,11 +3,12 @@ import soundfile as sf
 import numpy as np
 import os
 
-from ..wsdcalculator.utils import read_wav
+from ..src.utils import read_wav
 
 test_filename = 'test.wav'
 test_length = 20000
 test_sr = 8000
+
 
 class TestWavReader(unittest.TestCase):
     def test_mono(self):

@@ -1,10 +1,11 @@
 import unittest
 
-from ..wsdcalculator.models import Evaluation, Attempt
-from ..wsdcalculator.storage import MemoryStorage
-from ..wsdcalculator.storage.storageexceptions import ResourceNotFoundException
+from ..src.models import Evaluation, Attempt
+from ..src.storage import MemoryStorage
+from ..src.storage.storageexceptions import ResourceNotFoundException
 
 storage = MemoryStorage()
+
 
 class TestMemoryStorage(unittest.TestCase):
     def test_create_evaluation(self):
@@ -61,8 +62,10 @@ class TestMemoryStorage(unittest.TestCase):
             self.assertEqual('get atts', a.evaluation_id)
             self.assertEqual(True, a.active)
 
+
 def make_evaluation(id, owner='owner'):
     return Evaluation(id, '60', 'male', 'normal', owner)
+
 
 def make_attempt(id, evaluation_id):
     return Attempt(id, evaluation_id, 'word', 0.0, 0.0, 0)

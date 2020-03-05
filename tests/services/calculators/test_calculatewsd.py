@@ -3,12 +3,13 @@ import json
 import os
 from datetime import datetime
 
-from ....wsdcalculator.services.evaluation.calculators import WsdCalculatorBase
-from ....wsdcalculator.utils import read_wav
+from ....src.services.evaluation.calculators import WsdCalculatorBase
+from ....src.utils import read_wav
 
 results = {}
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
+
 
 class TestWSDCalculator(unittest.TestCase):
     def setUp(self):
@@ -52,7 +53,6 @@ class TestWSDCalculator(unittest.TestCase):
 
         for path, expected, actual in tests:
             self.assertAlmostEqual(expected, actual, delta=delta, msg=path)
-
 
     @classmethod
     def tearDownClass(cls):

@@ -3,14 +3,15 @@ import zipfile
 import pandas as pd
 import os
 
-from ...wsdcalculator.services import DataExportService, IDataExportStorage
-from ...wsdcalculator.storage.storageexceptions import PermissionDeniedException
+from ...src.services import DataExportService, IDataExportStorage
+from ...src.storage.storageexceptions import PermissionDeniedException
 from ..utils import gen_export_data
 
 admin = 'admin'
 not_admin = 'not admin'
 filename = 'exporttest'
 num_rows = 3
+
 
 class DummyDataExportStorage(IDataExportStorage):
     def export_data(self, start_date, end_date):
@@ -20,7 +21,9 @@ class DummyDataExportStorage(IDataExportStorage):
         if user != 'admin':
             raise PermissionDeniedException('export data', user)
 
+
 s = DataExportService(DummyDataExportStorage())
+
 
 class TestDataExportService(unittest.TestCase):
     def test_make_zip(self):
