@@ -1,0 +1,333 @@
+import pymysql
+import os
+import logging
+
+from ..services import IDataExportStorage, IEvaluationStorage
+from .waiverstorage import WaiverStorage
+from ..models.waiver import Waiver
+from ..models.attempt import Attempt
+from ..models.evaluation import Evaluation
+from .dbexceptions import ConnectionException, ResourceAccessException
+from .storageexceptions import PermissionDeniedException, ResourceNotFoundException
+from pymysql.err import OperationalError
+
+
+class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
+    def __init__(self, name='apraxiator'):
+        try:
+            p = os.environ.get('MYSQL_PASSWORD', None)
+            self.db = pymysql.connections.Connection(user='root', password=p, database=name)
+            self.logger = logging.getLogger(__name__)
+            self._create_tables()
+            self.logger.info('[event=sql-storage-started]')
+        except OperationalError as e:
+            raise ConnectionException(e)
+
+    def is_healthy(self):
+        try:
+            self.db.ping()
+        except Exception as e:
+            self.logger.exception('[event=ping-db-error]')
+            raise ConnectionException(e)
+
+    ''' Evaluation Storage Methods '''
+
+    def create_evaluation(self, e):
+        sql = 'INSERT INTO evaluations (evaluation_id, age, gender, impression, owner_id) VALUES (%s, %s, %s, %s, %s)'
+        val = (e.id, e.age, e.gender, e.impression, e.owner_id)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as ex:
+            self.logger.exception('[event=add-evaluation-failure][evaluationId=%s]', e.id)
+            raise ResourceAccessException(e.id, ex)
+        self.logger.info('[event=evaluation-added][evaluationId=%s]', e.id)
+
+    def update_evaluation(self, id, field, value):
+        sql = 'UPDATE evaluations SET {} = %s WHERE evaluation_id = %s'.format(field)
+        val = (value, id)
+        try:
+            self._execute_update_statement(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=update-evaluation-failure][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
+            raise ResourceAccessException(id, e)
+        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
+
+    def get_evaluation(self, id):
+        sql = 'SELECT * FROM evaluations WHERE evaluation_id = %s'
+        val = (id,)
+        try:
+            res = self._execute_select_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-evaluation-failure][evaluationId=%s]', id)
+            raise ResourceAccessException(id, e)
+        if res is None:
+            raise ResourceNotFoundException(id)
+        self.logger.info('[event=evaluation-retrieved][evaluationId=%s]', id)
+        evaluation = Evaluation.from_row(res)
+        return evaluation
+    
+    def create_attempt(self, a):
+        sql = 'INSERT INTO attempts (attempt_id, evaluation_id, word, wsd, duration, syllable_count) VALUE (%s, %s, %s, %s, %s, %s)'
+        val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllable_count)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=add-attempt-failure][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
+            raise ResourceAccessException(a.id, e)
+        self.logger.info('[event=attempt-added][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
+
+    def get_attempts(self, evaluation_id):
+        sql = 'SELECT * FROM attempts WHERE evaluation_id = %s'
+        val = (evaluation_id,)
+        try:
+            res = self._execute_select_many_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-attempts-failure][evaluationId=%s]', evaluation_id)
+            raise ResourceAccessException(evaluation_id, e)
+        attempts = []
+        for row in res:
+            attempts.append(Attempt.from_row(row))
+        self.logger.info('[event=attempts-retrieved][evaluationId=%s][attemptCount=%s]', evaluation_id, len(attempts))
+        return attempts
+
+    def update_attempt(self, id, field, value):
+        sql = 'UPDATE attempts SET {} = %s WHERE attempt_id = %s'.format(field)
+        val = (value, id)
+        try:
+            self._execute_update_statement(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=update-attempt-failure][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)
+            raise ResourceAccessException(id, e)
+        self.logger.info('[event=attempt-updated][attemptId=%s][updateField=%s][updateValue=%r]', id, field, value)
+
+    def list_evaluations(self, owner_id):
+        sql = 'SELECT * FROM evaluations WHERE owner_id = %s'
+        val = (owner_id,)
+        try:
+            res = self._execute_select_many_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-evaluations-failure][ownerId=%s]', owner_id)
+            raise ResourceAccessException(f'evaluations for {owner_id}', e)
+        evaluations = []
+        for row in res:
+            evaluations.append(Evaluation.from_row(row))
+        self.logger.info('[event=evaluations-retrieved][ownerId=%s][evaluationCount=%s]', owner_id, len(evaluations))
+        return evaluations
+
+    def check_is_owner(self, owner_id, evaluation_id):
+        sql = 'SELECT owner_id FROM evaluations WHERE evaluation_id = %s'
+        val = (evaluation_id,)
+        res = self._execute_select_query(sql, val)
+        if res is None:
+            self.logger.error('[event=check-owner-failure][evaluationId=%s][userId=%s][message=no evaluation found]', evaluation_id, owner_id)
+            raise ResourceNotFoundException(evaluation_id)
+        if res[0] != owner_id:
+            self.logger.error('[event=access-denied][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
+            raise PermissionDeniedException(evaluation_id, owner_id)
+        else:
+            self.logger.info('[event=owner-verified][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
+
+    def save_recording(self, attempt_id, recording):
+        sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
+        val = (attempt_id, recording)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=save-recording-failure][attemptId=%s]', attempt_id)
+            raise ResourceAccessException(attempt_id, e)
+        self.logger.info('[event=recording-saved][attemptId=%s]', attempt_id)
+
+    ''' General MySQL Interaction Methods '''
+
+    def _execute_insert_query(self, sql, val):
+        self.logger.info(self._make_info_log('db-insert', sql, (str(i) for i in val)))
+        c = self.db.cursor()
+        c.execute(sql, val)
+        self.db.commit()
+
+    def _execute_update_statement(self, sql, val):
+        self.logger.info(self._make_info_log('db-update', sql, (str(i) for i in val)))
+        c = self.db.cursor()
+        c.execute(sql, val)
+        self.db.commit()
+
+    def _execute_select_query(self, sql, val):
+        self.logger.info(self._make_info_log('db-select', sql, (str(i) for i in val)))
+        c = self.db.cursor()
+        c.execute(sql, val)
+        return c.fetchone()
+
+    def _execute_select_many_query(self, sql, val):
+        self.logger.info(self._make_info_log('db-select-many', sql, (str(i) for i in val)))
+        c = self.db.cursor()
+        c.execute(sql, val)
+        return c.fetchall()
+
+    ''' Waiver Storage Methods '''
+
+    def _add_waiver(self, w):
+        sql = ("INSERT INTO waivers ("
+               "waiver_id, subject_name, subject_email, representative_name, representative_relationship,"
+               "date, signer, valid, filepath, owner_id) "
+               "VALUES (%s, %s, %s, %s, %s, %s, %s, %r, %s, %s);")
+        val = (w.id, w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath, w.owner_id)
+        try:
+            self._execute_insert_query(sql, val)
+        except Exception as ex:
+            self.logger.exception('[event=add-waiver-failure][subjectName=%s][subjectEmail=%s]', w.res_name, w.res_email)
+            raise ResourceAccessException(None, ex)
+        self.logger.info('[event=waiver-added][subjectName=%s][subjectEmail=%s]', w.res_name, w.res_email)
+
+    def get_valid_waiver(self, res_email, res_name, user):
+        sql = 'SELECT * FROM waivers WHERE subject_email = %s AND LOWER(subject_name) = LOWER(%s) AND valid = %r AND owner_id = %s;'
+        val = (res_email, res_name.lower(), True, user)
+        try:
+            res = self._execute_select_query(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=get-valid-waiver-failure][subjectEmail=%s]', res_email)
+            raise ResourceAccessException(None, e)
+
+        w = None
+        if res is not None:
+            w = Waiver.from_row(res)
+            self.logger.info('[event=valid-waiver-retrieved][subjectEmail=%s][waiverId=%s]', res_email, w.id)
+        else:
+            self.logger.info('[event=no-valid-waiver-retrieved][subjectEmail=%s]', res_email)
+        return w
+
+    def _update_waiver(self, id, field, value):
+        sql = 'UPDATE waivers SET {} = %s WHERE waiver_id = %s;'.format(field)
+        val = (value, id)
+        try:
+            self._execute_update_statement(sql, val)
+        except Exception as e:
+            self.logger.exception('[event=update-waiver-failure][waiverId=%s][field=%s][value=%r]',
+                                  id, field, value)
+            raise ResourceAccessException(None, e)
+        self.logger.info('[event=waiver-updated][waiverId=%s][field=%s][value=%r]',
+                         id, field, value)
+
+    def _check_is_owner_waiver(self, waiver_id, owner_id):
+        sql = 'SELECT owner_id FROM waivers WHERE waiver_id = %s'
+        val = (waiver_id,)
+        res = self._execute_select_query(sql, val)
+        if res[0] != owner_id:
+            self.logger.error('[event=access-denied][waiverId=%s][userId=%s]', waiver_id, owner_id)
+            raise PermissionDeniedException(waiver_id, owner_id)
+        else:
+            self.logger.info('[event=owner-verified][waiverId=%s][userId=%s]', waiver_id, owner_id)
+
+    ''' Data Export Methods '''
+    def export_data(self, start_date, end_date):
+        sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression, recordings.recording"
+               "FROM attempts "
+               "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id "
+               "INNER JOIN recordings ON attempts.attempt_id = recordings.attempt_id "
+               "WHERE attempts.date_created > %s and attempts.date_created < %s;"
+               )
+        val = (start_date, end_date)
+        self.logger.info(self._make_info_log('super-query', 'large sql query', val))
+        try:
+            c = self.db.cursor()
+            c.execute(sql, val)
+            results = c.fetchall()
+            self.logger.info('[event=super-query-complete][startDate=%s][endDate=%s][resultCount=%s]', start_date, end_date, len(results))
+            return results
+        except Exception as e:
+            self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
+            raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
+
+    def confirm_export_access(self, user):
+        sql = "SELECT * FROM admins WHERE id = %s"
+        val = (user,)
+        res = self._execute_select_query(sql, val)
+        if res[0] != user:
+            self.logger.error('[event=export-access-denied][userId=%s]', user)
+            raise PermissionDeniedException('export', user)
+        else:
+            self.logger.info('[event=admin-verified][userId=%s]', user)
+
+    ''' Table Setup '''
+
+    def _create_tables(self):
+        create_evaluations_statement = ("CREATE TABLE IF NOT EXISTS `evaluations` ("
+                                        "`evaluation_id` varchar(48) NOT NULL,"
+                                        "`age` varchar(16) NOT NULL,"
+                                        "`gender` varchar(16) NOT NULL,"
+                                        "`impression` varchar(255) NOT NULL,"
+                                        "`owner_id` varchar(48) NOT NULL,"
+                                        "`ambiance_threshold` float DEFAULT NULL,"
+                                        "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                                        "PRIMARY KEY (`evaluation_id`)"
+                                        ");"
+                                        )
+        create_attempts_statement = ("CREATE TABLE IF NOT EXISTS `attempts` ("
+                                     "`evaluation_id` varchar(48) NOT NULL,"
+                                     "`word` varchar(48) NOT NULL,"
+                                     "`attempt_id` varchar(48) NOT NULL,"
+                                     "`wsd` float NOT NULL,"
+                                     "`duration` float NOT NULL,"
+                                     "`active` boolean NOT NULL DEFAULT TRUE,"
+                                     "`syllable_count` integer NOT NULL,"
+                                     "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                                     "PRIMARY KEY (`attempt_id`),"
+                                     "KEY `evaluation_id_idx` (`evaluation_id`),"
+                                     "CONSTRAINT `evaluation_id` FOREIGN KEY (`evaluation_id`)"
+                                     "REFERENCES `evaluations` (`evaluation_id`)"
+                                     ");"
+                                     )
+        create_recordings_statement = ("CREATE TABLE IF NOT EXISTS `recordings` ("
+                                       "`recording_id` int AUTO_INCREMENT NOT NULL,"
+                                       "`attempt_id` varchar(48) NOT NULL,"
+                                       "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                                       "`recording` mediumblob NOT NULL,"
+                                       "PRIMARY KEY (`recording_id`),"
+                                       "KEY `attempt_id_idx` (`attempt_id`),"
+                                       "CONSTRAINT `attempt_id` FOREIGN KEY (`attempt_id`)"
+                                       "REFERENCES `attempts` (`attempt_id`)"
+                                       ");"
+                                       )
+        create_waivers_statement = ("CREATE TABLE IF NOT EXISTS `waivers` ("
+                                    "`waiver_id` varchar(48) NOT NULL,"
+                                    "`subject_name` varchar(255) NOT NULL,"
+                                    "`subject_email` varchar(255) NOT NULL,"
+                                    "`representative_name` varchar(255),"
+                                    "`representative_relationship` varchar(255),"
+                                    "`date` varchar(255) NOT NULL,"
+                                    "`signer` varchar(48) NOT NULL,"
+                                    "`valid` boolean NOT NULL DEFAULT TRUE,"
+                                    "`filepath` varchar(255) NOT NULL,"
+                                    "`owner_id` varchar(48) NOT NULL,"
+                                    "PRIMARY KEY (`waiver_id`)"
+                                    ");"
+                                    )
+        create_admins_statement = ("CREATE TABLE IF NOT EXISTS `admins` ("
+                                   "`id` varchar(48) NOT NULL,"
+                                   "PRIMARY KEY (`id`)"
+                                   ");"
+                                   )
+        c = self.db.cursor()
+        c.execute(create_evaluations_statement)
+        c.execute(create_attempts_statement)
+        c.execute(create_recordings_statement)
+        c.execute(create_waivers_statement)
+        c.execute(create_admins_statement)
+
+    @staticmethod
+    def _make_info_log(event, sql, val):
+        fmt = '[event={event}][sql={sql}][vals={vals}]'
+
+        str_vals = []
+        for v in val:
+            if isinstance(v, str) or isinstance(v, float) or isinstance(v, int):
+                str_vals.append(v)
+            else:
+                str_vals.append('nonstring')
+
+        if sql[0] == 'I':
+            sql_msg = sql.split('VALUE', 0)[0]
+        elif sql[0] in 'SU':
+            sql_msg = sql
+        else:
+            sql_msg = 'unrecognized sql'
+        return fmt.format(event=event, sql=sql_msg, vals='-'.join(str_vals))

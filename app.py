@@ -1,16 +1,19 @@
 import os
 from flask import Flask, request, jsonify, send_file
-import io
 
-from wsdcalculator import WSDCalculator, ApraxiatorException, InvalidRequestException, get_ambiance_threshold
-from wsdcalculator.authentication.authprovider import get_auth
+from src import ApraxiatorException, InvalidRequestException
+from src.authentication.authprovider import get_auth
 
-from wsdcalculator.waiver.waiver_sender import WaiverSender
-from wsdcalculator.waiver.waiver_generator import WaiverGenerator
-from wsdcalculator.models.waiver import Waiver
-from wsdcalculator.storage.storageexceptions import WaiverAlreadyExists
-from wsdcalculator.report.report_sender import ReportSender
-from wsdcalculator.report.report_generator import ReportGenerator
+from src.waiver.waiver_sender import WaiverSender
+from src.waiver.waiver_generator import WaiverGenerator
+from src.models.waiver import Waiver
+from src.storage.storageexceptions import WaiverAlreadyExists
+from src.controllers import DataExportController, EvaluationController
+from src.services import DataExportService, EvaluationService
+from src.report.report_sender import ReportSender
+from src.report.report_generator import ReportGenerator
+from src.storage.dbexceptions import ConnectionException
+
 
 import logging
 from log.setup import setup_logger
@@ -20,15 +23,23 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 try:
-  from wsdcalculator.storage.sqlstorage import SQLStorage
-  storage = SQLStorage()
-except Exception as e:
-  logger.exception('Problem establishing SQL connection')
-  from wsdcalculator.storage.memorystorage import MemoryStorage
-  storage = MemoryStorage()
+    from src.storage.sqlstorage import SQLStorage
+    storage = SQLStorage()
+except ConnectionException as e:
+    logger.exception('Problem establishing SQL connection')
+    from src.storage.memorystorage import MemoryStorage
+    storage = MemoryStorage()
 
-calculator = WSDCalculator(storage)
+export_controller = DataExportController(DataExportService(storage))
+evaluation_controller = EvaluationController(EvaluationService(storage))
+
 authenticator = get_auth()
+
+
+@app.before_request
+def log_access():
+    logger.info(f'[event=endpoint-call][endpoint={request.endpoint}][remoteAddress={request.remote_addr}]')
+
 
 def form_result(content, code=200):
     result = jsonify(content)
@@ -39,14 +50,19 @@ def form_result(content, code=200):
     logger.info('[event=form-response][code=%s][content=%s]', code, log_msg)
     return result
 
+
 @app.errorhandler(Exception)
 def handle_failure(error: Exception):
     if isinstance(error, ApraxiatorException):
         logger.error('[event=returning-error][errorMessage=%s][errorCode=%s]', error.get_message(), error.get_code())
         return form_result(error.to_response(), error.get_code())
+    elif isinstance(error, NotImplementedError):
+        logger.error('[event=returning-notimplementederror][error=%r]', error)
+        return form_result({'errorMessage': 'Sorry, that request cannot be completed'}, 418)
     else:
         logger.error('[event=returning-unknown-error][error=%s]', error)
         return form_result({'errorMessage': 'An unknown error occurred.'}, 500)
+
 
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
@@ -56,133 +72,53 @@ def healthcheck():
     }
     return form_result(result)
 
+
 @app.route('/evaluation', methods=['GET'])
 def list_evaluations():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=list-evaluations][user=%s][remoteAddress=%s]', user, request.remote_addr)
-
-    evaluations = storage.list_evaluations(user)
-    result = {
-        'evaluations': [e.to_list_response() for e in evaluations]
-    }
+    result = evaluation_controller.handle_list_evaluations(request, user)
     return form_result(result)
+
 
 @app.route('/evaluation', methods=['POST'])
 def create_evaluation():
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=create-evaluation][user=%s][remoteAddress=%s]', user, request.remote_addr)
-
-    body = request.get_json(silent=True)
-    if body is None:
-        # If no/bad json body, pull values from request form or query params
-        values = request.values
-    else:
-        values = body
-    try:
-        age = values['age']
-        gender = values['gender']
-        impression = values['impression']
-    except KeyError as e:
-        msg = f'Must provide {e.args[0]}'
-        raise InvalidRequestException(msg, e)
-
-    eval_id = storage.create_evaluation(age, gender, impression, user)
-    return form_result({'evaluationId': eval_id})
-
-@app.route('/evaluation/<evaluationId>/ambiance', methods=['POST'])
-def add_ambiance(evaluationId):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    logger.info('[event=add-ambiance][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
-
-    f = request.files['recording']
-    if f is None:
-        raise InvalidRequestException('Must attach a file called "recording"')
-    threshold = get_ambiance_threshold(f)
-
-    storage.add_threshold(evaluationId, threshold, user)
-    return form_result({})
-
-@app.route('/evaluation/<evaluationId>/attempts', methods=['GET'])
-def get_attempts(evaluationId):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    logger.info('[event=get-attempts][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
-
-    attempts = storage.fetch_attempts(evaluationId, user)
-    result = {
-        'attempts': [a.to_response() for a in attempts]
-    }
+    result = evaluation_controller.handle_create_evaluation(request, user)
     return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/attempt', methods=['POST'])
-def process_attempt(evaluationId):
+
+@app.route('/evaluation/<evaluation_id>/ambiance', methods=['POST'])
+def add_ambiance(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=create-attempt][user=%s][evaluationId=%s][remoteAddress=%s]', user, evaluationId, request.remote_addr)
-
-    f = request.files['recording']
-    syllable_count = request.values.get('syllableCount')
-    syllable_count = int(syllable_count)
-    word = request.values.get('word')
-    if syllable_count is None:
-        raise InvalidRequestException('Must provide syllable count')
-    elif syllable_count <= 0:
-        raise InvalidRequestException('Syllable count was {}, must be greater than 0'.format(syllable_count))
-    if word is None or word == '':
-        raise InvalidRequestException('Must provide attempted word')
-
-    method = request.values.get('method')
-    if method is None or method == '':
-        method = 'endpoint'
-
-    wsd, duration = calculator.calculate_wsd(f, syllable_count, evaluationId, user, method)
-    id = storage.create_attempt(evaluationId, word, wsd, duration, user, syllable_count)
-
-    save = request.values.get('save')
-    if save is None or save != 'false':
-        logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s][save=%s]', user, evaluationId, id, save)
-        storage.save_recording(f.read(), evaluationId, id, user)
-
-    result = {
-        'attemptId': id,
-        'wsd': wsd
-    }
+    result = evaluation_controller.handle_add_ambiance(request, user, evaluation_id)
     return form_result(result)
 
-@app.route('/evaluation/<evaluationId>/attempt/<attemptId>', methods=['PUT'])
-def update_attempt(evaluationId, attemptId):
+
+@app.route('/evaluation/<evaluation_id>/attempts', methods=['GET'])
+def get_attempts(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
+    result = evaluation_controller.handle_get_attempts(request, user, evaluation_id)
+    return form_result(result)
 
-    body = request.get_json(silent=True)
-    if body is None:
-        values = request.values
-    else:
-        values = body
-    active = values.get('active')
-    if active is not None:
-        if isinstance(active, str):
-            active = active != 'false'
-        storage.update_active_attempt(evaluationId, attemptId, active, user)
-    return form_result({})
 
-@app.route('/evaluation/<evaluationId>/attempt/<attemptId>/recording', methods=['POST', 'GET'])
-def save_recording(evaluationId, attemptId):
+@app.route('/evaluation/<evaluation_id>/attempt', methods=['POST'])
+def process_attempt(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    if request.method == 'POST':
-        logger.info('[event=save-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
-        f = request.files['recording'].read()
-        storage.save_recording(f, evaluationId, attemptId, user)
-        return form_result({})
-    else:
-        logger.info('[event=get-recording][user=%s][evaluationId=%s][attemptId=%s][remoteAddress=%s]', user, evaluationId, attemptId, request.remote_addr)
-        f = storage.get_recording(evaluationId, attemptId, user)
-        return send_file(io.BytesIO(f), mimetype='audio/wav')
+    result = evaluation_controller.handle_create_attempt(request, user, evaluation_id)
+    return form_result(result)
+
+
+@app.route('/evaluation/<evaluation_id>/attempt/<attempt_id>', methods=['PUT'])
+def update_attempt(evaluation_id, attempt_id):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    result = evaluation_controller.handle_update_attempt(request, user, evaluation_id, attempt_id)
+    return form_result(result)
 
 
 @app.route('/waiver/<signer>', methods=['POST'])
@@ -229,17 +165,22 @@ def save_waiver(signer):
     return form_result({})
 
 
-@app.route('/waiver/<res_email>', methods=['GET'])
-def check_waivers(res_email):
+@app.route('/waiver/<res_email>/<res_name>', methods=['GET'])
+def check_waivers(res_email, res_name):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
-    if res_email is None:
-        return InvalidRequestException('Must provide an email address')
-    waivers = storage.get_valid_waivers(res_email, user)
-    result = {
-        'waivers': [w.to_response() for w in waivers]
-    }
+    if res_email is None or res_name is None:
+        return InvalidRequestException('Must provide both an email address and a name')
+    waiver = storage.get_valid_waiver(res_email, res_name, user)
+    if waiver is not None:
+        result = {
+            'waiver': waiver.to_response()
+        }
+    else:
+        result = {
+            'waiver': None
+        }
     return form_result(result)
 
 
@@ -254,6 +195,14 @@ def invalidate_waiver(waiver_id):
     return form_result({})
 
 
+@app.route('/export', methods=['POST'])
+def export():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    export_file = export_controller.handle_export(request, user)
+    return send_file(export_file)
+
+
 @app.route('/sendReport', methods=['POST'])
 def send_report():
     token = authenticator.get_token(request.headers)
@@ -264,7 +213,7 @@ def send_report():
         return InvalidRequestException('Must provide both an email address and evaluation ID')
     logger.info('[event=send-report][user=%s][remoteAddress=%s][evalId=%s]', user, request.remote_addr, eval_id)
     name = request.values.get('name')
-    eval_report = storage.get_evaluation_report(eval_id, user)
+    eval_report = evaluation_controller.handle_get_evaluation_report(request, user, eval_id)
     sum_wsd = 0
     for attempt in eval_report['attempts']:
         sum_wsd += attempt['wsd']
