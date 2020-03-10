@@ -4,19 +4,19 @@ from flask import Flask, request, jsonify, send_file
 from src import ApraxiatorException, InvalidRequestException
 from src.controllers.authentication.authprovider import get_auth
 
-from src.waiver.waiver_sender import WaiverSender
-from src.waiver.waiver_generator import WaiverGenerator
-from src.models.waiver import Waiver
-from src.storage.storageexceptions import WaiverAlreadyExists
-from src.controllers import DataExportController, EvaluationController
-from src.services import DataExportService, EvaluationService
-from src.report.report_sender import ReportSender
-from src.report.report_generator import ReportGenerator
-from src.storage.dbexceptions import ConnectionException
+from .waiver.waiver_sender import WaiverSender
+from .waiver.waiver_generator import WaiverGenerator
+from .models.waiver import Waiver
+from .storage.storageexceptions import WaiverAlreadyExists
+from .controllers import DataExportController, EvaluationController
+from .services import DataExportService, EvaluationService
+from .report.report_sender import ReportSender
+from .report.report_generator import ReportGenerator
+from .storage.dbexceptions import ConnectionException
 
 
 import logging
-from log.setup import setup_logger
+from .log import setup_logger
 
 setup_logger()
 logger = logging.getLogger(__name__)
