@@ -3,15 +3,16 @@ import logging
 from jwcrypto import jwk
 from flask import Request
 
+from .iauthenticator import IAuthenticator
 from .unauthenticatedexceptions import TokenExpiredException, InvalidTokenException, UnauthenticatedException, MissingTokenException
 
 HEADER_KEY = 'TOKEN'
-auth_dir = '../apx-resources/auth/'
+AUTH_DIR = '../apx-resources/auth/'
 
 
-class JWTAuthenticator:
+class JWTAuthenticator(IAuthenticator):
     def __init__(self):
-        keys_json = open(auth_dir + 'jwk.json', 'r').read()
+        keys_json = open(AUTH_DIR + 'jwk.json', 'r').read()
         self.key_set = jwk.JWKSet().from_json(keys_json)
         self.logger = logging.getLogger(__name__)
         self.header_key = 'TOKEN'

@@ -60,7 +60,8 @@ class EvaluationController(ControllerBase):
         self.validate_int_field('syllableCount', syllable_count, high=20)
         attempt_id, wsd = self.service.process_attempt(user, evaluation_id, word, syllable_count, method, audio, sr)
         if save:
-            self.logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s]', user, evaluation_id, attempt_id)
+            self.logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s]',
+                             user, evaluation_id, attempt_id)
             self.service.save_attempt_recording(user, evaluation_id, attempt_id, self.get_request_file_raw(r))
         return {
             'attemptId': attempt_id,
@@ -69,7 +70,8 @@ class EvaluationController(ControllerBase):
 
     @authenticate_request
     def handle_update_attempt(self, r: Request, user: str, evaluation_id: str, attempt_id: str):
-        self.logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s]', user, evaluation_id, attempt_id)
+        self.logger.info('[event=update-attempt][user=%s][evaluationId=%s][attemptId=%s]',
+                         user, evaluation_id, attempt_id)
         active = self.get_update_attempt_data(r)
         self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
         self.validate_id(attempt_id, IdPrefix.ATTEMPT.value)
@@ -144,7 +146,7 @@ class EvaluationController(ControllerBase):
         if method is None or method == '':
             method = 'endpoint'
 
-        save = r.values.get('save')
+        save = r.values.get('save', True)
         if save == 'false' or not save:
             save = False
         else:

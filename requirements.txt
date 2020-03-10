@@ -1,3 +1,4 @@
+botocore
 # Server framework
 flask
 

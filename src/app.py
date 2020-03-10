@@ -1,18 +1,15 @@
 import os
 from flask import Flask, request, jsonify, send_file
 
-from src import ApraxiatorException, InvalidRequestException
-from src.controllers.authentication.authprovider import get_auth
+from . import ApraxiatorException, InvalidRequestException
 
 from .waiver.waiver_sender import WaiverSender
 from .waiver.waiver_generator import WaiverGenerator
 from .models.waiver import Waiver
 from .storage.storageexceptions import WaiverAlreadyExists
-from .controllers import DataExportController, EvaluationController
-from .services import DataExportService, EvaluationService
 from .report.report_sender import ReportSender
 from .report.report_generator import ReportGenerator
-from .storage.dbexceptions import ConnectionException
+from .factory import Factory
 
 
 import logging
@@ -22,17 +19,9 @@ setup_logger()
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
-try:
-    from src.storage.sqlstorage import SQLStorage
-    storage = SQLStorage()
-except ConnectionException as e:
-    logger.exception('Problem establishing SQL connection')
-    from src.storage.memorystorage import MemoryStorage
-    storage = MemoryStorage()
-
-authenticator = get_auth()
-export_controller = DataExportController(authenticator, DataExportService(storage))
-evaluation_controller = EvaluationController(authenticator, EvaluationService(storage))
+factory = Factory.create_factory()
+export_controller = factory.data_export
+evaluation_controller = factory.evaluation
 
 
 @app.before_request
@@ -65,7 +54,7 @@ def handle_failure(error: Exception):
 
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
-    storage.is_healthy()
+    factory.storage.is_healthy()
     result = {
         'message': 'all is well'
     }
@@ -86,25 +75,25 @@ def create_evaluation():
 
 @app.route('/evaluation/<evaluation_id>/ambiance', methods=['POST'])
 def add_ambiance(evaluation_id):
-    result = evaluation_controller.handle_add_ambiance(request, evaluation_id)
+    result = evaluation_controller.handle_add_ambiance(request, evaluation_id=evaluation_id)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/attempts', methods=['GET'])
 def get_attempts(evaluation_id):
-    result = evaluation_controller.handle_get_attempts(request, evaluation_id)
+    result = evaluation_controller.handle_get_attempts(request, evaluation_id=evaluation_id)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/attempt', methods=['POST'])
 def process_attempt(evaluation_id):
-    result = evaluation_controller.handle_create_attempt(request, evaluation_id)
+    result = evaluation_controller.handle_create_attempt(request, evaluation_id=evaluation_id)
     return form_result(result)
 
 
 @app.route('/evaluation/<evaluation_id>/attempt/<attempt_id>', methods=['PUT'])
 def update_attempt(evaluation_id, attempt_id):
-    result = evaluation_controller.handle_update_attempt(request, evaluation_id, attempt_id)
+    result = evaluation_controller.handle_update_attempt(request, evaluation_id=evaluation_id, attempt_id=attempt_id)
     return form_result(result)
 
 

@@ -1,12 +1,14 @@
 from .ievaluationstorage import IEvaluationStorage
+from .ievaluationfilestorage import IEvaluationFileStorage
 from .calculators import WsdCalculatorBase
 from ...models import Evaluation, Attempt
 from ...utils import IdGenerator, IdPrefix
 
 
 class EvaluationService(IdGenerator):
-    def __init__(self, storage: IEvaluationStorage):
+    def __init__(self, storage: IEvaluationStorage, file_store: IEvaluationFileStorage):
         self.storage = storage
+        self.file_store = file_store
         self.calculator = WsdCalculatorBase()
 
     def create_evaluation(self, user: str, age: str, gender: str, impression: str) -> str:
@@ -45,7 +47,7 @@ class EvaluationService(IdGenerator):
 
     def save_attempt_recording(self, user: str, evaluation_id: str, attempt_id: str, recording):
         self.storage.check_is_owner(user, evaluation_id)
-        self.storage.save_recording(attempt_id, recording)
+        self.file_store.save_recording(attempt_id, recording)
 
     def get_evaluation_report(self, user: str, evaluation_id: str):
         self.storage.check_is_owner(user, evaluation_id)

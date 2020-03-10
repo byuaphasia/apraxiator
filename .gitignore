@@ -123,3 +123,6 @@ src/waiver/tmp/*
 
 # Any generated reports
 src/report/tmp_reports/*
+
+# Files saved via localstorage
+src/filestorage/files/*
