@@ -75,3 +75,48 @@ Saves a recording and ties it to the specified evaluation and attempt. Expects a
   
 ### GET /evaluation/\<evaluationId>/attempt/\<attemptId>/recording
 Returns the saved recording tied to the specified evaluation and attempt. Streams the response in the body.
+
+### POST /waiver/\<signer>
+This method has two modes for two values of signer: "subject" and "representative". Both returns an empty json object if successful.
+
+"subject" mode:
+* Expects a .png file representing the signature in the request body with the key set to "researchSubjectSignature".
+* Expects a json body in this form:
+```json
+{
+  "researchSubjectName": "John Smith",
+  "researchSubjectEmail": "email@example.com",
+  "researchSubjectDate": "January 01, 2020"
+}
+```
+
+"representative" mode:
+* Expects a .png file representing the signature in the request body with the key set to "representativeSignature".
+* Expects a json body in this form:
+```json
+{
+  "researchSubjectName": "John Smith",
+  "researchSubjectEmail": "email@example.com",
+  "representativeName": "Jane Smith",
+  "representativeRelationship": "Mother",
+  "representativeDate": "January 01, 2010"
+}
+```
+
+### GET /waiver/\<res_email>
+Returns all waivers tied to the provided research subject email (res_email) and owner (provided by jwt token in headers). This will return a json response in this form:
+```json
+{
+  "waivers":[
+    {
+      "subjectName": "John Smith",
+      "subjectEmail": "email@example.com",
+      "date": "January 01, 2020",
+      "waiverId": "WV-1234"
+    }
+  ]
+}
+```
+
+### PUT /waiver/invalidate/\<waiver_id>
+Allows for changing the "valid" status of a waiver. Returns empty json object.

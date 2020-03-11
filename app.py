@@ -165,28 +165,33 @@ def save_waiver(signer):
     return form_result({})
 
 
-@app.route('/waiver/<res_name>/<res_email>', methods=['GET'])
-def check_waivers(res_name, res_email):
+@app.route('/waiver/<res_email>/<res_name>', methods=['GET'])
+def check_waivers(res_email, res_name):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
-    if res_name is None or res_email is None:
-        return InvalidRequestException('Must provide both a name and email address')
-    waivers = storage.get_valid_waivers(res_name, res_email, user)
-    result = {
-        'waivers': [w.to_response() for w in waivers]
-    }
+    if res_email is None or res_name is None:
+        return InvalidRequestException('Must provide both an email address and a name')
+    waiver = storage.get_valid_waiver(res_email, res_name, user)
+    if waiver is not None:
+        result = {
+            'waiver': waiver.to_response()
+        }
+    else:
+        result = {
+            'waiver': None
+        }
     return form_result(result)
 
 
-@app.route('/invalidate/waiver/<res_name>/<res_email>', methods=['PUT'])
-def invalidate_waiver(res_name, res_email):
+@app.route('/waiver/invalidate/<waiver_id>', methods=['PUT'])
+def invalidate_waiver(waiver_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
     logger.info('[event=invalidate-waiver][user=%s][remoteAddress=%s]', user, request.remote_addr)
-    if res_name is None or res_email is None:
-        return InvalidRequestException('Must provide both a name and email address')
-    storage.invalidate_waiver(res_name, res_email, user)
+    if waiver_id is None:
+        return InvalidRequestException('Must provide a waiver_id')
+    storage.invalidate_waiver(waiver_id, user)
     return form_result({})
 
 

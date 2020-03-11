@@ -82,7 +82,7 @@ class TestSQLStorage(unittest.TestCase):
         name = str(uuid.uuid4())
         waiver = Waiver(name, 'email', 'date', 'filepath', 'signer', True, owner_id=owner_id)
         storage.add_waiver(waiver)
-        waivers = storage.get_valid_waivers(name, 'email', owner_id)
+        waivers = storage.get_valid_waiver('email', None, owner_id)
         self.assertEqual(1, len(waivers))
         waiver.id = waivers[0].id
         self.assertDictEqual(waiver.__dict__, waivers[0].__dict__)
@@ -91,7 +91,7 @@ class TestSQLStorage(unittest.TestCase):
             waiver.date = 'new date'
             storage.add_waiver(waiver)
 
-        waivers = storage.get_valid_waivers(name, 'email', owner_id)
+        waivers = storage.get_valid_waiver('email', None, owner_id)
         self.assertEqual(1, len(waivers))
         self.assertEqual('new date', waivers[0].date)
 
@@ -99,8 +99,8 @@ class TestSQLStorage(unittest.TestCase):
         name = str(uuid.uuid4())
         waiver = Waiver(name, 'email', 'date', 'filepath', 'signer', True, owner_id=owner_id)
         storage.add_waiver(waiver)
-        storage.invalidate_waiver(name, 'email', owner_id)
-        waivers = storage.get_valid_waivers(name, 'email', owner_id)
+        storage.invalidate_waiver(waiver.id, owner_id)
+        waivers = storage.get_valid_waiver('email', None, owner_id)
         self.assertEqual(0, len(waivers))
 
     @classmethod

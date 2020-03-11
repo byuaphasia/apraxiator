@@ -20,6 +20,8 @@ class Waiver(IdGenerator):
         return {
             'subjectName': self.res_name,
             'subjectEmail': self.res_email,
+            'date': self.date,
+            'waiverId': self.id
         }
 
     @staticmethod

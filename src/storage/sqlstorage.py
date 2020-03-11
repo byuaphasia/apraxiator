@@ -50,7 +50,7 @@ class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
         except Exception as e:
             self.logger.exception('[event=update-evaluation-failure][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
             raise ResourceAccessException(id, e)
-        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)        
+        self.logger.info('[event=evaluation-updated][evaluationId=%s][updateField=%s][updateValue=%r]', id, field, value)
 
     def get_evaluation(self, id):
         sql = 'SELECT * FROM evaluations WHERE evaluation_id = %s'
@@ -150,7 +150,7 @@ class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
         c = self.db.cursor()
         c.execute(sql, val)
         self.db.commit()
-    
+
     def _execute_select_query(self, sql, val):
         self.logger.info(self._make_info_log('db-select', sql, (str(i) for i in val)))
         c = self.db.cursor()
@@ -167,10 +167,10 @@ class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
 
     def _add_waiver(self, w):
         sql = ("INSERT INTO waivers ("
-               "subject_name, subject_email, representative_name, representative_relationship,"
+               "waiver_id, subject_name, subject_email, representative_name, representative_relationship,"
                "date, signer, valid, filepath, owner_id) "
-               "VALUES (%s, %s, %s, %s, %s, %s, %r, %s, %s);")
-        val = (w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath, w.owner_id)
+               "VALUES (%s, %s, %s, %s, %s, %s, %s, %r, %s, %s);")
+        val = (w.id, w.res_name, w.res_email, w.rep_name, w.rep_relationship, w.date, w.signer, w.valid, w.filepath, w.owner_id)
         try:
             self._execute_insert_query(sql, val)
         except Exception as ex:
@@ -178,19 +178,22 @@ class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
             raise ResourceAccessException(None, ex)
         self.logger.info('[event=waiver-added][subjectName=%s][subjectEmail=%s]', w.res_name, w.res_email)
 
-    def get_valid_waivers(self, res_name, res_email, user):
-        sql = 'SELECT * FROM waivers WHERE subject_name = %s AND subject_email = %s AND valid = %r AND owner_id = %s;'
-        val = (res_name, res_email, True, user)
+    def get_valid_waiver(self, res_email, res_name, user):
+        sql = 'SELECT * FROM waivers WHERE subject_email = %s AND LOWER(subject_name) = LOWER(%s) AND valid = %r AND owner_id = %s;'
+        val = (res_email, res_name.lower(), True, user)
         try:
-            res = self._execute_select_many_query(sql, val)
+            res = self._execute_select_query(sql, val)
         except Exception as e:
-            self.logger.exception('[event=get-valid-waiver-failure][subjectName=%s][subjectEmail=%s]', res_name, res_email)
+            self.logger.exception('[event=get-valid-waiver-failure][subjectEmail=%s]', res_email)
             raise ResourceAccessException(None, e)
-        waivers = []
-        for row in res:
-            waivers.append(Waiver.from_row(row))
-        self.logger.info('[event=valid-waivers-retrieved][subjectName=%s][subjectEmail=%s][waiverCount=%s]', res_name, res_email, len(waivers))
-        return waivers
+
+        w = None
+        if res is not None:
+            w = Waiver.from_row(res)
+            self.logger.info('[event=valid-waiver-retrieved][subjectEmail=%s][waiverId=%s]', res_email, w.id)
+        else:
+            self.logger.info('[event=no-valid-waiver-retrieved][subjectEmail=%s]', res_email)
+        return w
 
     def _update_waiver(self, id, field, value):
         sql = 'UPDATE waivers SET {} = %s WHERE waiver_id = %s;'.format(field)
@@ -203,6 +206,16 @@ class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
             raise ResourceAccessException(None, e)
         self.logger.info('[event=waiver-updated][waiverId=%s][field=%s][value=%r]',
                          id, field, value)
+
+    def _check_is_owner_waiver(self, waiver_id, owner_id):
+        sql = 'SELECT owner_id FROM waivers WHERE waiver_id = %s'
+        val = (waiver_id,)
+        res = self._execute_select_query(sql, val)
+        if res[0] != owner_id:
+            self.logger.error('[event=access-denied][waiverId=%s][userId=%s]', waiver_id, owner_id)
+            raise PermissionDeniedException(waiver_id, owner_id)
+        else:
+            self.logger.info('[event=owner-verified][waiverId=%s][userId=%s]', waiver_id, owner_id)
 
     ''' Data Export Methods '''
     def export_data(self, start_date, end_date):
@@ -275,7 +288,7 @@ class SQLStorage(IEvaluationStorage, WaiverStorage, IDataExportStorage):
                                        ");"
                                        )
         create_waivers_statement = ("CREATE TABLE IF NOT EXISTS `waivers` ("
-                                    "`waiver_id` int AUTO_INCREMENT NOT NULL,"
+                                    "`waiver_id` varchar(48) NOT NULL,"
                                     "`subject_name` varchar(255) NOT NULL,"
                                     "`subject_email` varchar(255) NOT NULL,"
                                     "`representative_name` varchar(255),"
