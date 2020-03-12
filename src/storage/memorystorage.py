@@ -2,7 +2,6 @@ import logging
 from datetime import date
 
 from ..services import IEvaluationStorage, IWaiverStorage
-from .waiverstorage import WaiverStorage
 from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, StorageException
 
 
@@ -47,6 +46,7 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
             raise ResourceNotFoundException(id)            
 
     def create_attempt(self, a):
+        a.date_created
         prev = self.attempts.get(a.evaluation_id, [])
         prev.append(a)
         self.attempts[a.evaluation_id] = prev
@@ -79,7 +79,7 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
             self.logger.error('[event=get-attempts-error][evaluationId=%s][error=resource not found]', evaluation_id)
             raise ResourceNotFoundException(id)
 
-    def check_is_owner_waiver(self, owner_id, evaluation_id):
+    def check_is_owner(self, owner_id, evaluation_id):
         e = self.evaluations.get(evaluation_id, None)
         if e is not None:
             if e.owner_id != owner_id:
@@ -113,7 +113,7 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
             w.valid = value
         self.waivers[id] = w
 
-    def check_is_owner(self, user, waiver_id):
+    def check_is_owner_waiver(self, user, waiver_id):
         w = self.waivers.get(waiver_id, None)
         if w is not None:
             if w.owner_id != user:
@@ -124,19 +124,3 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
         else:
             self.logger.error('[event=check-owner-error][resourceId=%s][error=resource not found]', waiver_id)
             raise ResourceNotFoundException(id)
-
-    def _get_evaluation_data(self, evaluation_id):
-        e = self.evaluations.get(evaluation_id, None)
-        if e is not None:
-            date_str = e.date_created
-            if date_str is None:
-                date_str = str(date.today().strftime('%d-%b-%Y'))
-            return {
-                'date': date_str,
-                'gender': e.gender,
-                'age': e.age,
-                'impression': e.impression
-            }
-        else:
-            self.logger.error('[event=get-evaluation-date-error][evaluationId=%s][error=resource not found]', evaluation_id)
-            raise ResourceNotFoundException(evaluation_id)

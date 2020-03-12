@@ -8,4 +8,6 @@ class TimeConversion:
 
     @staticmethod
     def to_report(date: datetime):
+        if date is None:
+            date = datetime.now()
         return date.strftime('%B %d, %Y')

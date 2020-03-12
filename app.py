@@ -2,9 +2,9 @@ from flask import Flask, request, jsonify, send_file
 import logging
 import os
 
-from . import ApraxiatorException
-from .utils import Factory
-from .utils.log import setup_logger
+from src.apraxiatorexception import ApraxiatorException
+from src.utils import Factory
+from src.utils.log import setup_logger
 
 setup_logger()
 logger = logging.getLogger(__name__)

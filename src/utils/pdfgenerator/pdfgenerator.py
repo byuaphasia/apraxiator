@@ -1,12 +1,17 @@
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+except OSError:
+    print('Unable to import weasyprint')
 import uuid
 import os
+
+from .ipdfgenerator import IPDFGenerator
 
 tmp_storage_dir = 'tmp_storage'
 
 
-class PDFGenerator:
+class PDFGenerator(IPDFGenerator):
     def generate_subject_waiver(self, subject_name: str, subject_email: str, date_signed: str, signature_file):
         return self._create_pdf_waiver(
             subject_name, subject_email, date_signed, signature_file, '', '', '', None
@@ -28,7 +33,7 @@ class PDFGenerator:
         if representative_signature is not None:
             representative_signature_path = self._get_signature_file()
             representative_signature.save(representative_signature_path)
-        template_file_path = 'templates/hipaa_authorization_template.html'
+        template_file_path = '../templates/hipaa_authorization_template.html'
         template_variables = {
             'research_subject_name': research_subject_name,
             'research_subject_email': research_subject_email,
@@ -52,7 +57,7 @@ class PDFGenerator:
         for attempt in attempts:
             sum_wsd += attempt['wsd']
         avg_wsd = sum_wsd / len(attempts)
-        template_file_path = 'templates/report_template.html'
+        template_file_path = '../templates/report_template.html'
         template_variables = {
             'name': name,
             'evaluation_id': evaluation['evaluationId'],

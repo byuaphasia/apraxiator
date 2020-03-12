@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 import boto3
 from botocore.exceptions import ClientError
 from email.mime.application import MIMEApplication
-from src.apraxiatorexception import ApraxiatorException
+from ...apraxiatorexception import ApraxiatorException
 from .isender import ISender
 
 

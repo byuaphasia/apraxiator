@@ -1,10 +1,12 @@
 from .iwaiverstorage import IWaiverStorage
 from ...models import Waiver
-from ...utils import IdGenerator, IdPrefix, EmailSender, PDFGenerator
+from ...utils import IdGenerator, IdPrefix
+from ...utils.sender import ISender
+from ...utils.pdfgenerator import IPDFGenerator
 
 
 class WaiverService(IdGenerator):
-    def __init__(self, storage: IWaiverStorage, email_sender: EmailSender, pdf_generator: PDFGenerator):
+    def __init__(self, storage: IWaiverStorage, email_sender: ISender, pdf_generator: IPDFGenerator):
         self.storage = storage
         self.email_sender = email_sender
         self.generator = pdf_generator

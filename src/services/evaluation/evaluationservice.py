@@ -4,12 +4,14 @@ from .ievaluationstorage import IEvaluationStorage
 from .ievaluationfilestorage import IEvaluationFileStorage
 from .calculators import WsdCalculatorBase
 from ...models import Evaluation, Attempt
-from ...utils import IdGenerator, IdPrefix, ISender, PDFGenerator
+from ...utils import IdGenerator, IdPrefix
+from ...utils.sender import ISender
+from ...utils.pdfgenerator import IPDFGenerator
 
 
 class EvaluationService(IdGenerator):
     def __init__(self, storage: IEvaluationStorage, file_store: IEvaluationFileStorage,
-                 email_sender: ISender, pdf_generator: PDFGenerator):
+                 email_sender: ISender, pdf_generator: IPDFGenerator):
         self.storage = storage
         self.file_store = file_store
         self.calculator = WsdCalculatorBase()

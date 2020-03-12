@@ -1,11 +1,12 @@
 import os
 
-from src.storage import MemoryStorage, SQLStorage
-from src.filestorage import LocalFileStorage, S3FileStorage
-from src.services import EvaluationService, DataExportService, WaiverService
-from src.controllers.authentication import LocalAuthenticator, JWTAuthenticator
-from src.controllers import EvaluationController, DataExportController, WaiverController
-from src.utils import LogSender, EmailSender, PDFGenerator
+from ..storage import MemoryStorage, SQLStorage
+from ..filestorage import LocalFileStorage, S3FileStorage
+from ..services import EvaluationService, DataExportService, WaiverService
+from ..controllers.authentication import LocalAuthenticator, JWTAuthenticator
+from ..controllers import EvaluationController, DataExportController, WaiverController
+from .sender import LogSender, EmailSender
+from .pdfgenerator import PDFGenerator, PDFLogger
 
 
 class Factory:
@@ -32,12 +33,13 @@ class Factory:
             storage = MemoryStorage()
             auth = LocalAuthenticator()
             sender = LogSender()
+            pdf_generator = PDFLogger()
         else:
             file_store = S3FileStorage()
             storage = SQLStorage()
             auth = JWTAuthenticator()
             sender = EmailSender()
-        pdf_generator = PDFGenerator()
+            pdf_generator = PDFGenerator()
 
         return Factory(storage, file_store, auth, sender, pdf_generator)
 
@@ -46,10 +48,10 @@ class Factory:
         file_store = LocalFileStorage()
         auth = LocalAuthenticator()
         sender = LogSender()
+        pdf_generator = PDFLogger()
         if storage_type == 'db':
             storage = SQLStorage()
         else:
             storage = MemoryStorage()
-        pdf_generator = PDFGenerator()
 
         return Factory(storage, file_store, auth, sender, pdf_generator)
