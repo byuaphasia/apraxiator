@@ -118,8 +118,11 @@ sprint2/
 jwk.json
 
 # Saved Waivers
-src/waiver/signed_waivers/*
-src/waiver/tmp/*
+tmp_storage/waivers/*
+tmp_storage/signature_files/*
+tmp_storage/reports/*
+tmp_storage/recordings/*
+*.pem
 
 # Any generated reports
 src/report/tmp_reports/*

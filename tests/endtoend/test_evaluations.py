@@ -3,13 +3,26 @@ import os
 
 from ...src import ApraxiatorException
 from ..utils import DummyRequest
-from ...src.utils import IdPrefix
-from ...src.factory import Factory
+from ...src.utils import IdPrefix, PDFGenerator, EmailSender, Factory
+
+
+class DummyPDFGenerator(PDFGenerator):
+    @staticmethod
+    def _create_pdf(encoding, template_file_path, template_variables, outfile):
+        pass
+
+
+class DummyEmailSender(EmailSender):
+    def send_email(self, to_email, subject, body_text, body_html, attachment_file):
+        pass
+
 
 mode = os.environ.get('APX_TEST_MODE', 'mem')
 factory = Factory.create_isolated_factory(mode)
 controller = factory.ev_controller
 attempts = []
+controller.service.pdf_generator = DummyPDFGenerator()
+controller.service.email_sender = DummyEmailSender()
 
 
 class TestEvaluations(unittest.TestCase):
@@ -67,21 +80,23 @@ class TestEvaluations(unittest.TestCase):
         a = controller.handle_get_attempts(None, evaluation_id=e_id)['attempts'][0]
         self.assertFalse(a['active'])
 
-    def test_get_evaluation_report(self):
+    def test_send_report(self):
         factory.auth.user = 'report'
         e_id = create_evaluation(controller)['evaluationId']
         add_ambiance(controller, e_id)
         active_id = create_attempt(controller, e_id)['attemptId']
         inactive_id = create_attempt(controller, e_id)['attemptId']
-        body = {'active': False}
-        r = DummyRequest().set_body(body)
-        controller.handle_update_attempt(r, evaluation_id=e_id, attempt_id=inactive_id)
-        result = controller.handle_get_evaluation_report(None, evaluation_id=e_id)
-        self.assertTrue('date' in result)
-        self.assertTrue('age' in result)
-        self.assertTrue('gender' in result)
-        self.assertTrue('impression' in result)
+        update_body = {'active': False}
+        update_r = DummyRequest().set_body(update_body)
+        controller.handle_update_attempt(update_r, evaluation_id=e_id, attempt_id=inactive_id)
+
+        result = controller.handle_send_report(update_r, evaluation_id=e_id)
         self.assertTrue('attempts' in result)
+        self.assertTrue('evaluation' in result)
+        self.assertTrue('dateCreated' in result['evaluation'])
+        self.assertTrue('age' in result['evaluation'])
+        self.assertTrue('gender' in result['evaluation'])
+        self.assertTrue('impression' in result['evaluation'])
         self.assertEqual(1, len(result['attempts']))
 
     @classmethod

@@ -75,3 +75,78 @@ Saves a recording and ties it to the specified evaluation and attempt. Expects a
   
 ### GET /evaluation/\<evaluationId>/attempt/\<attemptId>/recording
 Returns the saved recording tied to the specified evaluation and attempt. Streams the response in the body.
+
+### POST /waiver/subject
+Saves a subject waiver and emails it to the client and clinician. Returns an empty json object if successful.
+
+* Expects a .png file representing the signature in the request body with the key set to "subjectSignature".
+* Expects a json body in this form:
+```json
+{
+  "subjectName": "John Smith",
+  "subjectEmail": "email@example.com",
+  "dateSigned": "January 01, 2020",
+  "clinicianEmail": "email@example.com"
+}
+```
+
+### POST /waiver/representative
+Saves a representative waiver and emails it to the client and clinician. Returns an empty json object if successful.
+
+* Expects a .png file representing the signature in the request body with the key set to "representativeSignature".
+* Expects a json body in this form:
+```json
+{
+  "subjectName": "John Smith",
+  "subjectEmail": "email@example.com",
+  "representativeName": "Jane Smith",
+  "relationship": "Mother",
+  "dateSigned": "January 01, 2010",
+  "clinicianEmail": "email@example.com"
+}
+```
+
+### GET /waiver
+Returns the waiver tied to the provided subject email (subjectEmail), subject name (subjectName), and owner (provided by jwt token in headers). Provide subjectEmail and subjectName in the query parameters (after a question mark in the URL). This will return a json response in this form:
+```json
+{
+  "subjectName": "John Smith",
+  "subjectEmail": "email@example.com",
+  "date": "January 01, 2020",
+  "waiverId": "WV-1234"
+}
+```
+
+### PUT /waiver/\<waiver_id>/invalidate
+Allows for changing the "valid" status of the waiver corresponding to the waiver_id. Returns empty json object.
+
+### POST /sendReport/\<evaluation_id\>
+Generates an evaluation report and sends it to the provided email. Returns an empty json object if successful. Expects a json body in this form:
+```json
+{
+  "email": "email@email.com",
+  "name": "John Smith"
+}
+```
+
+Returns an unnecessary json response in this form:
+```json
+{
+    "attempts": [
+        {
+            "word": "gingerbread",
+            "syllables": 3,
+            "wsd": 123.456789,
+            "wsd_str": "123.45"
+        },
+        ...
+    ],
+    "evaluation": {
+        "evaluationId": "EV.......",
+        "age": "50",
+        "gender": "Male",
+        "impression": "impression",
+        "dateCreated": "January 01, 2020"
+    }
+}
+```

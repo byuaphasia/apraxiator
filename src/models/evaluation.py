@@ -1,3 +1,6 @@
+from ..utils import TimeConversion
+
+
 class Evaluation:
     def __init__(self, id, age, gender, impression, owner_id, ambiance_threshold=None, date_created=None):
         self.id = id
@@ -19,10 +22,11 @@ class Evaluation:
 
     def to_report(self):
         return {
-            'date': self.date_created,
-            'gender': self.gender,
+            'evaluationId': self.id,
             'age': self.age,
-            'impression': self.impression
+            'gender': self.gender,
+            'impression': self.impression,
+            'dateCreated': TimeConversion.to_report(self.date_created)
         }
 
     @staticmethod
