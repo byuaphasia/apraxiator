@@ -24,6 +24,14 @@ class DataExportController(ControllerBase):
         contents = self.service.export(user, start_date, end_date, include_recordings)
         return contents
 
+    @authenticate_request
+    def handle_user(self, r: Request, user: str):
+        self.logger.info('[event=check-user-type][user=%s]', user)
+        result = self.service.user_type(user)
+        return {
+            'userType': result
+        }
+
     # Validates that the date string passed in is in ISO YYYY-MM-DD format
     @staticmethod
     def validate_date_format(date_str: str):

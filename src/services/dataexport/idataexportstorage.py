@@ -2,5 +2,5 @@ class IDataExportStorage:
     def export_data(self, start_date, end_date):
         raise NotImplementedError()
 
-    def confirm_export_access(self, user):
+    def check_is_admin(self, user):
         raise NotImplementedError()

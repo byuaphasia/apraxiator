@@ -113,6 +113,12 @@ def export():
     return send_file(export_file)
 
 
+@app.route('/user', methods=['GET'])
+def user():
+    result = export_controller.handle_user(request)
+    return form_result(result)
+
+
 @app.route('/waiver/representative', methods=['POST'])
 def save_representative_waiver():
     result = waiver_controller.handle_save_representative_waiver(request)

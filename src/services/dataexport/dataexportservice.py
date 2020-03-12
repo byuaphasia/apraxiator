@@ -1,5 +1,6 @@
 from .idataexportstorage import IDataExportStorage
 from ...models import DataExport
+from ...storage.storageexceptions import PermissionDeniedException
 
 
 class DataExportService:
@@ -7,7 +8,7 @@ class DataExportService:
         self.storage = storage
 
     def export(self, user, start_date, end_date, include_recordings=True):
-        self.storage.confirm_export_access(user)
+        self.confirm_export_access(user)
         data = self.storage.export_data(start_date, end_date)
         data_export = DataExport()
 
@@ -26,3 +27,13 @@ class DataExportService:
         contents = open(filename, 'rb').read()
         data_export.clean()
         return contents
+
+    def user_type(self, user):
+        if self.storage.check_is_admin(user):
+            return 'admin'
+        else:
+            return 'user'
+
+    def confirm_export_access(self, user):
+        if not self.storage.check_is_admin(user):
+            raise PermissionDeniedException('export', user)

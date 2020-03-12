@@ -236,15 +236,16 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
             self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
             raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
 
-    def confirm_export_access(self, user):
+    def check_is_admin(self, user):
         sql = "SELECT * FROM admins WHERE id = %s"
         val = (user,)
         res = self._execute_select_query(sql, val)
-        if res[0] != user:
-            self.logger.error('[event=export-access-denied][userId=%s]', user)
-            raise PermissionDeniedException('export', user)
+        if res is None or res[0] != user:
+            is_admin = False
         else:
-            self.logger.info('[event=admin-verified][userId=%s]', user)
+            is_admin = True
+        self.logger.info('[event=check-is-admin][user=%s][isAdmin=%s]', user, is_admin)
+        return is_admin
 
     ''' Table Setup '''
 
