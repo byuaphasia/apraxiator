@@ -73,8 +73,8 @@ class EvaluationController:
         self.validate_str_field('email', email, length=255)
         self.validate_str_field('name', name, length=255)
         self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
-        self.service.send_evaluation_report(user, evaluation_id, email, name)
-        return {}
+        result = self.service.send_evaluation_report(user, evaluation_id, email, name)
+        return result
 
     @staticmethod
     def validate_id(id: str, expected_prefix: str):

@@ -128,3 +128,25 @@ Generates an evaluation report and sends it to the provided email. Returns an em
   "name": "John Smith"
 }
 ```
+
+Returns an unnecessary json response in this form:
+```json
+{
+    "attempts": [
+        {
+            "word": "gingerbread",
+            "syllables": 3,
+            "wsd": 123.456789,
+            "wsd_str": "123.45"
+        },
+        ...
+    ],
+    "evaluation": {
+        "evaluationId": "EV.......",
+        "age": "50",
+        "gender": "Male",
+        "impression": "impression",
+        "dateCreated": "January 01, 2020"
+    }
+}
+```

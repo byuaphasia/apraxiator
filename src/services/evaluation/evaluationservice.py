@@ -58,6 +58,10 @@ class EvaluationService(IdGenerator):
         self.email_sender.send_report(report_file, email, evaluation_id)
         if os.path.exists(report_file):
             os.remove(report_file)
+        return {
+            'attempts': attempts,
+            'evaluation': evaluation
+        }
 
     def get_evaluation_report(self, evaluation_id: str):
         unfiltered = self.storage.get_attempts(evaluation_id)
