@@ -7,6 +7,7 @@ from .unauthenticatedexceptions import TokenExpiredException, InvalidTokenExcept
 HEADER_KEY = 'TOKEN'
 auth_dir = '../apx-resources/auth/'
 
+
 class JWTAuthenticator:
     def __init__(self):
         keys_json = open(auth_dir + 'jwk.json', 'r').read()

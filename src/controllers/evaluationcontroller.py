@@ -67,14 +67,13 @@ class EvaluationController:
         self.service.update_active_status(user, evaluation_id, attempt_id, active)
         return {}
 
-    def handle_get_evaluation_report(self, r: Request, user: str, evaluation_id: str):
-        self.logger.info('[event=get-evaluation-report][user=%s][evaluationId=%s]', user, evaluation_id)
+    def handle_send_report(self, r: Request, user: str, evaluation_id: str):
+        self.logger.info('[event=send-report][user=%s][evaluationId=%s]', user, evaluation_id)
+        email, name = self.get_send_report_data(r)
+        self.validate_str_field('email', email, length=255)
+        self.validate_str_field('name', name, length=255)
         self.validate_id(evaluation_id, IdPrefix.EVALUATION.value)
-        attempts, evaluation = self.service.get_evaluation_report(user, evaluation_id)
-        result = {
-            'attempts': [a.to_report() for a in attempts]
-        }
-        result.update(evaluation.to_report())
+        result = self.service.send_evaluation_report(user, evaluation_id, email, name)
         return result
 
     @staticmethod
@@ -156,6 +155,21 @@ class EvaluationController:
         else:
             active = True
         return active
+
+    @staticmethod
+    def get_send_report_data(r: Request):
+        body = r.get_json(silent=True)
+        if body is None:
+            values = r.values
+        else:
+            values = body
+        try:
+            email = values['email']
+            name = values['name']
+        except KeyError as e:
+            msg = f'Must provide {e.args[0]}'
+            raise InvalidRequestException(msg, e)
+        return email, name
 
     @staticmethod
     def get_request_wav_file(r: Request):

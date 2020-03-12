@@ -5,14 +5,27 @@ from ...src.controllers import EvaluationController
 from ...src.services import EvaluationService
 from ...src.storage import MemoryStorage, SQLStorage
 from ..utils import DummyRequest
-from ...src.utils import IdPrefix
+from ...src.utils import IdPrefix, PDFGenerator, EmailSender
 
 mode = os.environ.get('APX_TEST_MODE', 'mem')
 if mode == 'db':
     storage = SQLStorage('test')
 else:
     storage = MemoryStorage()
-service = EvaluationService(storage)
+
+
+class DummyPDFGenerator(PDFGenerator):
+    @staticmethod
+    def _create_pdf(encoding, template_file_path, template_variables, outfile):
+        pass
+
+
+class DummyEmailSender(EmailSender):
+    def send_email(self, to_email, subject, body_text, body_html, attachment_file):
+        pass
+
+
+service = EvaluationService(storage, DummyEmailSender(), DummyPDFGenerator())
 controller = EvaluationController(service)
 
 
@@ -65,20 +78,22 @@ class TestEvaluations(unittest.TestCase):
         a = controller.handle_get_attempts(None, 'update', e_id)['attempts'][0]
         self.assertFalse(a['active'])
 
-    def test_get_evaluation_report(self):
+    def test_send_report(self):
         e_id = create_evaluation(controller, 'report')['evaluationId']
         add_ambiance(controller, 'report', e_id)
         active_id = create_attempt(controller, 'report', e_id)['attemptId']
         inactive_id = create_attempt(controller, 'report', e_id)['attemptId']
-        body = {'active': False}
-        r = DummyRequest().set_body(body)
-        controller.handle_update_attempt(r, 'report', e_id, inactive_id)
-        result = controller.handle_get_evaluation_report(None, 'report', e_id)
-        self.assertTrue('date' in result)
-        self.assertTrue('age' in result)
-        self.assertTrue('gender' in result)
-        self.assertTrue('impression' in result)
+        update_body = {'active': False}
+        update_r = DummyRequest().set_body(update_body)
+        controller.handle_update_attempt(update_r, 'report', e_id, inactive_id)
+
+        result = controller.handle_send_report(update_r, 'report', e_id)
         self.assertTrue('attempts' in result)
+        self.assertTrue('evaluation' in result)
+        self.assertTrue('dateCreated' in result['evaluation'])
+        self.assertTrue('age' in result['evaluation'])
+        self.assertTrue('gender' in result['evaluation'])
+        self.assertTrue('impression' in result['evaluation'])
         self.assertEqual(1, len(result['attempts']))
 
     @classmethod

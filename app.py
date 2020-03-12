@@ -1,18 +1,12 @@
-import os
 from flask import Flask, request, jsonify, send_file
 
-from src import ApraxiatorException, InvalidRequestException
+from src import ApraxiatorException
 from src.authentication.authprovider import get_auth
 
-from src.waiver.waiver_sender import WaiverSender
-from src.waiver.waiver_generator import WaiverGenerator
-from src.models.waiver import Waiver
-from src.storage.storageexceptions import WaiverAlreadyExists
-from src.controllers import DataExportController, EvaluationController
-from src.services import DataExportService, EvaluationService
-from src.report.report_sender import ReportSender
-from src.report.report_generator import ReportGenerator
+from src.controllers import DataExportController, EvaluationController, WaiverController
+from src.services import DataExportService, EvaluationService, WaiverService
 from src.storage.dbexceptions import ConnectionException
+from src.utils import EmailSender, PDFGenerator
 
 
 import logging
@@ -30,8 +24,11 @@ except ConnectionException as e:
     from src.storage.memorystorage import MemoryStorage
     storage = MemoryStorage()
 
+email_sender = EmailSender()
+pdf_generator = PDFGenerator()
 export_controller = DataExportController(DataExportService(storage))
-evaluation_controller = EvaluationController(EvaluationService(storage))
+evaluation_controller = EvaluationController(EvaluationService(storage, email_sender, pdf_generator))
+waiver_controller = WaiverController(WaiverService(storage, email_sender, pdf_generator))
 
 authenticator = get_auth()
 
@@ -121,78 +118,44 @@ def update_attempt(evaluation_id, attempt_id):
     return form_result(result)
 
 
-@app.route('/waiver/<signer>', methods=['POST'])
-def save_waiver(signer):
+@app.route('/evaluation/<evaluation_id>/report', methods=['POST'])
+def send_report(evaluation_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=save-waiver][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
-
-    generator = WaiverGenerator()
-    res_name = request.values.get('researchSubjectName')
-    res_email = request.values.get('researchSubjectEmail')
-    clinician_email = request.values.get('clinicianEmail')
-    rep_name = ''
-    rep_relationship = ''
-    if signer == 'subject':
-        res_file = request.files['researchSubjectSignature']
-        date = request.values.get('researchSubjectDate')
-        report_file = generator.create_pdf_report(res_name, res_email, date, res_file, rep_name, rep_relationship, '', None)
-    elif signer == 'representative':
-        rep_file = request.files['representativeSignature']
-        rep_name = request.values.get('representativeName')
-        rep_relationship = request.values.get('representativeRelationship')
-        date = request.values.get('representativeDate')
-        report_file = generator.create_pdf_report(
-            res_name, res_email, '', None, rep_name, rep_relationship, date, rep_file
-        )
-    else:
-        raise InvalidRequestException('Invalid signer. Must be \'subject\' or \'representative\'.')
-    
-    waiver = Waiver(res_name, res_email, date, report_file, signer, True, rep_name, rep_relationship, None, user)
-    try:
-        storage.add_waiver(waiver)
-    except WaiverAlreadyExists:
-        logger.info('[event=waiver-exists][resName=%s][resEmail=%s][remoteAddress=%s]', res_name, res_email, request.remote_addr)
-        result = {
-            'message': 'Waiver for this user already exists.'
-        }
-        return form_result(result)
-
-    logger.info('[event=report-generated][user=%s][signer=%s][remoteAddress=%s]', user, signer, request.remote_addr)
-    WaiverSender.send_patient_email(report_file, res_email)
-    WaiverSender.send_clinician_email(report_file, clinician_email, res_name)
-    logger.info('[event=report-sent][user=%s][destination=%s][remoteAddress=%s]', user, res_email, request.remote_addr)
-    return form_result({})
-
-
-@app.route('/waiver/<res_email>/<res_name>', methods=['GET'])
-def check_waivers(res_email, res_name):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    logger.info('[event=get-waivers][user=%s][remoteAddress=%s]', user, request.remote_addr)
-    if res_email is None or res_name is None:
-        return InvalidRequestException('Must provide both an email address and a name')
-    waiver = storage.get_valid_waiver(res_email, res_name, user)
-    if waiver is not None:
-        result = {
-            'waiver': waiver.to_response()
-        }
-    else:
-        result = {
-            'waiver': None
-        }
+    result = evaluation_controller.handle_send_report(request, user, evaluation_id)
     return form_result(result)
 
 
-@app.route('/waiver/invalidate/<waiver_id>', methods=['PUT'])
+@app.route('/waiver', methods=['GET'])
+def check_waivers():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    result = waiver_controller.handle_check_waivers(request, user)
+    return form_result(result)
+
+
+@app.route('/waiver/subject', methods=['POST'])
+def save_subject_waiver():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    result = waiver_controller.handle_save_subject_waiver(request, user)
+    return form_result(result)
+
+
+@app.route('/waiver/representative', methods=['POST'])
+def save_representative_waiver():
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    result = waiver_controller.handle_save_representative_waiver(request, user)
+    return form_result(result)
+
+
+@app.route('/waiver/<waiver_id>/invalidate', methods=['PUT'])
 def invalidate_waiver(waiver_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
-    logger.info('[event=invalidate-waiver][user=%s][remoteAddress=%s]', user, request.remote_addr)
-    if waiver_id is None:
-        return InvalidRequestException('Must provide a waiver_id')
-    storage.invalidate_waiver(waiver_id, user)
-    return form_result({})
+    result = waiver_controller.handle_invalidate_waiver(request, user, waiver_id)
+    return form_result(result)
 
 
 @app.route('/export', methods=['POST'])
@@ -201,30 +164,6 @@ def export():
     user = authenticator.get_user(token)
     export_file = export_controller.handle_export(request, user)
     return send_file(export_file)
-
-
-@app.route('/sendReport', methods=['POST'])
-def send_report():
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    eval_id = request.values.get('evalId')
-    email = request.values.get('email')
-    if email is None or eval_id is None:
-        return InvalidRequestException('Must provide both an email address and evaluation ID')
-    logger.info('[event=send-report][user=%s][remoteAddress=%s][evalId=%s]', user, request.remote_addr, eval_id)
-    name = request.values.get('name')
-    eval_report = evaluation_controller.handle_get_evaluation_report(request, user, eval_id)
-    sum_wsd = 0
-    for attempt in eval_report['attempts']:
-        sum_wsd += attempt['wsd']
-        attempt['wsd'] = '{0:.2f}'.format(attempt['wsd'])
-    avg_wsd = sum_wsd / len(eval_report['attempts'])
-    report_generator = ReportGenerator()
-    report_file = report_generator.create_pdf_report(eval_id, eval_report['date'], name, eval_report['attempts'], avg_wsd, eval_report['gender'], eval_report['age'], eval_report['impression'])
-    ReportSender.send_report_email(report_file, email, eval_id)
-    if os.path.isfile(report_file):
-        os.remove(report_file)
-    return form_result({})
 
 
 if __name__ == '__main__':

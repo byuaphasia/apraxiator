@@ -1,13 +1,17 @@
+import os
+
 from .ievaluationstorage import IEvaluationStorage
 from .calculators import WsdCalculatorBase
 from ...models import Evaluation, Attempt
-from ...utils import IdGenerator, IdPrefix
+from ...utils import IdGenerator, IdPrefix, EmailSender, PDFGenerator
 
 
 class EvaluationService(IdGenerator):
-    def __init__(self, storage: IEvaluationStorage):
+    def __init__(self, storage: IEvaluationStorage, email_sender: EmailSender, pdf_generator: PDFGenerator):
         self.storage = storage
         self.calculator = WsdCalculatorBase()
+        self.email_sender = email_sender
+        self.pdf_generator = pdf_generator
 
     def create_evaluation(self, user: str, age: str, gender: str, impression: str) -> str:
         evaluation_id = self.create_id(IdPrefix.EVALUATION.value)
@@ -47,12 +51,23 @@ class EvaluationService(IdGenerator):
         self.storage.check_is_owner(user, evaluation_id)
         self.storage.save_recording(attempt_id, recording)
 
-    def get_evaluation_report(self, user: str, evaluation_id: str):
+    def send_evaluation_report(self, user: str, evaluation_id: str, email: str, name: str):
         self.storage.check_is_owner(user, evaluation_id)
+        attempts, evaluation = self.get_evaluation_report(evaluation_id)
+        report_file = self.pdf_generator.generate_report(evaluation, attempts, name)
+        self.email_sender.send_report(report_file, email, evaluation_id)
+        if os.path.exists(report_file):
+            os.remove(report_file)
+        return {
+            'attempts': attempts,
+            'evaluation': evaluation
+        }
+
+    def get_evaluation_report(self, evaluation_id: str):
         unfiltered = self.storage.get_attempts(evaluation_id)
         attempts = []
         for a in unfiltered:
             if a.active:
-                attempts.append(a)
-        evaluation = self.storage.get_evaluation(evaluation_id)
+                attempts.append(a.to_report())
+        evaluation = self.storage.get_evaluation(evaluation_id).to_report()
         return attempts, evaluation
