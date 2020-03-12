@@ -4,7 +4,7 @@ from ..services.evaluation import IEvaluationFileStorage
 from .exceptions import FileAccessException
 
 
-class LocalStorage(IEvaluationFileStorage):
+class LocalFileStorage(IEvaluationFileStorage):
     def __init__(self):
         base_dir = os.path.dirname(os.path.realpath(__file__)) + '/files'
         if not os.path.isdir(base_dir):

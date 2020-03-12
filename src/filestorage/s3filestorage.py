@@ -6,7 +6,7 @@ from ..services.evaluation import IEvaluationFileStorage
 from .exceptions import FileAccessException, S3ConnectionException
 
 
-class S3Storage(IEvaluationFileStorage):
+class S3FileStorage(IEvaluationFileStorage):
     def __init__(self):
         try:
             self.access_key = os.environ['APX_AWS_ACCESS']

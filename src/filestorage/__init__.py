@@ -1,2 +1,2 @@
-from .localstorage import LocalStorage
-from .s3storage import S3Storage
+from .localfilestorage import LocalFileStorage
+from .s3filestorage import S3FileStorage

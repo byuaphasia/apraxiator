@@ -1,7 +1,7 @@
 import os
 
 from ..storage import MemoryStorage, SQLStorage
-from ..filestorage import LocalStorage, S3Storage
+from ..filestorage import LocalFileStorage, S3FileStorage
 from ..services import EvaluationService, DataExportService
 from ..controllers.authentication import LocalAuthenticator, JWTAuthenticator
 from ..controllers import EvaluationController, DataExportController
@@ -23,11 +23,11 @@ class Factory:
     def create_factory():
         env = os.environ.get('APX_ENV', 'local')
         if env == 'local':
-            file_store = LocalStorage()
+            file_store = LocalFileStorage()
             storage = MemoryStorage()
             auth = LocalAuthenticator()
         else:
-            file_store = S3Storage()
+            file_store = S3FileStorage()
             storage = SQLStorage()
             auth = JWTAuthenticator()
 
@@ -35,7 +35,7 @@ class Factory:
 
     @staticmethod
     def create_isolated_factory(storage_type='mem'):
-        file_store = LocalStorage()
+        file_store = LocalFileStorage()
         auth = LocalAuthenticator()
         if storage_type == 'db':
             storage = SQLStorage()

@@ -13,7 +13,7 @@ from .factory import Factory
 
 
 import logging
-from .log import setup_logger
+from .utils.log import setup_logger
 
 setup_logger()
 logger = logging.getLogger(__name__)
@@ -197,4 +197,8 @@ def send_report():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
+    env = os.environ.get('APX_ENV', 'local')
+    if env == 'local':
+        app.run(debug=True, host='0.0.0.0', port=8080)
+    else:
+        app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
