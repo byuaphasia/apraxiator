@@ -142,7 +142,7 @@ def save_representative_waiver():
     return form_result(result)
 
 
-@app.route('/waiver/invalidate/<waiver_id>', methods=['PUT'])
+@app.route('/waiver/<waiver_id>/invalidate', methods=['PUT'])
 def invalidate_waiver(waiver_id):
     token = authenticator.get_token(request.headers)
     user = authenticator.get_user(token)
