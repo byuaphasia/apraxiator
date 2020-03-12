@@ -6,9 +6,6 @@ from ..utils import TimeConversion
 
 
 class WaiverStorage:
-    def is_healthy(self):
-        raise NotImplementedException()
-
     def add_waiver(self, w):
         related_waiver = self.get_valid_waiver(w.res_email, w.res_name, w.owner_id)
         if related_waiver is not None:

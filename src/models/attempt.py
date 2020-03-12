@@ -27,6 +27,7 @@ class Attempt:
             'word': self.word,
             'syllables': self.syllable_count,
             'wsd': self.wsd,
+            'wsd_str': '{0:.2f}'.format(self.wsd)
         }
         return r
 

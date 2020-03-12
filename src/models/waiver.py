@@ -2,30 +2,29 @@ from ..utils import IdGenerator, IdPrefix
 
 
 class Waiver(IdGenerator):
-    def __init__(self, res_name, res_email, date, filepath, signer, valid, rep_name=None, rep_relationship=None, id=None, owner_id=None):
-        if id is None:
-            id = self.create_id(IdPrefix.WAIVER.value)
+    def __init__(self, id, owner_id, valid, signer, subject_email, subject_name, date, filepath,
+                 representative_name=None, relationship=None):
         self.id = id
-        self.res_name = res_name
-        self.res_email = res_email
+        self.subject_name = subject_name
+        self.subject_email = subject_email
         self.date = date
         self.filepath = filepath
         self.signer = signer
         self.valid = valid
-        self.rep_name = rep_name
-        self.rep_relationship = rep_relationship
+        self.representative_name = representative_name
+        self.relationship = relationship
         self.owner_id = owner_id
 
     def to_response(self):
         return {
-            'subjectName': self.res_name,
-            'subjectEmail': self.res_email,
+            'subjectName': self.subject_name,
+            'subjectEmail': self.subject_email,
             'date': self.date,
             'waiverId': self.id
         }
 
     @staticmethod
     def from_row(row):
-        id, res_name, res_email, rep_name, rep_relationship, date, signer, valid, filepath, owner_id = row
+        id, subject_name, subject_email, representative_name, relationship, date, signer, valid, filepath, owner_id = row
         valid = bool(valid)
-        return Waiver(res_name, res_email, date, filepath, signer, valid, rep_name, rep_relationship, id, owner_id)
+        return Waiver(id, owner_id, valid, signer, subject_email, subject_name, date, filepath, representative_name, relationship)
