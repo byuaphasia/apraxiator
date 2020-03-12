@@ -118,6 +118,14 @@ def update_attempt(evaluation_id, attempt_id):
     return form_result(result)
 
 
+@app.route('/evaluation/<evaluation_id>/report', methods=['POST'])
+def send_report(evaluation_id):
+    token = authenticator.get_token(request.headers)
+    user = authenticator.get_user(token)
+    result = evaluation_controller.handle_send_report(request, user, evaluation_id)
+    return form_result(result)
+
+
 @app.route('/waiver', methods=['GET'])
 def check_waivers():
     token = authenticator.get_token(request.headers)
@@ -156,14 +164,6 @@ def export():
     user = authenticator.get_user(token)
     export_file = export_controller.handle_export(request, user)
     return send_file(export_file)
-
-
-@app.route('/sendReport/<evaluation_id>', methods=['POST'])
-def send_report(evaluation_id):
-    token = authenticator.get_token(request.headers)
-    user = authenticator.get_user(token)
-    result = evaluation_controller.handle_send_report(request, user, evaluation_id)
-    return form_result(result)
 
 
 if __name__ == '__main__':
