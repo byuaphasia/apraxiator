@@ -2,7 +2,6 @@ import logging
 from datetime import date
 
 from ..services import IEvaluationStorage, IWaiverStorage
-from .waiverstorage import WaiverStorage
 from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, StorageException
 
 
