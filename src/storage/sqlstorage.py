@@ -14,11 +14,18 @@ from pymysql.err import OperationalError
 class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
     def __init__(self, name='apraxiator'):
         try:
-            p = os.environ.get('MYSQL_PASSWORD', None)
-            self.db = pymysql.connections.Connection(user='root', password=p, database=name)
+            host = os.environ.get('APX_MYSQL_HOST', 'localhost')
+            u = os.environ['APX_MYSQL_USER']
+            if host != 'localhost':
+                p = self.get_rds_password(host, u)
+            else:
+                p = os.environ['APX_MYSQL_PASSWORD']
+            self.db = pymysql.connections.Connection(host=host, user=u, password=p, database=name)
             self.logger = logging.getLogger(__name__)
             self._create_tables()
             self.logger.info('[event=sql-storage-started]')
+        except KeyError as e:
+            raise ConnectionException(e)
         except OperationalError as e:
             raise ConnectionException(e)
 
@@ -312,6 +319,19 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         c.execute(create_recordings_statement)
         c.execute(create_waivers_statement)
         c.execute(create_admins_statement)
+
+    ''' RDS Setup '''
+
+    @staticmethod
+    def get_rds_password(host, user):
+        import boto3
+        access_key = os.environ['APX_AWS_ACCESS']
+        secret_key = os.environ['APX_AWS_SECRET']
+        region = os.environ.get('APX_AWS_REGION', 'us-west-2c')
+        client = boto3.client('rds', region_name=region,
+                              aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+        token = client.generate_db_auth_token(DBHostname=host, Port=3306, DBUsername=user, Region=region)
+        return token
 
     @staticmethod
     def _make_info_log(event, sql, val):
