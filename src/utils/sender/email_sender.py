@@ -4,8 +4,9 @@ from email.mime.text import MIMEText
 import boto3
 from botocore.exceptions import ClientError
 from email.mime.application import MIMEApplication
-from ...apraxiatorexception import ApraxiatorException
-from .isender import ISender
+
+from src.apraxiatorexception import ApraxiatorException
+from src.utils.sender.isender import ISender
 
 
 class EmailSender(ISender):

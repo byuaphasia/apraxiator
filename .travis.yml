@@ -8,8 +8,9 @@ before_install:
   - pip install -U pip
   - pip install -U pytest
   - pip install codecov
+  - export APX_TEST_MODE=isolated
 install:
   - pip install -r requirements.txt # install package + test dependencies
-script: pytest tests/endtoend/ # run tests
+script: pytest # run tests
 after_success:
   - codecov # submit coverage

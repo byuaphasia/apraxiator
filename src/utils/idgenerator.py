@@ -1,9 +1,15 @@
 import uuid
+from enum import Enum
 
 
 class IdGenerator:
-    id_format = '{}-{}'
+    @staticmethod
+    def create_id(prefix):
+        id_format = '{}-{}'
+        return id_format.format(prefix, str(uuid.uuid4()))
 
-    def create_id(self, prefix):
-        id = self.id_format.format(prefix, str(uuid.uuid4()))
-        return id
+
+class IdPrefix(Enum):
+    EVALUATION = 'EV'
+    ATTEMPT = 'AT'
+    WAIVER = 'WV'

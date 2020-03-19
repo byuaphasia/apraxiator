@@ -3,9 +3,10 @@ import json
 import os
 from datetime import datetime
 
-from ....src.services.evaluation.calculators import WsdCalculatorBase
-from ....src.services.evaluation.calculators.filterbythreshold import Filterer
-from ....src.utils import read_wav
+from ...context import src
+from src.services.evaluation.calculators import WsdCalculatorBase
+from src.services.evaluation.calculators.filterbythreshold import Filterer
+from src.utils import read_wav
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'

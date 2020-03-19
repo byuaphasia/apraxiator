@@ -1,7 +1,8 @@
 import unittest
 
-from ...src.apraxiatorexception import InvalidRequestException
-from ...src.controllers import DataExportController
+from ..context import src
+from src.apraxiatorexception import InvalidRequestException
+from src.controllers.dataexportcontroller import DataExportController
 from ..utils import DummyRequest, DummyAuth
 
 

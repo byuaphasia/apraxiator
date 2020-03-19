@@ -1,13 +1,18 @@
 import unittest
+
+import pytest
 import soundfile as sf
 import numpy as np
 import os
 import uuid
 
-from ..src.models import Attempt, Evaluation, Waiver
-from ..src.storage import SQLStorage
-from ..src.storage.dbexceptions import ConnectionException
-from ..src.storage.storageexceptions import ResourceNotFoundException, WaiverAlreadyExists
+from .context import src
+from src.models.attempt import Attempt
+from src.models.evaluation import Evaluation
+from src.models.waiver import Waiver
+from src.storage.sqlstorage import SQLStorage
+from src.storage.dbexceptions import ConnectionException
+from src.storage.storageexceptions import ResourceNotFoundException, WaiverAlreadyExists
 
 try:
     storage = SQLStorage(name='test')
@@ -18,6 +23,8 @@ bad_owner_id = 'NOT THE OWNER'
 sample_data = np.zeros(8000)
 
 
+@pytest.mark.skipif(os.environ.get('APX_TEST_MODE', 'isolated') == 'isolated',
+                    reason='Must not be running in "isolated" mode to access DB')
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
         storage.create_evaluation(make_evaluation('create'))

@@ -3,8 +3,9 @@ import json
 import os
 from datetime import datetime
 
-from ....src.services.evaluation.calculators import WsdCalculatorBase
-from ....src.utils import read_wav
+from ...context import src
+from src.services.evaluation.calculators import WsdCalculatorBase
+from src.utils import read_wav
 
 results = {}
 test_dir_root = '../apx-resources/recordings/'

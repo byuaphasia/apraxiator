@@ -4,9 +4,9 @@ import os
 from datetime import datetime
 import numpy as np
 
-from ....src.services.evaluation.calculators import WsdCalculatorBase, InvalidSpeechSampleException
-from ....src.services.evaluation.calculators.findendpoints import EndpointFinder
-from ....src.utils import read_wav
+from ...context import src
+from src.services.evaluation.calculators import findendpoints, wsdcalculatorbase, invalidsampleexceptions
+from src.utils import wavreader
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
@@ -16,7 +16,7 @@ class TestEndpointFinder(unittest.TestCase):
     def setUp(self):
         filename = os.path.abspath(test_dir_root + 'testCases.json')
         self.test_cases = json.load(open(filename, 'r'))
-        self.detector = EndpointFinder()
+        self.detector = findendpoints.EndpointFinder()
         self.results = {}
 
     def test_measure(self):
@@ -26,9 +26,9 @@ class TestEndpointFinder(unittest.TestCase):
             amb_path = test_dir_root + case['ambUri']
             speech_path = test_dir_root + case['speechUri']
 
-            amb_audio, _ = read_wav(amb_path)
-            audio, sr = read_wav(speech_path)
-            threshold = WsdCalculatorBase.get_ambiance_threshold(amb_audio)
+            amb_audio, _ = wavreader.read_wav(amb_path)
+            audio, sr = wavreader.read_wav(speech_path)
+            threshold = wsdcalculatorbase.WsdCalculatorBase.get_ambiance_threshold(amb_audio)
 
             expected_duration = float(case['speechDuration'])
             duration = self.detector.measure(audio, sr, threshold)
@@ -50,7 +50,7 @@ class TestEndpointFinder(unittest.TestCase):
         audio = np.full(20000, 0.2)
         sr = 16000
 
-        with self.assertRaises(InvalidSpeechSampleException):
+        with self.assertRaises(invalidsampleexceptions.InvalidSpeechSampleException):
             self.detector.measure(audio, sr, threshold)
 
     def tearDown(self):

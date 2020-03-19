@@ -3,7 +3,7 @@ import logging
 import os
 
 from src.apraxiatorexception import ApraxiatorException
-from src.utils import Factory
+from src.utils.factory import Factory
 from src.utils.log import setup_logger
 
 setup_logger()

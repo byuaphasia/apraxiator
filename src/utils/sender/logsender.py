@@ -1,6 +1,6 @@
 import logging
 
-from .isender import ISender
+from src.utils.sender.isender import ISender
 
 
 class LogSender(ISender):

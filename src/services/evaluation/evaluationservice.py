@@ -1,12 +1,13 @@
 import os
 
-from .ievaluationstorage import IEvaluationStorage
-from .ievaluationfilestorage import IEvaluationFileStorage
-from .calculators import WsdCalculatorBase
-from ...models import Evaluation, Attempt
-from ...utils import IdGenerator, IdPrefix
-from ...utils.sender import ISender
-from ...utils.pdfgenerator import IPDFGenerator
+from src.services.evaluation.ievaluationstorage import IEvaluationStorage
+from src.services.evaluation.ievaluationfilestorage import IEvaluationFileStorage
+from src.services.evaluation.calculators import WsdCalculatorBase
+from src.models.evaluation import Evaluation
+from src.models.attempt import Attempt
+from src.utils import IdGenerator, IdPrefix
+from src.utils.sender import ISender
+from src.utils.pdfgenerator import IPDFGenerator
 
 
 class EvaluationService(IdGenerator):

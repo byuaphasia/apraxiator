@@ -2,9 +2,13 @@ import unittest
 import zipfile
 import pandas as pd
 import os
+import shutil
 
-from ...src.services import DataExportService, IDataExportStorage
-from ...src.storage.storageexceptions import PermissionDeniedException
+from ..context import src
+from src.services.dataexport.dataexportservice import DataExportService
+from src.services.dataexport.idataexportfilestorage import IDataExportFileStorage
+from src.services.dataexport.idataexportstorage import IDataExportStorage
+from src.storage.storageexceptions import PermissionDeniedException
 from ..utils import gen_export_data
 
 admin = 'admin'
@@ -17,23 +21,37 @@ class DummyDataExportStorage(IDataExportStorage):
     def export_data(self, start_date, end_date):
         return gen_export_data(num_rows)
     
-    def confirm_export_access(self, user):
+    def check_is_admin(self, user):
         if user != 'admin':
-            raise PermissionDeniedException('export data', user)
+            return False
+        else:
+            return True
 
 
-s = DataExportService(DummyDataExportStorage())
+class DummyFileStore(IDataExportFileStorage):
+    def __init__(self):
+        self.idx = 0
+        self.original = os.path.realpath(__file__ + '/../../utils/example.wav')
+
+    def get_recording(self, attempt_id: str):
+        file_path = f'example-{self.idx}.wav'
+        shutil.copy(self.original, file_path)
+        self.idx += 1
+        return file_path
+
+
+s = DataExportService(DummyDataExportStorage(), DummyFileStore())
 
 
 class TestDataExportService(unittest.TestCase):
     def test_make_zip(self):
-        contents = s.export('', '', admin)
+        contents = s.export(admin, '', '')
         with open(filename, 'wb') as f:
             f.write(contents)
         self.assertTrue(zipfile.is_zipfile(filename))
 
     def test_make_csv(self):
-        contents = s.export('', '', admin, False)
+        contents = s.export(admin, '', '', False)
         with open(filename, 'wb') as f:
             f.write(contents)
         self.assertFalse(zipfile.is_zipfile(filename))

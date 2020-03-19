@@ -1,12 +1,13 @@
 import os
 import shutil
 
-from ..services.evaluation import IEvaluationFileStorage
-from ..services.dataexport import IDataExportFileStorage
-from .exceptions import FileAccessException, FileNotFoundException
+from src.services.waiver.iwaiverfilestorage import IWaiverFileStorage
+from src.services.evaluation.ievaluationfilestorage import IEvaluationFileStorage
+from src.services.dataexport.idataexportfilestorage import IDataExportFileStorage
+from src.filestorage.exceptions import FileAccessException, FileNotFoundException
 
 
-class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage):
+class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileStorage):
     def __init__(self):
         base_dir = os.path.dirname(os.path.realpath(__file__)) + '/local'
         if not os.path.isdir(base_dir):
@@ -17,7 +18,9 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage):
             if not os.path.isdir(full_path):
                 os.mkdir(full_path)
             self.dirs[d] = full_path
-        self.tmp_dir = os.path.realpath(__file__ + '../../tmp/')
+        self.tmp_dir = os.path.realpath(__file__ + '/../../tmp')
+        if not os.path.isdir(self.tmp_dir):
+            os.mkdir(self.tmp_dir)
 
     ''' IEvaluationFileStorage methods '''
 
@@ -26,14 +29,28 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage):
 
     ''' IDataExportFileStorage methods '''
 
-    def get_recording(self, attempt_id: str):
-        tmp_file = self.tmp_dir + attempt_id + '.wav'
+    def get_recording(self, attempt_id: str) -> str:
+        tmp_file = f'{self.tmp_dir}/{attempt_id}.wav'
         self.copy_file(attempt_id, 'recordings', tmp_file)
         return tmp_file
 
     def remove_recordings(self, attempt_id_list):
         for attempt_id in attempt_id_list:
             self.remove_file(attempt_id, 'recordings')
+
+    ''' IWaiverFileStorage methods '''
+
+    def save_waiver(self, waiver_id: str, waiver_file: str):
+        try:
+            contents = open(waiver_file, 'rb')
+        except FileNotFoundError as e:
+            raise FileAccessException(f'{waiver_file} for waiver {waiver_id}', e)
+        self.save_file(waiver_id, 'waivers', contents)
+
+    def get_waiver(self, waiver_id: str) -> str:
+        tmp_file = f'{self.tmp_dir}/{waiver_id}.pdf'
+        self.copy_file(waiver_id, 'waivers', tmp_file)
+        return tmp_file
 
     ''' Internal file access methods '''
 

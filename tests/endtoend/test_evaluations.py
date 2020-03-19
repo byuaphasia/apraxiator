@@ -1,13 +1,15 @@
 import unittest
 import os
 
-from ...src import ApraxiatorException
+from ..context import src
+from src import ApraxiatorException
 from ..utils import DummyRequest
-from ...src.utils import IdPrefix, Factory
+from src.utils import IdPrefix
+from src.utils.factory import Factory
 
 
-mode = os.environ.get('APX_TEST_MODE', 'mem')
-factory = Factory.create_isolated_factory(mode)
+mode = os.environ.get('APX_TEST_MODE', 'isolated')
+factory = Factory.create_limited_factory(mode)
 controller = factory.ev_controller
 attempts = []
 
@@ -98,11 +100,10 @@ class TestEvaluations(unittest.TestCase):
             c.execute('DROP TABLE waivers')
             c.execute('DROP TABLE attempts')
             c.execute('DROP TABLE evaluations')
-        for a in attempts:
-            try:
-                factory.file_store.remove_recording(a)
-            except ApraxiatorException:
-                pass
+        try:
+            factory.file_store.remove_recordings(attempts)
+        except ApraxiatorException:
+            pass
 
 
 def add_ambiance(c, evaluation_id):

@@ -4,7 +4,8 @@ import os
 import soundfile as sf
 from datetime import datetime
 
-from ....src.services.evaluation.calculators.voiceactivitydetector import VoiceActivityDetector
+from ...context import src
+from src.services.evaluation.calculators.voiceactivitydetector import VoiceActivityDetector
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'

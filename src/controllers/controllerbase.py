@@ -1,6 +1,6 @@
 from flask import Request
 
-from .authentication import IAuthenticator
+from .authentication.iauthenticator import IAuthenticator
 
 
 class ControllerBase:

@@ -1,11 +1,11 @@
 from flask import Request
 import logging
 
-from ..services import EvaluationService
-from ..apraxiatorexception import InvalidRequestException
-from ..utils import read_wav, IdPrefix
-from .controllerbase import ControllerBase, authenticate_request
-from .authentication import IAuthenticator
+from src.services.evaluation.evaluationservice import EvaluationService
+from src.apraxiatorexception import InvalidRequestException
+from src.utils import read_wav, IdPrefix
+from src.controllers.controllerbase import ControllerBase, authenticate_request
+from src.controllers.authentication.iauthenticator import IAuthenticator
 
 
 class EvaluationController(ControllerBase):

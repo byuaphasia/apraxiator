@@ -1,11 +1,11 @@
 from flask import Request
 import logging
 
-from ..services import WaiverService
-from ..apraxiatorexception import InvalidRequestException
-from ..utils import TimeConversion, IdPrefix
-from .authentication import IAuthenticator
-from .controllerbase import ControllerBase, authenticate_request
+from src.services.waiver.waiverservice import WaiverService
+from src.apraxiatorexception import InvalidRequestException
+from src.utils import TimeConversion, IdPrefix
+from src.controllers.authentication.iauthenticator import IAuthenticator
+from src.controllers.controllerbase import ControllerBase, authenticate_request
 
 
 class WaiverController(ControllerBase):

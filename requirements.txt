@@ -22,3 +22,6 @@ weasyprint
 # AWS Interaction
 botocore
 boto3
+
+# Tests
+pytest

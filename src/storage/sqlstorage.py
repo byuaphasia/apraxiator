@@ -1,14 +1,16 @@
 import pymysql
+from pymysql.err import OperationalError
 import os
 import logging
 
-from ..services import IDataExportStorage, IEvaluationStorage, IWaiverStorage
-from ..models.waiver import Waiver
-from ..models.attempt import Attempt
-from ..models.evaluation import Evaluation
-from .dbexceptions import ConnectionException, ResourceAccessException
-from .storageexceptions import PermissionDeniedException, ResourceNotFoundException
-from pymysql.err import OperationalError
+from src.services.evaluation.ievaluationstorage import IEvaluationStorage
+from src.services.waiver.iwaiverstorage import IWaiverStorage
+from src.services.dataexport.idataexportstorage import IDataExportStorage
+from src.models.evaluation import Evaluation
+from src.models.waiver import Waiver
+from src.models.attempt import Attempt
+from src.storage.dbexceptions import ConnectionException, ResourceAccessException
+from src.storage.storageexceptions import PermissionDeniedException, ResourceNotFoundException
 
 
 class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
@@ -171,7 +173,7 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
 
     ''' Waiver Storage Methods '''
 
-    def add_waiver_to_storage(self, w):
+    def add_waiver(self, w):
         sql = ("INSERT INTO waivers ("
                "waiver_id, subject_name, subject_email, representative_name, relationship,"
                "date, signer, valid, filepath, owner_id) "

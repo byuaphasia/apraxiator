@@ -1,14 +1,14 @@
 import boto3
 from botocore.exceptions import ClientError
 import os
-import io
 
-from ..services.evaluation import IEvaluationFileStorage
-from ..services.dataexport import IDataExportFileStorage
-from .exceptions import FileAccessException, S3ConnectionException, FileNotFoundException
+from src.services.waiver.iwaiverfilestorage import IWaiverFileStorage
+from src.services.evaluation.ievaluationfilestorage import IEvaluationFileStorage
+from src.services.dataexport.idataexportfilestorage import IDataExportFileStorage
+from src.filestorage.exceptions import FileAccessException, FileNotFoundException, S3ConnectionException
 
 
-class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage):
+class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileStorage):
     def __init__(self, bucket='appraxia'):
         try:
             self.access_key = os.environ['APX_AWS_ACCESS']
@@ -17,7 +17,9 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage):
             self.bucket = bucket
             self.recordings_dir = 'recordings/'
             self.waivers_dir = 'waivers/'
-            self.tmp_dir = os.path.realpath(__file__ + '../../tmp/')
+            self.tmp_dir = os.path.realpath(__file__ + '/../../tmp')
+            if not os.path.isdir(self.tmp_dir):
+                os.mkdir(self.tmp_dir)
         except KeyError as e:
             raise S3ConnectionException(e.args[0], e)
         except Exception as e:
@@ -31,7 +33,7 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage):
     ''' IDataExportFileStorage methods '''
 
     def get_recording(self, attempt_id: str):
-        tmp_file = self.tmp_dir + attempt_id + '.wav'
+        tmp_file = f'{self.tmp_dir}/{attempt_id}.wav'
         self.download_file(attempt_id, self.recordings_dir, tmp_file)
         return tmp_file
 
@@ -48,7 +50,7 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage):
         self.upload_file(waiver_id, self.waivers_dir, contents)
 
     def get_waiver(self, waiver_id: str):
-        tmp_file = self.tmp_dir + waiver_id + '.pdf'
+        tmp_file = f'{self.tmp_dir}/{waiver_id}.pdf'
         self.download_file(waiver_id, self.waivers_dir, tmp_file)
         return tmp_file
 

@@ -3,6 +3,7 @@ class DummyRequest:
         self.body = None
         self.values = None
         self.files = None
+        self.headers = None
 
     def set_body(self, body):
         self.body = body
@@ -18,6 +19,13 @@ class DummyRequest:
     def set_files(self, files):
         self.files = files
         return self
+
+    def set_headers(self, headers):
+        self.headers = headers
+        return self
+
+    def get_headers(self):
+        return self.headers
 
 
 class DummyAuth:

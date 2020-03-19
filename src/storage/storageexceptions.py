@@ -1,4 +1,4 @@
-from ..apraxiatorexception import ApraxiatorException
+from src.apraxiatorexception import ApraxiatorException
 
 
 class StorageException(ApraxiatorException):

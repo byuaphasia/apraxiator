@@ -1,7 +1,8 @@
 import logging
 
-from ..services import IEvaluationStorage, IWaiverStorage
-from .storageexceptions import ResourceNotFoundException, PermissionDeniedException, StorageException
+from src.services.evaluation.ievaluationstorage import IEvaluationStorage
+from src.services.waiver.iwaiverstorage import IWaiverStorage
+from src.storage.storageexceptions import ResourceNotFoundException, PermissionDeniedException, StorageException
 
 
 class MemoryStorage(IEvaluationStorage, IWaiverStorage):
@@ -23,7 +24,6 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
 
     def update_evaluation(self, id, field, value):
         e = self.evaluations.get(id, None)
-        print(e)
         if e is not None:
             if field == 'ambiance_threshold':
                 e.ambiance_threshold = value
@@ -98,7 +98,7 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
 
     ''' Waiver Storage Methods '''
 
-    def add_waiver_to_storage(self, w):
+    def add_waiver(self, w):
         self.waivers[w.id] = w
 
     def get_valid_waiver(self, user, subject_name, subject_email):

@@ -3,7 +3,8 @@ import soundfile as sf
 import numpy as np
 import os
 
-from ..src.utils import read_wav
+from .context import src
+from src.utils import read_wav
 
 test_filename = 'test.wav'
 test_length = 20000
