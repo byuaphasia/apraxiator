@@ -15,7 +15,7 @@ class TestFileStorage(unittest.TestCase):
                         reason='Must not be running in "isolated" mode to access S3')
     def test_s3_save_recording(self):
         attempt_id = 'test s3 save recording'
-        file_store = S3FileStorage('test')
+        file_store = S3FileStorage()
         self.save_recording(file_store, attempt_id)
         filename = file_store.get_recording(attempt_id)
         audio, sr = sf.read(filename)
