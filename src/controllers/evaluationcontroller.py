@@ -195,4 +195,4 @@ class EvaluationController(ControllerBase):
         f = r.files.get('recording')
         if f is None:
             raise InvalidRequestException("Must provide file named 'recording'")
-        return f.read()
+        return f

@@ -63,7 +63,7 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFi
     def save_file(self, file_id: str, dir_key: str, contents):
         try:
             with open(self.dirs[dir_key] + f'/{file_id}', 'wb') as f:
-                f.write(contents)
+                f.write(contents.read())
         except IOError as e:
             raise FileAccessException(file_id, e)
 

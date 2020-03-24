@@ -38,5 +38,5 @@ class TestFileStorage(unittest.TestCase):
     @staticmethod
     def save_recording(file_store: IEvaluationFileStorage, attempt_id: str):
         file_path = os.path.realpath(__file__ + '/../../testutils/example.wav')
-        example_rec = open(file_path, 'rb').read()
+        example_rec = open(file_path, 'rb')
         file_store.save_recording(attempt_id, example_rec)
