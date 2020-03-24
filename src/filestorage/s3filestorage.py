@@ -20,7 +20,7 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
             self.bucket = bucket
             self.recordings_dir = 'recordings/'
             self.waivers_dir = 'waivers/'
-            self.tmp_dir = os.path.realpath(__file__ + '/../../tmp')
+            self.tmp_dir = os.path.realpath('tmp')
             if not os.path.isdir(self.tmp_dir):
                 os.mkdir(self.tmp_dir)
         except KeyError as e:

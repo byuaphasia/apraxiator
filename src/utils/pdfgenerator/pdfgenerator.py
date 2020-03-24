@@ -8,7 +8,7 @@ import os
 
 from .ipdfgenerator import IPDFGenerator
 
-tmp_storage_dir = 'tmp_storage'
+tmp_storage_dir = 'tmp'
 
 
 class PDFGenerator(IPDFGenerator):

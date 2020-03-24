@@ -117,7 +117,8 @@ sprint2/
 # Authentication
 jwk.json
 
-# Saved Waivers
+# Temporary Storage
+tmp/
 tmp_storage/waivers/*
 tmp_storage/signature_files/*
 tmp_storage/reports/*

@@ -18,7 +18,7 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFi
             if not os.path.isdir(full_path):
                 os.mkdir(full_path)
             self.dirs[d] = full_path
-        self.tmp_dir = os.path.realpath(__file__ + '/../../tmp')
+        self.tmp_dir = os.path.realpath('tmp')
         if not os.path.isdir(self.tmp_dir):
             os.mkdir(self.tmp_dir)
 
