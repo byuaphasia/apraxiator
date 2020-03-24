@@ -1,8 +1,10 @@
 import unittest
 
-from ..src.models import Evaluation, Attempt
-from ..src.storage import MemoryStorage
-from ..src.storage.storageexceptions import ResourceNotFoundException
+from .context import src
+from src.models.evaluation import Evaluation
+from src.models.attempt import Attempt
+from src.storage.memorystorage import MemoryStorage
+from src.storage.storageexceptions import ResourceNotFoundException
 
 storage = MemoryStorage()
 

@@ -1,4 +1,4 @@
-from .storageexceptions import StorageException
+from src.storage.storageexceptions import StorageException
 
 
 class DBException(StorageException):

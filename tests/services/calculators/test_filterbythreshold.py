@@ -1,16 +1,19 @@
 import unittest
+import pytest
 import json
 import os
 from datetime import datetime
 
-from ....src.services.evaluation.calculators import WsdCalculatorBase
-from ....src.services.evaluation.calculators.filterbythreshold import Filterer
-from ....src.utils import read_wav
+from ...context import src
+from src.services.evaluation.calculators import WsdCalculatorBase
+from src.services.evaluation.calculators.filterbythreshold import Filterer
+from src.utils import read_wav
 
 test_dir_root = '../apx-resources/recordings/'
 test_results_dir = '../apx-resources/test-results/'
 
 
+@pytest.mark.skipif(not os.path.isdir(test_dir_root), reason='APX resources directory must be available')
 class TestEndpointFinder(unittest.TestCase):
     def setUp(self):
         filename = os.path.abspath(test_dir_root + 'testCases.json')

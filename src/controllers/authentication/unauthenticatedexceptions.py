@@ -1,4 +1,4 @@
-from ..apraxiatorexception import ApraxiatorException
+from ...apraxiatorexception import ApraxiatorException
 
 
 class UnauthenticatedException(ApraxiatorException):

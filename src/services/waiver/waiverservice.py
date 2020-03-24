@@ -1,11 +1,15 @@
-from .iwaiverstorage import IWaiverStorage
-from ...models import Waiver
-from ...utils import IdGenerator, IdPrefix, EmailSender, PDFGenerator
+from src.services.waiver.iwaiverfilestorage import IWaiverFileStorage
+from src.services.waiver.iwaiverstorage import IWaiverStorage
+from src.utils.pdfgenerator import IPDFGenerator
+from src.models.waiver import Waiver
+from src.utils import IdGenerator, IdPrefix
+from src.utils.sender import ISender
 
 
 class WaiverService(IdGenerator):
-    def __init__(self, storage: IWaiverStorage, email_sender: EmailSender, pdf_generator: PDFGenerator):
+    def __init__(self, storage: IWaiverStorage, file_store: IWaiverFileStorage, email_sender: ISender, pdf_generator: IPDFGenerator):
         self.storage = storage
+        self.file_store = file_store
         self.email_sender = email_sender
         self.generator = pdf_generator
 
@@ -15,9 +19,10 @@ class WaiverService(IdGenerator):
         )
         waiver_id = self.create_id(IdPrefix.WAIVER.value)
         waiver = Waiver(waiver_id, user, True, 'subject', subject_email, subject_name, date_signed, waiver_file, '', '')
-        self.storage.add_waiver_to_storage(waiver)
+        self.add_waiver(waiver)
         self.email_sender.send_subject_waiver(waiver_file, subject_email)
         self.email_sender.send_clinician_waiver(waiver_file, clinician_email, subject_name)
+        # TODO: clean up tmp waiver file
 
     def save_representative_waiver(self, user: str, subject_name: str, subject_email: str, clinician_email: str, date_signed: str, representative_name: str, relationship: str, representative_signature_file):
         waiver_file = self.generator.generate_representative_waiver(
@@ -25,9 +30,10 @@ class WaiverService(IdGenerator):
         )
         waiver_id = self.create_id(IdPrefix.WAIVER.value)
         waiver = Waiver(waiver_id, user, True, 'representative', subject_email, subject_name, date_signed, waiver_file, '', '')
-        self.storage.add_waiver_to_storage(waiver)
+        self.add_waiver(waiver)
         self.email_sender.send_subject_waiver(waiver_file, subject_email)
         self.email_sender.send_clinician_waiver(waiver_file, clinician_email, subject_name)
+        # TODO: clean up tmp waiver file
 
     def check_waivers(self, user: str, subject_name: str, subject_email: str):
         waiver = self.storage.get_valid_waiver(user, subject_name, subject_email)
@@ -46,7 +52,8 @@ class WaiverService(IdGenerator):
         if related_waiver is not None:
             self.refresh_waiver(related_waiver.id, w.date)
         else:
-            self.storage.add_waiver_to_storage(w)
+            self.storage.add_waiver(w)
+            self.file_store.save_waiver(w.id, w.filepath)
 
     def get_valid_related_waiver(self, user: str, subject_name: str, subject_email: str):
         return self.storage.get_valid_waiver(user, subject_name, subject_email)

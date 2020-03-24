@@ -1,4 +1,5 @@
-from ...models import Evaluation, Attempt
+from src.models.evaluation import Evaluation
+from src.models.attempt import Attempt
 
 
 class IEvaluationStorage:

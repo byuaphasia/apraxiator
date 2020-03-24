@@ -1,4 +1,4 @@
-from ...models import Waiver
+from src.models.waiver import Waiver
 
 
 class IWaiverStorage:
@@ -12,5 +12,5 @@ class IWaiverStorage:
     def update_waiver(self, waiver_id: str, field: str, value):
         raise NotImplementedError()
 
-    def add_waiver_to_storage(self, w: Waiver):
+    def add_waiver(self, w: Waiver):
         raise NotImplementedError()

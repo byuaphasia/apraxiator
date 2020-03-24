@@ -1,16 +1,20 @@
 from flask import Request
 import logging
 
-from ..services import WaiverService
-from ..apraxiatorexception import InvalidRequestException
-from ..utils import TimeConversion, IdPrefix
+from src.services.waiver.waiverservice import WaiverService
+from src.apraxiatorexception import InvalidRequestException
+from src.utils import TimeConversion, IdPrefix
+from src.controllers.authentication.iauthenticator import IAuthenticator
+from src.controllers.controllerbase import ControllerBase, authenticate_request
 
 
-class WaiverController:
-    def __init__(self, service: WaiverService):
+class WaiverController(ControllerBase):
+    def __init__(self, authenticator: IAuthenticator, service: WaiverService):
+        super().__init__(authenticator)
         self.service = service
         self.logger = logging.getLogger(__name__)
 
+    @authenticate_request
     def handle_save_subject_waiver(self, r: Request, user: str):
         self.logger.info('[event=save-subject-waiver][user=%s]', user)
         subject_name, subject_email, clinician_email, date_signed = self.get_save_subject_waiver_data(r)
@@ -22,6 +26,7 @@ class WaiverController:
         self.service.save_subject_waiver(user, subject_name, subject_email, clinician_email, date_signed, subject_signature_file)
         return {}
 
+    @authenticate_request
     def handle_save_representative_waiver(self, r: Request, user: str):
         self.logger.info('[event=save-representative-waiver][user=%s]', user)
         subject_name, subject_email, clinician_email, date_signed, representative_name, relationship = self.get_save_representative_waiver_data(r)
@@ -35,12 +40,14 @@ class WaiverController:
         self.service.save_representative_waiver(user, subject_name, subject_email, clinician_email, date_signed, representative_name, relationship, representative_signature_file)
         return {}
 
+    @authenticate_request
     def handle_invalidate_waiver(self, r: Request, user: str, waiver_id: str):
         self.logger.info('[event=invalidate-waiver][user=%s]', user)
         self.validate_id(waiver_id)
         self.service.invalidate_waiver(user, waiver_id)
         return {}
 
+    @authenticate_request
     def handle_check_waivers(self, r: Request, user: str):
         self.logger.info('[event=check-waivers][user=%s]', user)
         subject_name, subject_email = self.get_check_waivers_data(r)

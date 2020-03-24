@@ -1,7 +1,8 @@
 import unittest
 
-from ..utils import gen_export_data
-from ...src.models import DataExport, DataExportException
+from ..context import src
+from ..testutils import gen_export_data
+from src.models.dataexport import DataExport, DataExportException
 
 
 class TestDataExport(unittest.TestCase):

@@ -27,16 +27,8 @@ class DataExport:
         row = row[:-1]
         self.data.append(row)
 
-    def add_recording(self, row):
-        try:
-            recording = row[-1]
-            attempt_id = row[2]
-            filename = f'{attempt_id}.wav'
-            with open(filename, 'wb') as f:
-                f.write(recording)
-            self.files.append(filename)
-        except Exception as e:
-            raise DataExportException('Problem saving recording as wav', e)
+    def add_recording(self, recording_file: str):
+        self.files.append(recording_file)
 
     def to_csv(self, filename):
         try:
@@ -68,6 +60,7 @@ class DataExport:
             raise DataExportException('Problem cleaning up export files', e)
 
     def _validate_row(self, row):
+        # TODO: adjust to remove recordings table
         if len(row) != len(self.columns)+1:
             message = f'Row has {len(row)} items, expected {len(self.columns)+1}'
             raise DataExportException(message)

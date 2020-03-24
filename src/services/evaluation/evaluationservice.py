@@ -1,14 +1,20 @@
 import os
 
-from .ievaluationstorage import IEvaluationStorage
-from .calculators import WsdCalculatorBase
-from ...models import Evaluation, Attempt
-from ...utils import IdGenerator, IdPrefix, EmailSender, PDFGenerator
+from src.services.evaluation.ievaluationstorage import IEvaluationStorage
+from src.services.evaluation.ievaluationfilestorage import IEvaluationFileStorage
+from src.services.evaluation.calculators import WsdCalculatorBase
+from src.models.evaluation import Evaluation
+from src.models.attempt import Attempt
+from src.utils import IdGenerator, IdPrefix
+from src.utils.sender import ISender
+from src.utils.pdfgenerator import IPDFGenerator
 
 
 class EvaluationService(IdGenerator):
-    def __init__(self, storage: IEvaluationStorage, email_sender: EmailSender, pdf_generator: PDFGenerator):
+    def __init__(self, storage: IEvaluationStorage, file_store: IEvaluationFileStorage,
+                 email_sender: ISender, pdf_generator: IPDFGenerator):
         self.storage = storage
+        self.file_store = file_store
         self.calculator = WsdCalculatorBase()
         self.email_sender = email_sender
         self.pdf_generator = pdf_generator
@@ -49,7 +55,7 @@ class EvaluationService(IdGenerator):
 
     def save_attempt_recording(self, user: str, evaluation_id: str, attempt_id: str, recording):
         self.storage.check_is_owner(user, evaluation_id)
-        self.storage.save_recording(attempt_id, recording)
+        self.file_store.save_recording(attempt_id, recording)
 
     def send_evaluation_report(self, user: str, evaluation_id: str, email: str, name: str):
         self.storage.check_is_owner(user, evaluation_id)

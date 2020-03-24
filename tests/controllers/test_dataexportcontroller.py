@@ -1,16 +1,21 @@
 import unittest
 
-from ...src.apraxiatorexception import InvalidRequestException
-from ...src.controllers import DataExportController
-from ..utils import DummyRequest
+from ..context import src
+from src.apraxiatorexception import InvalidRequestException
+from src.controllers.dataexportcontroller import DataExportController
+from ..testutils import DummyRequest, DummyAuth
 
 
 class DummyDataExportService:
-    def export_data(self, start_date, end_date, user, include_recordings):
-        return None
+    def export(self, user, start_date, end_date, include_recordings):
+        if user == 'admin':
+            return True
+        else:
+            return False
 
 
-controller = DataExportController(DummyDataExportService())
+auth = DummyAuth()
+controller = DataExportController(auth, DummyDataExportService())
 
 # Expected date format: YYYY-MM-DD
 good_date = '2000-01-01'
@@ -62,3 +67,14 @@ class TestDataExportController(unittest.TestCase):
             
         with self.assertRaises(InvalidRequestException):
             controller.validate_include_recordings('not bool')
+
+    def test_handle_export(self):
+        auth.set_user('admin')
+        body = {
+            'startDate': good_date,
+            'endDate': good_date
+        }
+        req = DummyRequest().set_body(body)
+        self.assertTrue(controller.handle_export(req))
+        auth.set_user('not admin')
+        self.assertFalse(controller.handle_export(req))

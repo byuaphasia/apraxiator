@@ -1,24 +1,27 @@
 import jwt
 import logging
 from jwcrypto import jwk
+from flask import Request
 
+from .iauthenticator import IAuthenticator
 from .unauthenticatedexceptions import TokenExpiredException, InvalidTokenException, UnauthenticatedException, MissingTokenException
 
 HEADER_KEY = 'TOKEN'
-auth_dir = '../apx-resources/auth/'
+AUTH_DIR = '../apx-resources/auth/'
 
 
-class JWTAuthenticator:
+class JWTAuthenticator(IAuthenticator):
     def __init__(self):
-        keys_json = open(auth_dir + 'jwk.json', 'r').read()
-        self.keyset = jwk.JWKSet().from_json(keys_json)
+        keys_json = open(AUTH_DIR + 'jwk.json', 'r').read()
+        self.key_set = jwk.JWKSet().from_json(keys_json)
         self.logger = logging.getLogger(__name__)
         self.header_key = 'TOKEN'
 
-    def get_user(self, token, verify=True):
+    def get_user(self, r: Request, verify=True):
+        token = self.get_token(r.headers)
         try:
             header = jwt.get_unverified_header(token)
-            secret = self.keyset.get_key(header['kid']).export_to_pem()
+            secret = self.key_set.get_key(header['kid']).export_to_pem()
             payload = jwt.decode(token, key=secret, algorithms=header['alg'], verify=verify)
             username = payload['username']
             self.logger.info('[event=user-authenticated][user=%s][kid=%s]', username, header['kid'])

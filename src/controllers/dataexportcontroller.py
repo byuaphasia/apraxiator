@@ -2,15 +2,19 @@ from flask import Request
 from datetime import date
 import logging
 
-from ..services import DataExportService
-from ..apraxiatorexception import InvalidRequestException
+from src.services.dataexport.dataexportservice import DataExportService
+from src.apraxiatorexception import InvalidRequestException
+from src.controllers.controllerbase import ControllerBase, authenticate_request
+from src.controllers.authentication.iauthenticator import IAuthenticator
 
 
-class DataExportController:
-    def __init__(self, service: DataExportService):
+class DataExportController(ControllerBase):
+    def __init__(self, authenticator: IAuthenticator, service: DataExportService):
+        super().__init__(authenticator)
         self.service = service
         self.logger = logging.getLogger(__name__)
 
+    @authenticate_request
     def handle_export(self, r: Request, user: str):
         self.logger.info('[event=export-data][user=%s]', user)
         start_date, end_date, include_recordings = self.get_request_data(r)
@@ -19,6 +23,14 @@ class DataExportController:
         self.validate_include_recordings(include_recordings)
         contents = self.service.export(user, start_date, end_date, include_recordings)
         return contents
+
+    @authenticate_request
+    def handle_user(self, r: Request, user: str):
+        self.logger.info('[event=check-user-type][user=%s]', user)
+        result = self.service.user_type(user)
+        return {
+            'userType': result
+        }
 
     # Validates that the date string passed in is in ISO YYYY-MM-DD format
     @staticmethod

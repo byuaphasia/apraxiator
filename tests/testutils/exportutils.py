@@ -11,7 +11,7 @@ def gen_export_data(num_rows=3):
             '50',
             'male',
             'normal',
-            open('tests/utils/example.wav', 'rb').read()
+            open('tests/testutils/example.wav', 'rb').read()
         ]
         data.append(row)
     return data

@@ -1,12 +1,24 @@
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+except OSError:
+    print('Unable to import weasyprint')
 import uuid
 import os
 
-tmp_storage_dir = 'tmp_storage'
+from .ipdfgenerator import IPDFGenerator
 
 
-class PDFGenerator:
+class PDFGenerator(IPDFGenerator):
+    def __init__(self):
+        self.tmp_dir = 'tmp'
+        self.waivers_dir = os.path.join(self.tmp_dir, 'waivers')
+        self.signatures_dir = os.path.join(self.tmp_dir, 'signatures')
+        self.reports_dir = os.path.join(self.tmp_dir, 'reports')
+        os.makedirs(self.waivers_dir, exist_ok=True)
+        os.makedirs(self.signatures_dir, exist_ok=True)
+        os.makedirs(self.reports_dir, exist_ok=True)
+
     def generate_subject_waiver(self, subject_name: str, subject_email: str, date_signed: str, signature_file):
         return self._create_pdf_waiver(
             subject_name, subject_email, date_signed, signature_file, '', '', '', None
@@ -75,20 +87,14 @@ class PDFGenerator:
         html_out = template.render(template_variables)
         HTML(string=html_out, base_url='.').write_pdf(outfile)
 
-    @staticmethod
-    def _get_waiver_outfile():
-        dir_path = os.path.join(tmp_storage_dir, 'waivers')
+    def _get_waiver_outfile(self):
         file_name = uuid.uuid4().hex + '.pdf'
-        return os.path.join(dir_path, file_name)
+        return os.path.join(self.waivers_dir, file_name)
 
-    @staticmethod
-    def _get_signature_file(suffix='.png'):
-        dir_path = os.path.join(tmp_storage_dir, 'signature_files')
+    def _get_signature_file(self, suffix='.png'):
         file_name = uuid.uuid4().hex + suffix
-        return os.path.join(dir_path, file_name)
+        return os.path.join(self.signatures_dir, file_name)
 
-    @staticmethod
-    def _get_report_outfile():
-        dir_path = os.path.join(tmp_storage_dir, 'reports')
+    def _get_report_outfile(self):
         file_name = uuid.uuid4().hex + '.pdf'
-        return os.path.join(dir_path, file_name)
+        return os.path.join(self.reports_dir, file_name)
