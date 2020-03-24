@@ -77,6 +77,6 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
     def delete_files(self, file_id_list, subdir: str):
         delete_objects = [{'Key': subdir + file_id} for file_id in file_id_list]
         try:
-            self.s3.delete_objects(self.bucket, {'Objects': delete_objects})
+            self.s3.delete_objects(Bucket=self.bucket, Delete={'Objects': delete_objects})
         except ClientError as e:
             raise S3ConnectionException(file_id_list, e)
