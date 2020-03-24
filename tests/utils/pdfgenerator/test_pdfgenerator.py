@@ -1,11 +1,14 @@
 import unittest
 import os
+import pytest
 
 from ...context import src
 from src.utils.pdfgenerator import PDFGenerator
 from ...testutils.modelutils import make_attempt, make_evaluation
 
 
+@pytest.mark.skipif(os.environ.get('APX_TEST_MODE', 'isolated') == 'isolated',
+                    reason='Must not be running in "isolated" generate pdfs')
 class TestPDFGenerator(unittest.TestCase):
     def test_generate_report(self):
         generator = PDFGenerator()
