@@ -33,7 +33,7 @@ class PDFGenerator(IPDFGenerator):
         if representative_signature is not None:
             representative_signature_path = self._get_signature_file()
             representative_signature.save(representative_signature_path)
-        template_file_path = '../templates/hipaa_authorization_template.html'
+        template_file_path = 'templates/hipaa_authorization_template.html'
         template_variables = {
             'research_subject_name': research_subject_name,
             'research_subject_email': research_subject_email,
@@ -57,7 +57,7 @@ class PDFGenerator(IPDFGenerator):
         for attempt in attempts:
             sum_wsd += attempt['wsd']
         avg_wsd = sum_wsd / len(attempts)
-        template_file_path = '../templates/report_template.html'
+        template_file_path = 'templates/report_template.html'
         template_variables = {
             'name': name,
             'evaluation_id': evaluation['evaluationId'],

@@ -1,7 +1,7 @@
 import unittest
 
 from ..context import src
-from ..utils import gen_export_data
+from ..testutils import gen_export_data
 from src.models.dataexport import DataExport, DataExportException
 
 

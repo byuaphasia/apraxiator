@@ -3,7 +3,7 @@ import os
 
 from ..context import src
 from src import ApraxiatorException
-from ..utils import DummyRequest
+from ..testutils import DummyRequest
 from src.utils import IdPrefix
 from src.utils.factory import Factory
 
@@ -69,7 +69,7 @@ class TestEvaluations(unittest.TestCase):
         a = controller.handle_get_attempts(None, evaluation_id=e_id)['attempts'][0]
         self.assertFalse(a['active'])
 
-    def test_send_report(self):
+    def test_mock_send_report(self):
         factory.auth.user = 'report'
         e_id = create_evaluation(controller)['evaluationId']
         add_ambiance(controller, e_id)
@@ -108,7 +108,7 @@ class TestEvaluations(unittest.TestCase):
 
 def add_ambiance(c, evaluation_id):
     files = {
-        'recording': open('tests/utils/exampleAmb.wav', 'rb')
+        'recording': open('tests/testutils/exampleAmb.wav', 'rb')
     }
     r = DummyRequest().set_files(files)
     result = c.handle_add_ambiance(r, evaluation_id=evaluation_id)
@@ -117,7 +117,7 @@ def add_ambiance(c, evaluation_id):
 
 def create_attempt(c, evaluation_id):
     files = {
-        'recording': open('tests/utils/example.wav', 'rb')
+        'recording': open('tests/testutils/example.wav', 'rb')
     }
     values = {
         'word': 'gingerbread',

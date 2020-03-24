@@ -3,7 +3,7 @@ import unittest
 from ..context import src
 from src.apraxiatorexception import InvalidRequestException
 from src.controllers.dataexportcontroller import DataExportController
-from ..utils import DummyRequest, DummyAuth
+from ..testutils import DummyRequest, DummyAuth
 
 
 class DummyDataExportService:

@@ -5,7 +5,7 @@ import os
 
 from .context import src
 from src.controllers.authentication.jwtauthenticator import JWTAuthenticator, TokenExpiredException
-from .utils.requestutils import DummyRequest
+from .testutils.requestutils import DummyRequest
 
 
 example_file = os.path.abspath(__file__ + '/../../../apx-resources/auth/test_example.json')

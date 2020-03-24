@@ -9,7 +9,7 @@ from src.services.dataexport.dataexportservice import DataExportService
 from src.services.dataexport.idataexportfilestorage import IDataExportFileStorage
 from src.services.dataexport.idataexportstorage import IDataExportStorage
 from src.storage.storageexceptions import PermissionDeniedException
-from ..utils import gen_export_data
+from ..testutils import gen_export_data
 
 admin = 'admin'
 not_admin = 'not admin'
@@ -31,7 +31,7 @@ class DummyDataExportStorage(IDataExportStorage):
 class DummyFileStore(IDataExportFileStorage):
     def __init__(self):
         self.idx = 0
-        self.original = os.path.realpath(__file__ + '/../../utils/example.wav')
+        self.original = os.path.realpath(__file__ + '/../../testutils/example.wav')
 
     def get_recording(self, attempt_id: str):
         file_path = f'example-{self.idx}.wav'
