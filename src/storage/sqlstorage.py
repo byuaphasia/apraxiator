@@ -329,7 +329,7 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         import boto3
         access_key = os.environ['APX_AWS_ACCESS']
         secret_key = os.environ['APX_AWS_SECRET']
-        region = os.environ.get('APX_AWS_REGION', 'us-west-2c')
+        region = os.environ.get('APX_AWS_RDS_REGION', 'us-west-2c')
         client = boto3.client('rds', region_name=region,
                               aws_access_key_id=access_key, aws_secret_access_key=secret_key)
         token = client.generate_db_auth_token(DBHostname=host, Port=3306, DBUsername=user, Region=region)

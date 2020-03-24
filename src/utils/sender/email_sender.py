@@ -11,8 +11,8 @@ from src.utils.sender.isender import ISender
 
 class EmailSender(ISender):
     def __init__(self):
-        aws_region = 'us-west-2'
-        self.client = boto3.client('ses', region_name=aws_region)
+        region = os.environ.get('APX_AWS_SES_REGION', 'us-west-2')
+        self.client = boto3.client('ses', region_name=region)
 
     def send_subject_waiver(self, waiver_file, to_email):
         subject = "Signed Copy of HIPAA Waiver"

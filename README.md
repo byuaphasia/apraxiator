@@ -1,9 +1,32 @@
 # Apraxiator
-Server implemented in python for speech pathology tests. Designed to work with the [Project Apraxia](https://github.com/RyanRemer/project_apraxia) app as an optional back-end. Focuses on Word Syllable Duration (WSD) calculations. Running "run.sh" will install the necessary dependencies and run the server on a linux machine. Runs on port 8080. A healtcheck endpoint is available for testing at /healtcheck.
+Server implemented in python for speech pathology tests. Designed to work with the [Project Apraxia](https://github.com/RyanRemer/project_apraxia) app as an optional back-end. Focuses on Word Syllable Duration (WSD) calculations. Running "run.sh" will install the necessary dependencies and run the server on a linux machine. Runs on port 8080.
 
+## Environment Variables
+This uses the following environment variables to manage its state and access credentials:
+
+| Variable Name      | Values                                   | Default    | Explanation     |
+|--------------------|------------------------------------------|------------|-----------------|
+| APX_ENV            | local, server                            | local      | Determines whether the server will run locally (no SSL context, no re-loader, and local file storage) or in a server environment (use SSL context, use re-loader, and S3 storage) |
+| APX_AWS_RDS_REGION | us-west-2c                               | us-west-2c | The region that the RDS service is hosted in                                                                                                                                         |
+| APX_AWS_SES_REGION | us-west-2                                | us-west-2  | The region that the SES service is hosted in                                                                                                                                         |
+| APX_AWS_ACCESS     | ADVKALE7LAAEVNALEI34                     |            | The AWS Access Key generated for an IAM role                                                                                                                                         |
+| APX_AWS_SECRET     | HWErGUkkcq42fmlRtY9UveXmPTRnWmo65D/PLEGr |            | The AWS Secret Key generated for an IAM role                                                                                                                                         |
+| APX_MYSQL_HOST     | localhost, 12.345.678.90                 | localhost  | The host name of the MySQL service connection                                                                                                                                        |
+| APX_MYSQL_USER     | root                                     |            | The user name to connect to the MySWL service                                                                                                                                        |
+| APX_MYSQL_PASSWORD | Password1                                |            | The password to connect to the MySWL service                                                                                                                                         |
+| APX_TEST_MODE      | isolated, connected                      | isolated   |  Determines whether to run the unit tests in an isolated environment (no MySQL or S3 access) or connected environment (test MySQL and S3 connection)                                |
 
 ## API Endpoints
-For each endpoint, a cognito signed JWT token is expected to identify the user. This should be passed in the request headers under the "TOKEN" key.
+For each endpoint, a Cognito signed JWT token is expected to identify the user. This should be passed in the request headers under the "TOKEN" key.
+
+### GET /healthcheck
+A healthcheck endpoint to test whether the server is up and running. DOES NOT REQUIRE JWT TOKEN IN HEADER. Returns a json response in this form:
+```json
+{
+  "message": "all is well"
+}
+```
+
 
 ### POST /evaluation
 Creates a new evaluation. This expects a json body in this form:
@@ -76,6 +99,37 @@ Saves a recording and ties it to the specified evaluation and attempt. Expects a
 ### GET /evaluation/\<evaluationId>/attempt/\<attemptId>/recording
 Returns the saved recording tied to the specified evaluation and attempt. Streams the response in the body.
 
+### POST /evaluation/<evaluation_id>/report
+Generates an evaluation report and sends it to the provided email. Returns an empty json object if successful. Expects a json body in this form:
+```json
+{
+  "email": "email@email.com",
+  "name": "John Smith"
+}
+```
+
+Returns an unnecessary json response in this form:
+```json
+{
+    "attempts": [
+        {
+            "word": "gingerbread",
+            "syllables": 3,
+            "wsd": 123.456789,
+            "wsd_str": "123.45"
+        },
+        ...
+    ],
+    "evaluation": {
+        "evaluationId": "EV.......",
+        "age": "50",
+        "gender": "Male",
+        "impression": "impression",
+        "dateCreated": "January 01, 2020"
+    }
+}
+```
+
 ### POST /waiver/subject
 Saves a subject waiver and emails it to the client and clinician. Returns an empty json object if successful.
 
@@ -119,34 +173,3 @@ Returns the waiver tied to the provided subject email (subjectEmail), subject na
 
 ### PUT /waiver/\<waiver_id>/invalidate
 Allows for changing the "valid" status of the waiver corresponding to the waiver_id. Returns empty json object.
-
-### POST /sendReport/\<evaluation_id\>
-Generates an evaluation report and sends it to the provided email. Returns an empty json object if successful. Expects a json body in this form:
-```json
-{
-  "email": "email@email.com",
-  "name": "John Smith"
-}
-```
-
-Returns an unnecessary json response in this form:
-```json
-{
-    "attempts": [
-        {
-            "word": "gingerbread",
-            "syllables": 3,
-            "wsd": 123.456789,
-            "wsd_str": "123.45"
-        },
-        ...
-    ],
-    "evaluation": {
-        "evaluationId": "EV.......",
-        "age": "50",
-        "gender": "Male",
-        "impression": "impression",
-        "dateCreated": "January 01, 2020"
-    }
-}
-```

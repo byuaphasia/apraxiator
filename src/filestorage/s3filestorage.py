@@ -13,7 +13,7 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
         try:
             self.access_key = os.environ['APX_AWS_ACCESS']
             self.secret_key = os.environ['APX_AWS_SECRET']
-            self.s3 = boto3.client('s3', aws_access_key_id=self.access_key, aws_secret_key=self.secret_key)
+            self.s3 = boto3.client('s3', aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
             self.bucket = bucket
             self.recordings_dir = 'recordings/'
             self.waivers_dir = 'waivers/'
