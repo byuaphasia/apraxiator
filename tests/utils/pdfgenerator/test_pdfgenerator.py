@@ -11,7 +11,7 @@ class TestPDFGenerator(unittest.TestCase):
         generator = PDFGenerator()
         e = make_evaluation('generate report')
         a = make_attempt(e.id)
-        result = generator.generate_report(e, a, 'name')
+        result = generator.generate_report(e.to_report(), [a.to_report()], 'name')
         self.assertTrue(os.path.isfile(result))
         self.assertEqual(result[-3:], 'pdf')
         os.remove(result)
