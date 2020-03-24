@@ -9,6 +9,7 @@ This uses the following environment variables to manage its state and access cre
 | APX_ENV            | local, server                            | local      | Determines whether the server will run locally (no SSL context, no re-loader, and local file storage) or in a server environment (use SSL context, use re-loader, and S3 storage) |
 | APX_AWS_RDS_REGION | us-west-2c                               | us-west-2c | The region that the RDS service is hosted in                                                                                                                                         |
 | APX_AWS_SES_REGION | us-west-2                                | us-west-2  | The region that the SES service is hosted in                                                                                                                                         |
+| APX_AWS_S3_REGION  | us-west-2                                | us-west-2  | The region that the S3 service is hosted in                                                                                                                                          |
 | APX_AWS_ACCESS     | ADVKALE7LAAEVNALEI34                     |            | The AWS Access Key generated for an IAM role                                                                                                                                         |
 | APX_AWS_SECRET     | HWErGUkkcq42fmlRtY9UveXmPTRnWmo65D/PLEGr |            | The AWS Secret Key generated for an IAM role                                                                                                                                         |
 | APX_MYSQL_HOST     | localhost, 12.345.678.90                 | localhost  | The host name of the MySQL service connection                                                                                                                                        |
@@ -117,8 +118,7 @@ Returns an unnecessary json response in this form:
             "syllables": 3,
             "wsd": 123.456789,
             "wsd_str": "123.45"
-        },
-        ...
+        }
     ],
     "evaluation": {
         "evaluationId": "EV.......",
