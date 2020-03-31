@@ -43,3 +43,12 @@ class WaiverAlreadyExists(StorageException):
 
     def get_code(self):
         return 200
+
+
+class IDAlreadyExists(StorageException):
+    def __init__(self, id: str, inner_error=None):
+        super().__init__(inner_error)
+        self.id = id
+
+    def get_message(self):
+        return "The id '{}' already references an item in storage".format(self.id)

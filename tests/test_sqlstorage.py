@@ -11,7 +11,7 @@ from src.models.evaluation import Evaluation
 from src.models.waiver import Waiver
 from src.storage.sqlstorage import SQLStorage
 from src.storage.dbexceptions import ConnectionException
-from src.storage.storageexceptions import ResourceNotFoundException, WaiverAlreadyExists
+from src.storage.storageexceptions import ResourceNotFoundException, IDAlreadyExists
 
 try:
     storage = SQLStorage(name='test')
@@ -27,6 +27,10 @@ sample_data = np.zeros(8000)
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
         storage.create_evaluation(make_evaluation('create'))
+
+        storage.create_evaluation(make_evaluation('duplicate'))
+        with self.assertRaises(IDAlreadyExists):
+            storage.create_evaluation(make_evaluation('duplicate'))
 
     def test_get_evaluation(self):
         storage.create_evaluation(make_evaluation('get'))
@@ -57,6 +61,12 @@ class TestSQLStorage(unittest.TestCase):
         storage.create_evaluation(make_evaluation('att'))
         storage.create_attempt(make_attempt('att', 'att'))
 
+        dup_id = 'dup att'
+        storage.create_evaluation(make_evaluation(dup_id))
+        storage.create_attempt(make_attempt(dup_id, dup_id))
+        with self.assertRaises(IDAlreadyExists):
+            storage.create_attempt(make_attempt(dup_id, dup_id))
+
     def test_update_attempt(self):
         storage.create_evaluation(make_evaluation('update'))
         storage.create_attempt(make_attempt('update', 'update'))
@@ -84,19 +94,11 @@ class TestSQLStorage(unittest.TestCase):
         waiver = Waiver('add waiver', owner_id=owner_id, valid=True, signer='signer',
                         subject_email='email', subject_name=name, date='date', filepath='filepath')
         storage.add_waiver(waiver)
-        waivers = storage.get_valid_waiver(owner_id, name, 'email')
-        self.assertEqual(1, len(waivers))
-        waiver.id = waivers[0].id
-        self.assertDictEqual(waiver.__dict__, waivers[0].__dict__)
-
-        with self.assertRaises(WaiverAlreadyExists):
-            waiver.date = 'new date'
-            storage.add_waiver_to_storage(waiver)
-
         result = storage.get_valid_waiver(owner_id, name, 'email')
-        self.assertEqual('add waiver', result.id)
-        self.assertEqual('new date', result[0].date)
-        self.assertTrue(result.valid)
+        self.assertDictEqual(waiver.__dict__, result.__dict__)
+
+        with self.assertRaises(IDAlreadyExists):
+            storage.add_waiver(waiver)
 
     def test_invalidate_waiver(self):
         name = str(uuid.uuid4())
@@ -109,7 +111,6 @@ class TestSQLStorage(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        os.remove('test_wav.wav')
         c = storage.db.cursor()
         c.execute('DROP TABLE waivers')
         c.execute('DROP TABLE attempts')

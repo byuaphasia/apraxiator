@@ -1,5 +1,5 @@
 import pymysql
-from pymysql.err import OperationalError
+from pymysql.err import OperationalError, IntegrityError
 import os
 import logging
 
@@ -10,7 +10,7 @@ from src.models.evaluation import Evaluation
 from src.models.waiver import Waiver
 from src.models.attempt import Attempt
 from src.storage.dbexceptions import ConnectionException, ResourceAccessException
-from src.storage.storageexceptions import PermissionDeniedException, ResourceNotFoundException
+from src.storage.storageexceptions import PermissionDeniedException, ResourceNotFoundException, IDAlreadyExists
 
 
 class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
@@ -42,6 +42,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         val = (e.id, e.age, e.gender, e.impression, e.owner_id)
         try:
             self._execute_insert_query(sql, val)
+        except IntegrityError as er:
+            self.logger.exception('[event=duplicate-key-encountered][evaluationId=%s]', e.id)
+            raise IDAlreadyExists(e.id, er)
         except Exception as ex:
             self.logger.exception('[event=add-evaluation-failure][evaluationId=%s]', e.id)
             raise ResourceAccessException(e.id, ex)
@@ -76,6 +79,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllable_count)
         try:
             self._execute_insert_query(sql, val)
+        except IntegrityError as e:
+            self.logger.exception('[event=duplicate-key-encountered][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
+            raise IDAlreadyExists(a.id, e)
         except Exception as e:
             self.logger.exception('[event=add-attempt-failure][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
             raise ResourceAccessException(a.id, e)
@@ -168,6 +174,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         val = (w.id, w.subject_name, w.subject_email, w.representative_name, w.relationship, w.date, w.signer, w.valid, w.filepath, w.owner_id)
         try:
             self._execute_insert_query(sql, val)
+        except IntegrityError as er:
+            self.logger.exception('[event=duplicate-key-encountered][waiverId=%s]', w.id)
+            raise IDAlreadyExists(w.id, er)
         except Exception as ex:
             self.logger.exception('[event=add-waiver-failure][subjectName=%s][subjectEmail=%s]', w.subject_name, w.subject_email)
             raise ResourceAccessException(None, ex)
