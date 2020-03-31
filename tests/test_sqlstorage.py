@@ -81,8 +81,8 @@ class TestSQLStorage(unittest.TestCase):
 
     def test_add_waiver(self):
         name = str(uuid.uuid4())
-        waiver = Waiver('add waiver', owner_id=owner_id, valid=True, signer='signer', subject_email='email', subject_name=name,
-                        date='date', filepath='filepath')
+        waiver = Waiver('add waiver', owner_id=owner_id, valid=True, signer='signer',
+                        subject_email='email', subject_name=name, date='date', filepath='filepath')
         storage.add_waiver(waiver)
         waivers = storage.get_valid_waiver(owner_id, name, 'email')
         self.assertEqual(1, len(waivers))
@@ -93,18 +93,19 @@ class TestSQLStorage(unittest.TestCase):
             waiver.date = 'new date'
             storage.add_waiver_to_storage(waiver)
 
-        waivers = storage.get_valid_waiver(owner_id, name, 'email')
-        self.assertEqual(1, len(waivers))
-        self.assertEqual('new date', waivers[0].date)
+        result = storage.get_valid_waiver(owner_id, name, 'email')
+        self.assertEqual('add waiver', result.id)
+        self.assertEqual('new date', result[0].date)
+        self.assertTrue(result.valid)
 
     def test_invalidate_waiver(self):
         name = str(uuid.uuid4())
-        waiver = Waiver('invalidate waiver', owner_id=owner_id, valid=True, signer='signer', subject_email='email', subject_name=name,
-                        date='date', filepath='filepath')
+        waiver = Waiver('invalidate waiver', owner_id=owner_id, valid=True, signer='signer',
+                        subject_email='email', subject_name=name, date='date', filepath='filepath')
         storage.add_waiver(waiver)
-        storage.invalidate_waiver(waiver.id, owner_id)
-        waivers = storage.get_valid_waiver(owner_id, name, 'email')
-        self.assertEqual(0, len(waivers))
+        storage.update_waiver(waiver.id, 'valid', False)
+        result = storage.get_valid_waiver(owner_id, name, 'email')
+        self.assertIsNone(result)
 
     @classmethod
     def tearDownClass(cls):
