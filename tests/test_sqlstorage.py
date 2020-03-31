@@ -1,7 +1,6 @@
 import unittest
 
 import pytest
-import soundfile as sf
 import numpy as np
 import os
 import uuid
@@ -111,16 +110,9 @@ class TestSQLStorage(unittest.TestCase):
     def tearDownClass(cls):
         os.remove('test_wav.wav')
         c = storage.db.cursor()
-        c.execute('DROP TABLE recordings')
         c.execute('DROP TABLE waivers')
         c.execute('DROP TABLE attempts')
         c.execute('DROP TABLE evaluations')
-
-
-def create_mock_recording():
-    sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
-    sound.write(sample_data)
-    return open('test_wav.wav', 'rb').read()
 
 
 def make_evaluation(id, owner='owner'):
