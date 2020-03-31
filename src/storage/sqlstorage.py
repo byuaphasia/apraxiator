@@ -132,16 +132,6 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         else:
             self.logger.info('[event=owner-verified][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
 
-    def save_recording(self, attempt_id, recording):
-        sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
-        val = (attempt_id, recording)
-        try:
-            self._execute_insert_query(sql, val)
-        except Exception as e:
-            self.logger.exception('[event=save-recording-failure][attemptId=%s]', attempt_id)
-            raise ResourceAccessException(attempt_id, e)
-        self.logger.info('[event=recording-saved][attemptId=%s]', attempt_id)
-
     ''' General MySQL Interaction Methods '''
 
     def _execute_insert_query(self, sql, val):
@@ -282,17 +272,6 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
                                      "REFERENCES `evaluations` (`evaluation_id`)"
                                      ");"
                                      )
-        create_recordings_statement = ("CREATE TABLE IF NOT EXISTS `recordings` ("
-                                       "`recording_id` int AUTO_INCREMENT NOT NULL,"
-                                       "`attempt_id` varchar(48) NOT NULL,"
-                                       "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-                                       "`recording` mediumblob NOT NULL,"
-                                       "PRIMARY KEY (`recording_id`),"
-                                       "KEY `attempt_id_idx` (`attempt_id`),"
-                                       "CONSTRAINT `attempt_id` FOREIGN KEY (`attempt_id`)"
-                                       "REFERENCES `attempts` (`attempt_id`)"
-                                       ");"
-                                       )
         create_waivers_statement = ("CREATE TABLE IF NOT EXISTS `waivers` ("
                                     "`waiver_id` varchar(48) NOT NULL,"
                                     "`subject_name` varchar(255) NOT NULL,"
@@ -315,7 +294,6 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         c = self.db.cursor()
         c.execute(create_evaluations_statement)
         c.execute(create_attempts_statement)
-        c.execute(create_recordings_statement)
         c.execute(create_waivers_statement)
         c.execute(create_admins_statement)
 

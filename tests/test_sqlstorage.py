@@ -80,16 +80,11 @@ class TestSQLStorage(unittest.TestCase):
             self.assertEqual('get atts', a.evaluation_id)
             self.assertEqual(True, a.active)
 
-    def test_save_recording(self):
-        storage.create_evaluation(make_evaluation('rec'))
-        storage.create_attempt(make_attempt('rec', 'rec'))
-        storage.save_recording('rec', create_mock_recording())
-
     def test_add_waiver(self):
         name = str(uuid.uuid4())
         waiver = Waiver(None, owner_id=owner_id, valid=True, signer='signer', subject_email='email', subject_name=name,
                         date='date', filepath='filepath')
-        storage.add_waiver_to_storage(waiver)
+        storage.add_waiver(waiver)
         waivers = storage.get_valid_waiver(owner_id, None, 'email')
         self.assertEqual(1, len(waivers))
         waiver.id = waivers[0].id
@@ -107,7 +102,7 @@ class TestSQLStorage(unittest.TestCase):
         name = str(uuid.uuid4())
         waiver = Waiver(None, owner_id=owner_id, valid=True, signer='signer', subject_email='email', subject_name=name,
                         date='date', filepath='filepath')
-        storage.add_waiver_to_storage(waiver)
+        storage.add_waiver(waiver)
         storage.invalidate_waiver(waiver.id, owner_id)
         waivers = storage.get_valid_waiver(owner_id, None, 'email')
         self.assertEqual(0, len(waivers))
