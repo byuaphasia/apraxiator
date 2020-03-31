@@ -14,7 +14,6 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
             self.access_key = os.environ['APX_AWS_ACCESS']
             self.secret_key = os.environ['APX_AWS_SECRET']
             self.region = os.environ.get('APX_AWS_S3_REGION', 'us-west-2')
-            print(self.access_key, self.secret_key)
             self.s3 = boto3.client('s3', aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key,
                                    region_name=self.region)
             self.bucket = bucket

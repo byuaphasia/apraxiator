@@ -5,6 +5,7 @@ except OSError:
     print('Unable to import weasyprint')
 import uuid
 import os
+import warnings
 
 from .ipdfgenerator import IPDFGenerator
 
@@ -82,10 +83,12 @@ class PDFGenerator(IPDFGenerator):
     @staticmethod
     def _create_pdf(encoding, template_file_path, template_variables, outfile):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        env = Environment(loader=FileSystemLoader(dir_path, encoding=encoding))
-        template = env.get_template(template_file_path)
-        html_out = template.render(template_variables)
-        HTML(string=html_out, base_url='.').write_pdf(outfile)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            env = Environment(loader=FileSystemLoader(dir_path, encoding=encoding))
+            template = env.get_template(template_file_path)
+            html_out = template.render(template_variables)
+            HTML(string=html_out, base_url='.').write_pdf(outfile)
 
     def _get_waiver_outfile(self):
         file_name = uuid.uuid4().hex + '.pdf'
