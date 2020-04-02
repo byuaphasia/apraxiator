@@ -245,7 +245,7 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
             self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
             raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
 
-    def check_is_admin(self, user):
+    def check_is_admin(self, user) -> bool:
         sql = "SELECT * FROM admins WHERE id = %s"
         val = (user,)
         res = self._execute_select_query(sql, val)
