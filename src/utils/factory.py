@@ -1,4 +1,5 @@
 import os
+import sys
 
 from src.storage.memorystorage import MemoryStorage
 from src.storage.sqlstorage import SQLStorage
@@ -14,6 +15,7 @@ from src.controllers.dataexportcontroller import DataExportController
 from src.controllers.waivercontroller import WaiverController
 from src.utils.sender import LogSender, EmailSender
 from src.utils.pdfgenerator import PDFGenerator, PDFLogger
+from src.config.config import Configuration
 
 
 class Factory:
@@ -34,32 +36,39 @@ class Factory:
 
     @staticmethod
     def create_factory():
-        env = os.environ.get('APX_ENV', 'local')
-        if env == 'local':
-            file_store = LocalFileStorage()
-            storage = MemoryStorage()
-            auth = LocalAuthenticator()
-            sender = LogSender()
-            pdf_generator = PDFLogger()
+        if len(sys.argv) > 1:
+            config = Configuration.load_config(sys.argv[1])
         else:
-            file_store = S3FileStorage()
-            storage = SQLStorage()
-            auth = JWTAuthenticator()
-            sender = EmailSender()
-            pdf_generator = PDFGenerator()
-
-        return Factory(storage, file_store, auth, sender, pdf_generator)
+            env = os.environ.get('APX_ENV', 'server')
+            config = Configuration.load_config(f'{env}.json')
+        return Factory.process_config(config)
 
     @staticmethod
-    def create_limited_factory(storage_type='isolated'):
-        auth = LocalAuthenticator()
-        sender = LogSender()
-        pdf_generator = PDFLogger()
-        if storage_type == 'isolated':
-            storage = MemoryStorage()
-            file_store = LocalFileStorage()
+    def process_config(config: Configuration):
+        if config.dbName:
+            storage = SQLStorage(config.dbName)
         else:
-            storage = SQLStorage()
-            file_store = S3FileStorage()
+            storage = MemoryStorage()
+
+        if config.s3Bucket:
+            file_store = S3FileStorage(config.s3Bucket)
+        else:
+            file_store = LocalFileStorage()
+
+        if config.jwkFile:
+            auth = JWTAuthenticator(config.jwkFile)
+        else:
+            auth = LocalAuthenticator()
+
+        if config.templatesDir:
+            pdf_generator = PDFGenerator(config.templatesDir)
+        else:
+            pdf_generator = PDFLogger()
+
+        if config.emailSender:
+            sender = EmailSender(config.emailSender)
+        else:
+            sender = LogSender()
 
         return Factory(storage, file_store, auth, sender, pdf_generator)
+
