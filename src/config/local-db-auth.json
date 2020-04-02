@@ -1,0 +1,5 @@
+{
+  "name": "local-db-auth",
+  "dbName": "apraxiator",
+  "jwkFile": "../apx-resources/auth/jwk.json"
+}

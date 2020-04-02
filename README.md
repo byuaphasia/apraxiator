@@ -6,7 +6,7 @@ This uses the following environment variables to manage its state and access cre
 
 | Variable Name      | Values                                   | Default    | Explanation     |
 |--------------------|------------------------------------------|------------|-----------------|
-| APX_ENV            | local, server                            | local      | Determines which config file to use (explained in the next section)                                                                                                                  |
+| APX_ENV            | local, server, etc.                      | local      | Determines which config file to use (explained in the next section)                                                                                                                  |
 | APX_AWS_RDS_REGION | us-west-2c                               | us-west-2c | The region that the RDS service is hosted in                                                                                                                                         |
 | APX_AWS_SES_REGION | us-west-2                                | us-west-2  | The region that the SES service is hosted in                                                                                                                                         |
 | APX_AWS_S3_REGION  | us-west-2                                | us-west-2  | The region that the S3 service is hosted in                                                                                                                                          |
