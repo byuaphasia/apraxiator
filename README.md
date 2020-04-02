@@ -6,7 +6,7 @@ This uses the following environment variables to manage its state and access cre
 
 | Variable Name      | Values                                   | Default    | Explanation     |
 |--------------------|------------------------------------------|------------|-----------------|
-| APX_ENV            | local, server                            | local      | Determines whether the server will run locally (no SSL context, no re-loader, and local file storage) or in a server environment (use SSL context, use re-loader, and S3 storage) |
+| APX_ENV            | local, server                            | local      | Determines whether the server will run locally (no SSL context, and local file storage) or in a server environment (use SSL context, and S3 storage) |
 | APX_AWS_RDS_REGION | us-west-2c                               | us-west-2c | The region that the RDS service is hosted in                                                                                                                                         |
 | APX_AWS_SES_REGION | us-west-2                                | us-west-2  | The region that the SES service is hosted in                                                                                                                                         |
 | APX_AWS_S3_REGION  | us-west-2                                | us-west-2  | The region that the S3 service is hosted in                                                                                                                                          |

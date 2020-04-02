@@ -37,9 +37,9 @@ class Factory:
     @staticmethod
     def create_factory():
         if len(sys.argv) > 1:
-            config = Configuration.load_config(sys.argv[1])
+            config = Configuration.load_config(f'{sys.argv[1]}.json')
         else:
-            env = os.environ.get('APX_ENV', 'server')
+            env = os.environ.get('APX_ENV', 'local')
             config = Configuration.load_config(f'{env}.json')
         return Factory.process_config(config)
 

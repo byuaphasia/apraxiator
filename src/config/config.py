@@ -5,7 +5,6 @@ import logging
 
 class Configuration:
     def __init__(self, name, dbName=None, s3Bucket=None, jwkFile=None, templatesDir=None, emailSender=None):
-        print(f'[event=load-config][configName={name}]')
         project_root = os.path.realpath(os.path.join(os.path.dirname(__file__), "../../"))
         self.dbName = dbName
         self.s3Bucket = s3Bucket
