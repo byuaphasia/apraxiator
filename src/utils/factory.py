@@ -1,5 +1,4 @@
 import os
-import sys
 
 from src.storage.memorystorage import MemoryStorage
 from src.storage.sqlstorage import SQLStorage
@@ -36,11 +35,8 @@ class Factory:
 
     @staticmethod
     def create_factory():
-        if len(sys.argv) > 1:
-            config = Configuration.load_config(f'{sys.argv[1]}.json')
-        else:
-            env = os.environ.get('APX_ENV', 'local')
-            config = Configuration.load_config(f'{env}.json')
+        env = os.environ.get('APX_ENV', 'local')
+        config = Configuration.load_config(f'{env}.json')
         return Factory.process_config(config)
 
     @staticmethod
