@@ -59,7 +59,7 @@ class Factory:
             storage = MemoryStorage()
             file_store = LocalFileStorage()
         else:
-            storage = SQLStorage()
-            file_store = S3FileStorage()
+            storage = SQLStorage('test')
+            file_store = S3FileStorage('appraxia-test')
 
         return Factory(storage, file_store, auth, sender, pdf_generator)
