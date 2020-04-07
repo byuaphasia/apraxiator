@@ -99,7 +99,6 @@ class TestEvaluations(unittest.TestCase):
     def tearDownClass(cls):
         if mode == 'connected':
             c = factory.storage.db.cursor()
-            c.execute('DROP TABLE recordings')
             c.execute('DROP TABLE waivers')
             c.execute('DROP TABLE attempts')
             c.execute('DROP TABLE evaluations')
