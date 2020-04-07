@@ -12,8 +12,10 @@ from src.utils.sender.isender import ISender
 class EmailSender(ISender):
     def __init__(self, sender):
         self.sender = sender
-        region = os.environ.get('APX_AWS_SES_REGION', 'us-west-2')
-        self.client = boto3.client('ses', region_name=region)
+        access_key = os.environ['APX_AWS_ACCESS']
+        secret_key = os.environ['APX_AWS_SECRET']
+        region = os.environ.get('APX_AWS_S3_REGION', 'us-west-2')
+        self.client = boto3.client('s3', aws_access_key_id=access_key, aws_secret_access_key=secret_key, region_name=region)
 
     def send_subject_waiver(self, waiver_file, to_email):
         subject = "Signed Copy of HIPAA Waiver"

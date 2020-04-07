@@ -8,7 +8,10 @@ from .ipdfgenerator import IPDFGenerator
 class PDFGenerator(IPDFGenerator):
     def __init__(self, templates_dir):
         self.templates_dir = templates_dir
-        self.tmp_dir = 'tmp'
+        import pathlib
+        import os
+        _file_path = pathlib.Path(__file__).parent.absolute()
+        self.tmp_dir = os.path.join(_file_path, 'tmp')
         self.waivers_dir = os.path.join(self.tmp_dir, 'waivers')
         self.signatures_dir = os.path.join(self.tmp_dir, 'signatures')
         self.reports_dir = os.path.join(self.tmp_dir, 'reports')

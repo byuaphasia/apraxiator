@@ -17,9 +17,11 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
             self.s3 = boto3.client('s3', aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key,
                                    region_name=self.region)
             self.bucket = bucket
-            self.recordings_dir = 'recordings/'
-            self.waivers_dir = 'waivers/'
-            self.tmp_dir = os.path.realpath('tmp')
+            import pathlib
+            _file_path = pathlib.Path(__file__).parent.absolute()
+            self.recordings_dir = os.path.join(_file_path, 'recordings/')
+            self.waivers_dir = os.path.join(_file_path, 'waivers/')
+            self.tmp_dir = os.path.join(_file_path, '../../tmp')
             if not os.path.isdir(self.tmp_dir):
                 os.mkdir(self.tmp_dir)
         except KeyError as e:
