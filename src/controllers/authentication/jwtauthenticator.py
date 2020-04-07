@@ -14,8 +14,8 @@ AUTH_DIR = os.path.join(_file_path, '../../../apx-resources/auth/')
 
 
 class JWTAuthenticator(IAuthenticator):
-    def __init__(self):
-        keys_json = open(AUTH_DIR + 'jwk.json', 'r').read()
+    def __init__(self, jwk_file):
+        keys_json = open(jwk_file, 'r').read()
         self.key_set = jwk.JWKSet().from_json(keys_json)
         self.logger = logging.getLogger(__name__)
         self.header_key = 'TOKEN'
@@ -39,10 +39,9 @@ class JWTAuthenticator(IAuthenticator):
             self.logger.exception('Error Decoding JWT Token')
             raise UnauthenticatedException(e)
 
-    @staticmethod
-    def get_token(http_headers):
+    def get_token(self, http_headers):
         try:
-            token = http_headers[HEADER_KEY]
+            token = http_headers[self.header_key]
             return token
         except Exception as e:
             raise MissingTokenException(e)

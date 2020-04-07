@@ -10,7 +10,8 @@ from src.utils.sender.isender import ISender
 
 
 class EmailSender(ISender):
-    def __init__(self):
+    def __init__(self, sender):
+        self.sender = sender
         region = os.environ.get('APX_AWS_SES_REGION', 'us-west-2')
         self.client = boto3.client('ses', region_name=region)
 
@@ -54,11 +55,10 @@ class EmailSender(ISender):
         self.send_email(to_email, subject, body_text, body_html, report_file)
 
     def send_email(self, to_email, subject, body_text, body_html, attachment_file):
-        sender = "Tyson Harmon <projectapraxia@gmail.com>"
         charset = "utf-8"
         msg = MIMEMultipart('mixed')
         msg['Subject'] = subject
-        msg['From'] = sender
+        msg['From'] = self.sender
         msg['To'] = to_email
         msg_body = MIMEMultipart('alternative')
         text_part = MIMEText(body_text.encode(charset), 'plain', charset)
@@ -71,7 +71,7 @@ class EmailSender(ISender):
         msg.attach(att)
         try:
             self.client.send_raw_email(
-                Source=sender,
+                Source=self.sender,
                 Destinations=[to_email],
                 RawMessage={'Data': msg.as_string()},
             )

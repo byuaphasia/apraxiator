@@ -8,23 +8,22 @@ from src.controllers.authentication.jwtauthenticator import JWTAuthenticator, To
 from .testutils.requestutils import DummyRequest
 
 
-
-import pathlib, os
+import pathlib
 _file_path = pathlib.Path(__file__).parent.absolute()
 
-example_file = os.path.join(_file_path, '../apx-resources/auth/test_example.json')
+auth_root = os.path.join(_file_path, '../apx-resources/auth')
 
 
-@pytest.mark.skipif(not os.path.isfile(example_file), reason='APX resources directory must be available')
+@pytest.mark.skipif(not os.path.isdir(auth_root), reason='APX resources directory must be available')
 class TestJWTAuthenticator(unittest.TestCase):
     def setUp(self):
-        example = json.load(open(example_file, 'r'))
+        example = json.load(open(os.path.join(auth_root, 'test_example.json'), 'r'))
         self.ex_jwt = example.get('token', '')
         self.ex_user = example.get('user', '')
 
     def test_getUser(self):
         r = DummyRequest().set_headers({'TOKEN': self.ex_jwt})
-        auth = JWTAuthenticator()
+        auth = JWTAuthenticator(os.path.join(auth_root, 'jwk.json'))
         with self.assertRaises(TokenExpiredException):
             auth.get_user(r)
 

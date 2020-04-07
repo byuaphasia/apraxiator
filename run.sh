@@ -4,4 +4,4 @@
 ./install.sh
 
 ## Run the flask server
-python3 app.py
+python3 main.py
