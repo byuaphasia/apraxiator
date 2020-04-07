@@ -11,7 +11,7 @@ from ...testutils.modelutils import make_attempt, make_evaluation
                     reason='Must not be running in "isolated" generate pdfs')
 class TestPDFGenerator(unittest.TestCase):
     def test_generate_report(self):
-        generator = PDFGenerator()
+        generator = PDFGenerator(os.path.join(os.path.dirname(__file__), '../../../src/utils/pdfgenerator/templates'))
         e = make_evaluation('generate report')
         a = make_attempt(e.id)
         result = generator.generate_report(e.to_report(), [a.to_report()], 'name')
