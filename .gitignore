@@ -116,6 +116,7 @@ sprint2/
 
 # Authentication
 jwk.json
+apx-resources
 
 # Temporary Storage
 tmp/
@@ -127,3 +128,11 @@ tmp_storage/recordings/*
 
 # Files saved via localstorage
 src/filestorage/files/*
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+*.zip
+.ebextensions
+logs

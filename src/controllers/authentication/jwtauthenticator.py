@@ -6,8 +6,11 @@ from flask import Request
 from .iauthenticator import IAuthenticator
 from .unauthenticatedexceptions import TokenExpiredException, InvalidTokenException, UnauthenticatedException, MissingTokenException
 
+import pathlib, os
+_file_path = pathlib.Path(__file__).parent.absolute()
+
 HEADER_KEY = 'TOKEN'
-AUTH_DIR = '../apx-resources/auth/'
+AUTH_DIR = os.path.join(_file_path, '../../../apx-resources/auth/')
 
 
 class JWTAuthenticator(IAuthenticator):

@@ -133,7 +133,4 @@ def invalidate_waiver(waiver_id):
 
 if __name__ == '__main__':
     env = os.environ.get('APX_ENV', 'local')
-    if env == 'local':
-        app.run(debug=True, host='0.0.0.0', port=8080, use_reloader=False)
-    else:
-        app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'), use_reloader=False)
+    app.run(debug=True, host='0.0.0.0', port=8080, use_reloader=False)

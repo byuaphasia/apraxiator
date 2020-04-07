@@ -8,7 +8,11 @@ from src.controllers.authentication.jwtauthenticator import JWTAuthenticator, To
 from .testutils.requestutils import DummyRequest
 
 
-example_file = os.path.abspath(__file__ + '/../../../apx-resources/auth/test_example.json')
+
+import pathlib, os
+_file_path = pathlib.Path(__file__).parent.absolute()
+
+example_file = os.path.join(_file_path, '../apx-resources/auth/test_example.json')
 
 
 @pytest.mark.skipif(not os.path.isfile(example_file), reason='APX resources directory must be available')
