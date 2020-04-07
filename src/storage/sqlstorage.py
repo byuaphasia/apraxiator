@@ -1,5 +1,5 @@
 import pymysql
-from pymysql.err import OperationalError
+from pymysql.err import OperationalError, IntegrityError
 import os
 import logging
 
@@ -10,7 +10,7 @@ from src.models.evaluation import Evaluation
 from src.models.waiver import Waiver
 from src.models.attempt import Attempt
 from src.storage.dbexceptions import ConnectionException, ResourceAccessException
-from src.storage.storageexceptions import PermissionDeniedException, ResourceNotFoundException
+from src.storage.storageexceptions import PermissionDeniedException, ResourceNotFoundException, IDAlreadyExists
 
 
 class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
@@ -18,10 +18,7 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         try:
             host = os.environ.get('APX_MYSQL_HOST', 'localhost')
             u = os.environ['APX_MYSQL_USER']
-            if host != 'localhost':
-                p = self.get_rds_password(host, u)
-            else:
-                p = os.environ['APX_MYSQL_PASSWORD']
+            p = os.environ['APX_MYSQL_PASSWORD']
             self.db = pymysql.connections.Connection(host=host, user=u, password=p, database=name)
             self.logger = logging.getLogger(__name__)
             self._create_tables()
@@ -45,6 +42,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         val = (e.id, e.age, e.gender, e.impression, e.owner_id)
         try:
             self._execute_insert_query(sql, val)
+        except IntegrityError as er:
+            self.logger.exception('[event=duplicate-key-encountered][evaluationId=%s]', e.id)
+            raise IDAlreadyExists(e.id, er)
         except Exception as ex:
             self.logger.exception('[event=add-evaluation-failure][evaluationId=%s]', e.id)
             raise ResourceAccessException(e.id, ex)
@@ -79,6 +79,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         val = (a.id, a.evaluation_id, a.word, a.wsd, a.duration, a.syllable_count)
         try:
             self._execute_insert_query(sql, val)
+        except IntegrityError as e:
+            self.logger.exception('[event=duplicate-key-encountered][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
+            raise IDAlreadyExists(a.id, e)
         except Exception as e:
             self.logger.exception('[event=add-attempt-failure][evaluationId=%s][attemptId=%s]', a.evaluation_id, a.id)
             raise ResourceAccessException(a.id, e)
@@ -135,16 +138,6 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         else:
             self.logger.info('[event=owner-verified][evaluationId=%s][userId=%s]', evaluation_id, owner_id)
 
-    def save_recording(self, attempt_id, recording):
-        sql = 'INSERT INTO recordings (attempt_id, recording) VALUE (%s, %s)'
-        val = (attempt_id, recording)
-        try:
-            self._execute_insert_query(sql, val)
-        except Exception as e:
-            self.logger.exception('[event=save-recording-failure][attemptId=%s]', attempt_id)
-            raise ResourceAccessException(attempt_id, e)
-        self.logger.info('[event=recording-saved][attemptId=%s]', attempt_id)
-
     ''' General MySQL Interaction Methods '''
 
     def _execute_insert_query(self, sql, val):
@@ -181,6 +174,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         val = (w.id, w.subject_name, w.subject_email, w.representative_name, w.relationship, w.date, w.signer, w.valid, w.filepath, w.owner_id)
         try:
             self._execute_insert_query(sql, val)
+        except IntegrityError as er:
+            self.logger.exception('[event=duplicate-key-encountered][waiverId=%s]', w.id)
+            raise IDAlreadyExists(w.id, er)
         except Exception as ex:
             self.logger.exception('[event=add-waiver-failure][subjectName=%s][subjectEmail=%s]', w.subject_name, w.subject_email)
             raise ResourceAccessException(None, ex)
@@ -285,17 +281,6 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
                                      "REFERENCES `evaluations` (`evaluation_id`)"
                                      ");"
                                      )
-        create_recordings_statement = ("CREATE TABLE IF NOT EXISTS `recordings` ("
-                                       "`recording_id` int AUTO_INCREMENT NOT NULL,"
-                                       "`attempt_id` varchar(48) NOT NULL,"
-                                       "`date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-                                       "`recording` mediumblob NOT NULL,"
-                                       "PRIMARY KEY (`recording_id`),"
-                                       "KEY `attempt_id_idx` (`attempt_id`),"
-                                       "CONSTRAINT `attempt_id` FOREIGN KEY (`attempt_id`)"
-                                       "REFERENCES `attempts` (`attempt_id`)"
-                                       ");"
-                                       )
         create_waivers_statement = ("CREATE TABLE IF NOT EXISTS `waivers` ("
                                     "`waiver_id` varchar(48) NOT NULL,"
                                     "`subject_name` varchar(255) NOT NULL,"
@@ -318,22 +303,8 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
         c = self.db.cursor()
         c.execute(create_evaluations_statement)
         c.execute(create_attempts_statement)
-        c.execute(create_recordings_statement)
         c.execute(create_waivers_statement)
         c.execute(create_admins_statement)
-
-    ''' RDS Setup '''
-
-    @staticmethod
-    def get_rds_password(host, user):
-        import boto3
-        access_key = os.environ['APX_AWS_ACCESS']
-        secret_key = os.environ['APX_AWS_SECRET']
-        region = os.environ.get('APX_AWS_RDS_REGION', 'us-west-2c')
-        client = boto3.client('rds', region_name=region,
-                              aws_access_key_id=access_key, aws_secret_access_key=secret_key)
-        token = client.generate_db_auth_token(DBHostname=host, Port=3306, DBUsername=user, Region=region)
-        return token
 
     @staticmethod
     def _make_info_log(event, sql, val):
