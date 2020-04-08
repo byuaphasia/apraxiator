@@ -37,7 +37,7 @@ class DataExportController(ControllerBase):
     def validate_date_format(date_str: str):
         try:
             date.fromisoformat(date_str)
-        except Exception as e:
+        except ValueError as e:
             raise InvalidRequestException('Incorrect date format, expected YYYY-MM-DD', e)
 
     @staticmethod

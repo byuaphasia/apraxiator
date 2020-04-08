@@ -172,3 +172,22 @@ Returns the waiver tied to the provided subject email (subjectEmail), subject na
 
 ### PUT /waiver/\<waiver_id>/invalidate
 Allows for changing the "valid" status of the waiver corresponding to the waiver_id. Returns empty json object.
+
+### POST /export
+Allows for admin users to export data. Expects a json body in this form:
+```json
+{
+  "startDate": "2014-12-25",
+  "endDate": "2015-1-1",
+  "includeRecordings": true
+}
+```
+Date parameters must be in the form YYYY-MM-DD. The `includeRecordings` value determines whether the endpoint returns a csv or zip file. It defaults to `true`.
+
+### GET /user
+Returns a json body with the user type based on the JWT-authenticated user ID. Possible values are `admin` and `user`. This is returned in a json body of this form:
+```json
+{
+  "userType": "admin"
+}
+```

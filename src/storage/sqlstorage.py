@@ -223,10 +223,9 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
 
     ''' Data Export Methods '''
     def export_data(self, start_date, end_date):
-        sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression, recordings.recording"
+        sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression"
                "FROM attempts "
                "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id "
-               "INNER JOIN recordings ON attempts.attempt_id = recordings.attempt_id "
                "WHERE attempts.date_created > %s and attempts.date_created < %s;"
                )
         val = (start_date, end_date)
