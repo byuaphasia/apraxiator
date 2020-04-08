@@ -1,13 +1,16 @@
+import logging
 from src.services.dataexport.idataexportstorage import IDataExportStorage
 from src.services.dataexport.idataexportfilestorage import IDataExportFileStorage
-from src.models.dataexport import DataExport
+from src.models.dataexport import DataExport, DataExportException
 from src.storage.storageexceptions import PermissionDeniedException
+from src.filestorage.exceptions import FileAccessException
 
 
 class DataExportService:
     def __init__(self, storage: IDataExportStorage, file_store: IDataExportFileStorage):
         self.storage = storage
         self.file_store = file_store
+        self.logger = logging.getLogger(__name__)
 
     def export(self, user, start_date, end_date, include_recordings=True, remove_recordings=False):
         self.confirm_export_access(user)
@@ -16,11 +19,18 @@ class DataExportService:
 
         attempt_id_list = []
         for row in data:
-            attempt_id = data_export.add_row(row)
-            if include_recordings:
-                attempt_id_list.append(attempt_id)
-                recording_file = self.file_store.get_recording(attempt_id)
-                data_export.add_recording(recording_file)
+            try:
+                attempt_id = data_export.add_row(row)
+                if include_recordings:
+                    try:
+                        recording_file = self.file_store.get_recording(attempt_id)
+                        attempt_id_list.append(attempt_id)
+                        data_export.add_recording(recording_file)
+                    except FileAccessException as e:
+                        self.logger.info('[event=export-recording-failure][attemptId=%s][error=%r]', attempt_id, e)
+            except DataExportException as e:
+                self.logger.warning('[event=data-export-validation-error][error=%r][row=%s]',
+                                    e, ':'.join([str(r) for r in row]))
         
         filename_base = f'{start_date}.{end_date}.'
         filename = filename_base + 'csv'

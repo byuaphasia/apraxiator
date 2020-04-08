@@ -2,7 +2,7 @@ import pandas as pd
 import zipfile
 import os
 
-from .modelexceptions import DataExportException
+from src.apraxiatorexception import ApraxiatorException
 
 
 class DataExport:
@@ -24,7 +24,6 @@ class DataExport:
 
     def add_row(self, row):
         self._validate_row(row)
-        row = row[:-1]
         self.data.append(row)
 
     def add_recording(self, recording_file: str):
@@ -60,12 +59,20 @@ class DataExport:
             raise DataExportException('Problem cleaning up export files', e)
 
     def _validate_row(self, row):
-        # TODO: adjust to remove recordings table
-        if len(row) != len(self.columns)+1:
-            message = f'Row has {len(row)} items, expected {len(self.columns)+1}'
+        if len(row) != len(self.columns):
+            message = f'Row has {len(row)} items, expected {len(self.columns)}'
             raise DataExportException(message)
         for i in range(len(self.columns)):
             name, expected_type = self.columns[i]
             if not isinstance(row[i], expected_type):
                 message = f'Row value for column {name} was of type {type(row[i])}, expected {expected_type}'
                 raise DataExportException(message)
+
+
+class DataExportException(ApraxiatorException):
+    def __init__(self, message, inner_error=None):
+        super().__init__(inner_error)
+        self.message = message
+
+    def get_message(self):
+        return f'Error on data export: {self.message}'

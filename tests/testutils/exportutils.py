@@ -10,8 +10,7 @@ def gen_export_data(num_rows=3):
             '2000-01-01',
             '50',
             'male',
-            'normal',
-            open('tests/testutils/example.wav', 'rb').read()
+            'normal'
         ]
         data.append(row)
     return data
