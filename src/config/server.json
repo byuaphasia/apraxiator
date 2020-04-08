@@ -1,0 +1,8 @@
+{
+  "name": "server",
+  "dbName": "apraxiator",
+  "s3Bucket": "appraxia",
+  "jwkFile": "apx-resources/auth/jwk.json",
+  "templatesDir": "src/utils/pdfgenerator/templates/",
+  "emailSender": "Tyson Harmon <projectapraxia@gmail.com>"
+}

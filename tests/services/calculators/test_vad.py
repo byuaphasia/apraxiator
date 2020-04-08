@@ -8,8 +8,11 @@ from datetime import datetime
 from ...context import src
 from src.services.evaluation.calculators.voiceactivitydetector import VoiceActivityDetector
 
-test_dir_root = '../apx-resources/recordings/'
-test_results_dir = '../apx-resources/test-results/'
+import pathlib, os
+_file_path = pathlib.Path(__file__).parent.absolute()
+
+test_dir_root = os.path.join(_file_path, '../../../apx-resources/recordings/')
+test_results_dir = os.path.join(_file_path, '../../../apx-resources/test-results/')
 
 
 @pytest.mark.skipif(not os.path.isdir(test_dir_root), reason='APX resources directory must be available')
