@@ -14,7 +14,7 @@ class EmailSender(ISender):
         self.sender = sender
         access_key = os.environ['APX_AWS_ACCESS']
         secret_key = os.environ['APX_AWS_SECRET']
-        region = os.environ.get('APX_AWS_S3_REGION', 'us-west-2')
+        region = os.environ.get('APX_AWS_SES_REGION', 'us-west-2')
         self.client = boto3.client('ses', aws_access_key_id=access_key, aws_secret_access_key=secret_key, region_name=region)
 
     def send_subject_waiver(self, waiver_file, to_email):
