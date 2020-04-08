@@ -1,6 +1,7 @@
 import pandas as pd
 import zipfile
 import os
+from datetime import datetime
 
 from src.apraxiatorexception import ApraxiatorException
 
@@ -14,7 +15,9 @@ class DataExport:
             ('attemptId', str),
             ('wsd', float),
             ('duration', float),
-            ('dateCreated', str),
+            ('active', bool),
+            ('syllableCount', int),
+            ('dateCreated', datetime),
             ('age', str),
             ('gender', str),
             ('impression', str)
@@ -25,6 +28,7 @@ class DataExport:
     def add_row(self, row):
         self._validate_row(row)
         self.data.append(row)
+        return row[self.columns.index(('attemptId', str))]
 
     def add_recording(self, recording_file: str):
         self.files.append(recording_file)
