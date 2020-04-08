@@ -6,16 +6,28 @@ This uses the following environment variables to manage its state and access cre
 
 | Variable Name      | Values                                   | Default    | Explanation     |
 |--------------------|------------------------------------------|------------|-----------------|
-| APX_ENV            | local, server                            | local      | Determines whether the server will run locally (no SSL context, no re-loader, and local file storage) or in a server environment (use SSL context, use re-loader, and S3 storage) |
-| APX_AWS_RDS_REGION | us-west-2c                               | us-west-2c | The region that the RDS service is hosted in                                                                                                                                         |
+| APX_ENV            | local, server, etc.                      | local      | Determines which config file to use (explained in the next section)                                                                                                                  |
 | APX_AWS_SES_REGION | us-west-2                                | us-west-2  | The region that the SES service is hosted in                                                                                                                                         |
 | APX_AWS_S3_REGION  | us-west-2                                | us-west-2  | The region that the S3 service is hosted in                                                                                                                                          |
 | APX_AWS_ACCESS     | ADVKALE7LAAEVNALEI34                     |            | The AWS Access Key generated for an IAM role                                                                                                                                         |
 | APX_AWS_SECRET     | HWErGUkkcq42fmlRtY9UveXmPTRnWmo65D/PLEGr |            | The AWS Secret Key generated for an IAM role                                                                                                                                         |
-| APX_MYSQL_HOST     | localhost, 12.345.678.90                 | localhost  | The host name of the MySQL service connection                                                                                                                                        |
-| APX_MYSQL_USER     | root                                     |            | The user name to connect to the MySWL service                                                                                                                                        |
+| APX_MYSQL_HOST     | localhost, mydb.asdf.us.rds.amazonaws.com| localhost  | The host name of the MySQL service connection                                                                                                                                        |
+| APX_MYSQL_USER     | root, server                             |            | The user name to connect to the MySWL service                                                                                                                                        |
 | APX_MYSQL_PASSWORD | Password1                                |            | The password to connect to the MySWL service                                                                                                                                         |
-| APX_TEST_MODE      | isolated, connected                      | isolated   |  Determines whether to run the unit tests in an isolated environment (no MySQL or S3 access) or connected environment (test MySQL and S3 connection)                                |
+| APX_TEST_MODE      | isolated, connected                      | isolated   | Determines whether to run the unit tests in an isolated environment (no MySQL or S3 access) or connected environment (test MySQL and S3 connection)                                  |
+
+## Configuration Files
+A json configuration file can be defined in the `src/config/` folder. By default, the `local.json` file will be used. The `APX_ENV` environment variable determines which config file will be loaded. For example, `APX_ENV` set to `local` will load the `local.json` config file, while setting `APX_ENV` to `custom` will load the `custom.json` config file that has been previously created. The `server.json` file is shown here as an example of the config file format.
+```json
+{
+  "name": "server",
+  "dbName": "apraxiator",
+  "s3Bucket": "appraxia",
+  "jwkFile": "../apx-resources/auth/jwk.json",
+  "templatesDir": "src/utils/pdfgenerator/templates/",
+  "emailSender": "Tyson Harmon <projectapraxia@gmail.com>"
+}
+```
 
 ## API Endpoints
 For each endpoint, a Cognito signed JWT token is expected to identify the user. This should be passed in the request headers under the "TOKEN" key.
@@ -173,3 +185,22 @@ Returns the waiver tied to the provided subject email (subjectEmail), subject na
 
 ### PUT /waiver/\<waiver_id>/invalidate
 Allows for changing the "valid" status of the waiver corresponding to the waiver_id. Returns empty json object.
+
+### POST /export
+Allows for admin users to export data. Expects a json body in this form:
+```json
+{
+  "startDate": "2014-12-25",
+  "endDate": "2015-1-1",
+  "includeRecordings": true
+}
+```
+Date parameters must be in the form YYYY-MM-DD. The `includeRecordings` value determines whether the endpoint returns a csv or zip file. It defaults to `true`.
+
+### GET /user
+Returns a json body with the user type based on the JWT-authenticated user ID. Possible values are `admin` and `user`. This is returned in a json body of this form:
+```json
+{
+  "userType": "admin"
+}
+```

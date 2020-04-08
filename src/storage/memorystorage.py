@@ -2,10 +2,11 @@ import logging
 
 from src.services.evaluation.ievaluationstorage import IEvaluationStorage
 from src.services.waiver.iwaiverstorage import IWaiverStorage
+from src.services.dataexport.idataexportstorage import IDataExportStorage
 from src.storage.storageexceptions import ResourceNotFoundException, PermissionDeniedException, StorageException
 
 
-class MemoryStorage(IEvaluationStorage, IWaiverStorage):
+class MemoryStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
     def __init__(self):
         self.evaluations = {}
         self.attempts = {}
@@ -128,3 +129,11 @@ class MemoryStorage(IEvaluationStorage, IWaiverStorage):
         else:
             self.logger.error('[event=check-owner-error][resourceId=%s][error=resource not found]', waiver_id)
             raise ResourceNotFoundException(id)
+
+    ''' Data Export Storage Methods '''
+
+    def export_data(self, start_date, end_date):
+        pass
+
+    def check_is_admin(self, user) -> bool:
+        return False

@@ -1,8 +1,4 @@
 from jinja2 import Environment, FileSystemLoader
-try:
-    from weasyprint import HTML
-except OSError:
-    print('Unable to import weasyprint')
 import uuid
 import os
 import warnings
@@ -11,8 +7,12 @@ from .ipdfgenerator import IPDFGenerator
 
 
 class PDFGenerator(IPDFGenerator):
-    def __init__(self):
-        self.tmp_dir = 'tmp'
+    def __init__(self, templates_dir):
+        self.templates_dir = templates_dir
+        import pathlib
+        import os
+        _file_path = pathlib.Path(__file__).parent.absolute()
+        self.tmp_dir = os.path.join(_file_path, 'tmp')
         self.waivers_dir = os.path.join(self.tmp_dir, 'waivers')
         self.signatures_dir = os.path.join(self.tmp_dir, 'signatures')
         self.reports_dir = os.path.join(self.tmp_dir, 'reports')
@@ -41,7 +41,7 @@ class PDFGenerator(IPDFGenerator):
         if representative_signature is not None:
             representative_signature_path = self._get_signature_file()
             representative_signature.save(representative_signature_path)
-        template_file_path = 'templates/hipaa_authorization_template.html'
+        template_file_path = 'hipaa_authorization_template.html'
         template_variables = {
             'research_subject_name': research_subject_name,
             'research_subject_email': research_subject_email,
@@ -65,7 +65,7 @@ class PDFGenerator(IPDFGenerator):
         for attempt in attempts:
             sum_wsd += attempt['wsd']
         avg_wsd = sum_wsd / len(attempts)
-        template_file_path = 'templates/report_template.html'
+        template_file_path = 'report_template.html'
         template_variables = {
             'name': name,
             'evaluation_id': evaluation['evaluationId'],
@@ -80,12 +80,11 @@ class PDFGenerator(IPDFGenerator):
         self._create_pdf('utf-8', template_file_path, template_variables, outfile)
         return outfile
 
-    @staticmethod
-    def _create_pdf(encoding, template_file_path, template_variables, outfile):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
+    def _create_pdf(self, encoding, template_file_path, template_variables, outfile):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            env = Environment(loader=FileSystemLoader(dir_path, encoding=encoding))
+            from weasyprint import HTML
+            env = Environment(loader=FileSystemLoader(self.templates_dir, encoding=encoding))
             template = env.get_template(template_file_path)
             html_out = template.render(template_variables)
             HTML(string=html_out, base_url='.').write_pdf(outfile)

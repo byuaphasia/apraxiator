@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+from werkzeug.exceptions import NotFound
 import logging
 import os
 
@@ -37,10 +38,13 @@ def handle_failure(error: Exception):
         logger.error('[event=returning-error][errorMessage=%s][errorCode=%s]', error.get_message(), error.get_code())
         return form_result(error.to_response(), error.get_code())
     elif isinstance(error, NotImplementedError):
-        logger.error('[event=returning-notimplementederror][error=%r]', error)
+        logger.error('[event=returning-not-implemented][error=%r]', error)
         return form_result({'errorMessage': 'Sorry, that request cannot be completed'}, 418)
+    elif isinstance(error, NotFound):
+        logger.error('[event=returning-not-found][error=%r]', error)
+        return error
     else:
-        logger.error('[event=returning-unknown-error][error=%s]', error)
+        logger.error('[event=returning-unknown-error][type=%s][error=%s]', type(error), error)
         return form_result({'errorMessage': 'An unknown error occurred.'}, 500)
 
 
@@ -133,7 +137,5 @@ def invalidate_waiver(waiver_id):
 
 if __name__ == '__main__':
     env = os.environ.get('APX_ENV', 'local')
-    if env == 'local':
-        app.run(debug=True, host='0.0.0.0', port=8080, use_reloader=False)
-    else:
-        app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'), use_reloader=False)
+    app.run(debug=True, host='0.0.0.0', port=8080, use_reloader=False)
+

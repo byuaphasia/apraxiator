@@ -26,6 +26,3 @@ class IEvaluationStorage:
 
     def get_attempts(self, evaluation_id: str):
         raise NotImplementedError()
-
-    def save_recording(self, attempt_id: str, recording):
-        raise NotImplementedError()

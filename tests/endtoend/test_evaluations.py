@@ -1,15 +1,18 @@
 import unittest
 import os
+import json
 
 from ..context import src
 from src import ApraxiatorException
 from ..testutils import DummyRequest
 from src.utils import IdPrefix
 from src.utils.factory import Factory
+from src.config.config import Configuration
 
 
 mode = os.environ.get('APX_TEST_MODE', 'isolated')
-factory = Factory.create_limited_factory(mode)
+config = Configuration(**json.load(open(f'tests/testutils/{mode}.json', 'r')))
+factory = Factory.process_config(config)
 controller = factory.ev_controller
 attempts = []
 
@@ -94,9 +97,8 @@ class TestEvaluations(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if mode == 'db':
+        if mode == 'connected':
             c = factory.storage.db.cursor()
-            c.execute('DROP TABLE recordings')
             c.execute('DROP TABLE waivers')
             c.execute('DROP TABLE attempts')
             c.execute('DROP TABLE evaluations')
