@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 import uuid
 import os
+import warnings
 
 from .ipdfgenerator import IPDFGenerator
 
@@ -80,11 +81,13 @@ class PDFGenerator(IPDFGenerator):
         return outfile
 
     def _create_pdf(self, encoding, template_file_path, template_variables, outfile):
-        from weasyprint import HTML
-        env = Environment(loader=FileSystemLoader(self.templates_dir, encoding=encoding))
-        template = env.get_template(template_file_path)
-        html_out = template.render(template_variables)
-        HTML(string=html_out, base_url='.').write_pdf(outfile)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            from weasyprint import HTML
+            env = Environment(loader=FileSystemLoader(self.templates_dir, encoding=encoding))
+            template = env.get_template(template_file_path)
+            html_out = template.render(template_variables)
+            HTML(string=html_out, base_url='.').write_pdf(outfile)
 
     def _get_waiver_outfile(self):
         file_name = uuid.uuid4().hex + '.pdf'

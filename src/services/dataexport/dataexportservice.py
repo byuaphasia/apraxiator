@@ -24,8 +24,8 @@ class DataExportService:
                 if include_recordings:
                     try:
                         recording_file = self.file_store.get_recording(attempt_id)
-                        attempt_id_list.append(attempt_id)
                         data_export.add_recording(recording_file)
+                        attempt_id_list.append(attempt_id)
                     except FileAccessException as e:
                         self.logger.info('[event=export-recording-failure][attemptId=%s][error=%r]', attempt_id, e)
             except DataExportException as e:

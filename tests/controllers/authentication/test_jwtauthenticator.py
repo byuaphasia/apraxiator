@@ -3,15 +3,15 @@ import pytest
 import json
 import os
 
-from .context import src
+from ...context import src
 from src.controllers.authentication.jwtauthenticator import JWTAuthenticator, TokenExpiredException
-from .testutils.requestutils import DummyRequest
+from ...testutils.requestutils import DummyRequest
 
 
 import pathlib
 _file_path = pathlib.Path(__file__).parent.absolute()
 
-auth_root = os.path.join(_file_path, '../apx-resources/auth')
+auth_root = os.path.join(_file_path, '../../../../apx-resources/auth')
 
 
 @pytest.mark.skipif(not os.path.isdir(auth_root), reason='APX resources directory must be available')
