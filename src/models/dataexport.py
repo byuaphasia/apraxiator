@@ -15,7 +15,8 @@ class DataExport:
             ('attemptId', str),
             ('wsd', float),
             ('duration', float),
-            ('active', bool),
+            # It should be treated as a bool, but active is stored as an int in the db
+            ('active', int),
             ('syllableCount', int),
             ('dateCreated', datetime),
             ('age', str),
@@ -68,8 +69,6 @@ class DataExport:
             raise DataExportException(message)
         for i in range(len(self.columns)):
             name, expected_type = self.columns[i]
-            if expected_type == bool:
-                row[i] = bool(row[i])
             if not isinstance(row[i], expected_type):
                 message = f'Row value for column {name} was of type {type(row[i])}, expected {expected_type}'
                 raise DataExportException(message)
