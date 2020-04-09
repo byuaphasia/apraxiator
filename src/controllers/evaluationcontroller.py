@@ -62,7 +62,7 @@ class EvaluationController(ControllerBase):
         if save:
             self.logger.info('[event=save-attempt-recording][user=%s][evaluationId=%s][attemptId=%s]',
                              user, evaluation_id, attempt_id)
-            self.service.save_attempt_recording(user, evaluation_id, attempt_id, self.get_request_file_raw(r))
+            self.service.save_attempt_recording(user, evaluation_id, attempt_id, audio, sr)
         return {
             'attemptId': attempt_id,
             'wsd': wsd

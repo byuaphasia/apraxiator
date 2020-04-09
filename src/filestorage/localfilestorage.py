@@ -1,5 +1,6 @@
 import os
 import shutil
+import soundfile as sf
 
 from src.services.waiver.iwaiverfilestorage import IWaiverFileStorage
 from src.services.evaluation.ievaluationfilestorage import IEvaluationFileStorage
@@ -24,8 +25,12 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFi
 
     ''' IEvaluationFileStorage methods '''
 
-    def save_recording(self, attempt_id: str, recording):
-        self.save_file(attempt_id, 'recordings', recording)
+    def save_recording(self, attempt_id: str, audio, sr: int):
+        try:
+            filename = os.path.join(self.dirs['recordings'], attempt_id)
+            sf.write(filename, audio, sr, format='WAV')
+        except Exception as e:
+            raise FileAccessException(attempt_id, e)
 
     ''' IDataExportFileStorage methods '''
 
@@ -41,11 +46,14 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFi
     ''' IWaiverFileStorage methods '''
 
     def save_waiver(self, waiver_id: str, waiver_file: str):
-        try:
-            contents = open(waiver_file, 'rb')
-        except FileNotFoundError as e:
-            raise FileAccessException(f'{waiver_file} for waiver {waiver_id}', e)
-        self.save_file(waiver_id, 'waivers', contents)
+        filename = os.path.join(self.dirs['waivers'], waiver_id)
+        if os.path.isfile(waiver_file):
+            try:
+                shutil.copy(waiver_file, filename)
+            except Exception as e:
+                raise FileAccessException(waiver_file, e)
+        else:
+            raise FileNotFoundException(waiver_file)
 
     def get_waiver(self, waiver_id: str) -> str:
         tmp_file = f'{self.tmp_dir}/{waiver_id}.pdf'
@@ -57,13 +65,6 @@ class LocalFileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFi
     def remove_file(self, file_id: str, dir_key: str):
         try:
             os.remove(self.dirs[dir_key] + f'/{file_id}')
-        except IOError as e:
-            raise FileAccessException(file_id, e)
-
-    def save_file(self, file_id: str, dir_key: str, contents):
-        try:
-            with open(self.dirs[dir_key] + f'/{file_id}', 'wb') as f:
-                f.write(contents.read())
         except IOError as e:
             raise FileAccessException(file_id, e)
 

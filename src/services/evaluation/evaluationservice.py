@@ -53,9 +53,9 @@ class EvaluationService(IdGenerator):
         attempts = self.storage.get_attempts(evaluation_id)
         return attempts
 
-    def save_attempt_recording(self, user: str, evaluation_id: str, attempt_id: str, recording):
+    def save_attempt_recording(self, user: str, evaluation_id: str, attempt_id: str, audio, sr: int):
         self.storage.check_is_owner(user, evaluation_id)
-        self.file_store.save_recording(attempt_id, recording)
+        self.file_store.save_recording(attempt_id, audio, sr)
 
     def send_evaluation_report(self, user: str, evaluation_id: str, email: str, name: str):
         self.storage.check_is_owner(user, evaluation_id)
