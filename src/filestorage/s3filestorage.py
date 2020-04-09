@@ -42,9 +42,8 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
         self.upload_file(attempt_id, self.recordings_dir, tmp_file)
         try:
             os.remove(tmp_file)
-        except Exception as e:
+        except FileNotFoundError:
             self.logger.exception('[event=clean-tmp-file-failure][attemptId=%s][filename=%s]', attempt_id, tmp_file)
-            raise FileAccessException(attempt_id, e)
 
     ''' IDataExportFileStorage methods '''
 
@@ -72,12 +71,14 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
         try:
             self.s3.upload_file(filename, self.bucket, subdir + file_id)
         except ClientError as e:
+            self.logger.exception('[event=file-upload-failure][remoteFile=%s][localFile=%s]', file_id, filename)
             raise FileAccessException(file_id, e)
 
     def download_file(self, file_id: str, subdir: str, download_path: str):
         try:
             self.s3.download_file(self.bucket, subdir + file_id, download_path)
         except ClientError as e:
+            self.logger.exception('[event=file-download-failure][remoteFile=%s][localFile=%s]', file_id, download_path)
             if e.response.get('Error', {}).get('Message') == 'Not Found':
                 raise FileNotFoundException(file_id, e)
             else:
