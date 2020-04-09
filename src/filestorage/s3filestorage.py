@@ -19,8 +19,10 @@ class S3FileStorage(IEvaluationFileStorage, IDataExportFileStorage, IWaiverFileS
             self.bucket = bucket
             import pathlib
             _file_path = pathlib.Path(__file__).parent.absolute()
-            self.recordings_dir = os.path.join(_file_path, 'recordings/')
-            self.waivers_dir = os.path.join(_file_path, 'waivers/')
+            # Bucket subdirectories in S3
+            self.recordings_dir = 'recordings/'
+            self.waivers_dir = 'waivers/'
+            # Local temporary directory
             self.tmp_dir = os.path.join(_file_path, '../../tmp')
             if not os.path.isdir(self.tmp_dir):
                 os.mkdir(self.tmp_dir)
