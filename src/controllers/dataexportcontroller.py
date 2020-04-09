@@ -21,8 +21,8 @@ class DataExportController(ControllerBase):
         self.validate_date_format(start_date)
         self.validate_date_format(end_date)
         self.validate_include_recordings(include_recordings)
-        contents = self.service.export(user, start_date, end_date, include_recordings)
-        return contents
+        contents, filename = self.service.export(user, start_date, end_date, include_recordings)
+        return contents, filename
 
     @authenticate_request
     def handle_user(self, r: Request, user: str):

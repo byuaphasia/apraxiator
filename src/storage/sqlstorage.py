@@ -236,7 +236,7 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
             self.logger.info('[event=super-query-complete][startDate=%s][endDate=%s][resultCount=%s]', start_date, end_date, len(results))
             return results
         except Exception as e:
-            self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
+            self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]', start_date, end_date)
             raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
 
     def check_is_admin(self, user) -> bool:

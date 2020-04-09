@@ -43,7 +43,7 @@ class DataExportService:
         data_export.clean()
         if remove_recordings:
             self.file_store.remove_recordings(attempt_id_list)
-        return contents
+        return contents, filename
 
     def user_type(self, user):
         if self.storage.check_is_admin(user):
