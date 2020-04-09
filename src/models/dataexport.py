@@ -27,7 +27,7 @@ class DataExport:
         self.zipname = ''
 
     def add_row(self, row):
-        row = self._validate_row(row)
+        self._validate_row(row)
         self.data.append(row)
         return row[self.columns.index(('attemptId', str))]
 
@@ -72,7 +72,6 @@ class DataExport:
             if not isinstance(row[i], expected_type):
                 message = f'Row value for column {name} was of type {type(row[i])}, expected {expected_type}'
                 raise DataExportException(message)
-        return row
 
 
 class DataExportException(ApraxiatorException):
