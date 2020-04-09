@@ -189,10 +189,3 @@ class EvaluationController(ControllerBase):
         if f is None:
             raise InvalidRequestException("Must provide file named 'recording'")
         return read_wav(f)
-
-    @staticmethod
-    def get_request_file_raw(r: Request):
-        f = r.files.get('recording')
-        if f is None:
-            raise InvalidRequestException("Must provide file named 'recording'")
-        return f
