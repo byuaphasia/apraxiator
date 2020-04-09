@@ -9,9 +9,9 @@ from ..testutils import DummyRequest, DummyAuth
 class DummyDataExportService:
     def export(self, user, start_date, end_date, include_recordings):
         if user == 'admin':
-            return True
+            return True, True
         else:
-            return False
+            return False, False
 
 
 auth = DummyAuth()
@@ -75,6 +75,6 @@ class TestDataExportController(unittest.TestCase):
             'endDate': good_date
         }
         req = DummyRequest().set_body(body)
-        self.assertTrue(controller.handle_export(req))
+        self.assertTrue(controller.handle_export(req)[0])
         auth.set_user('not admin')
-        self.assertFalse(controller.handle_export(req))
+        self.assertFalse(controller.handle_export(req)[0])
