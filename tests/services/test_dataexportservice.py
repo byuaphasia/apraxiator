@@ -45,15 +45,15 @@ s = DataExportService(DummyDataExportStorage(), DummyFileStore())
 
 class TestDataExportService(unittest.TestCase):
     def test_make_zip(self):
-        contents = s.export(admin, '', '')
+        contents, _ = s.export(admin, '', '')
         with open(filename, 'wb') as f:
-            f.write(contents)
+            f.write(contents.read())
         self.assertTrue(zipfile.is_zipfile(filename))
 
     def test_make_csv(self):
-        contents = s.export(admin, '', '', False)
+        contents, _ = s.export(admin, '', '', False)
         with open(filename, 'wb') as f:
-            f.write(contents)
+            f.write(contents.read())
         self.assertFalse(zipfile.is_zipfile(filename))
         df = pd.read_csv(filename)
         self.assertEqual(num_rows, len(df))

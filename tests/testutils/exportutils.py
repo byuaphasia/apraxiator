@@ -10,7 +10,7 @@ def gen_export_data(num_rows=3):
             f'AT-{i}',
             3.14,
             3.14,
-            True,
+            0,
             3,
             datetime.now(),
             '50',
