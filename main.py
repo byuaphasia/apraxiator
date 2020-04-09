@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from werkzeug.exceptions import NotFound
 import logging
 import os
@@ -10,6 +11,7 @@ from src.utils.log import setup_logger
 setup_logger()
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+CORS(app)
 
 factory = Factory.create_factory()
 export_controller = factory.de_controller
