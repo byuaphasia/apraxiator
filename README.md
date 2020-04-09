@@ -191,7 +191,7 @@ Allows for admin users to export data. Expects a json body in this form:
 ```json
 {
   "startDate": "2014-12-25",
-  "endDate": "2015-1-1",
+  "endDate": "2015-01-01",
   "includeRecordings": true
 }
 ```
