@@ -15,7 +15,8 @@ class DataExport:
             ('attemptId', str),
             ('wsd', float),
             ('duration', float),
-            ('active', bool),
+            # It should be treated as a bool, but active is stored as an int in the db
+            ('active', int),
             ('syllableCount', int),
             ('dateCreated', datetime),
             ('age', str),

@@ -3,7 +3,7 @@ from src.services.dataexport.idataexportstorage import IDataExportStorage
 from src.services.dataexport.idataexportfilestorage import IDataExportFileStorage
 from src.models.dataexport import DataExport, DataExportException
 from src.storage.storageexceptions import PermissionDeniedException
-from src.filestorage.exceptions import FileAccessException
+from src.filestorage.exceptions import FileAccessException, FileNotFoundException
 
 
 class DataExportService:
@@ -26,7 +26,7 @@ class DataExportService:
                         recording_file = self.file_store.get_recording(attempt_id)
                         data_export.add_recording(recording_file)
                         attempt_id_list.append(attempt_id)
-                    except FileAccessException as e:
+                    except (FileAccessException, FileNotFoundException) as e:
                         self.logger.info('[event=export-recording-failure][attemptId=%s][error=%r]', attempt_id, e)
             except DataExportException as e:
                 self.logger.warning('[event=data-export-validation-error][error=%r][row=%s]',
@@ -39,11 +39,11 @@ class DataExportService:
             filename = filename_base + 'zip'
             data_export.to_zip(filename)
         
-        contents = open(filename, 'rb').read()
+        contents = open(filename, 'rb')
         data_export.clean()
         if remove_recordings:
             self.file_store.remove_recordings(attempt_id_list)
-        return contents
+        return contents, filename
 
     def user_type(self, user):
         if self.storage.check_is_admin(user):

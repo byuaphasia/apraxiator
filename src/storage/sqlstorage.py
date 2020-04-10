@@ -223,11 +223,10 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
 
     ''' Data Export Methods '''
     def export_data(self, start_date, end_date):
-        sql = ("SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression"
-               "FROM attempts "
-               "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id "
+        sql = "SELECT attempts.*, evaluations.age, evaluations.gender, evaluations.impression " + \
+               "FROM attempts " + \
+               "INNER JOIN evaluations ON attempts.evaluation_id = evaluations.evaluation_id " + \
                "WHERE attempts.date_created > %s and attempts.date_created < %s;"
-               )
         val = (start_date, end_date)
         self.logger.info(self._make_info_log('super-query', 'large sql query', val))
         try:
@@ -237,7 +236,7 @@ class SQLStorage(IEvaluationStorage, IWaiverStorage, IDataExportStorage):
             self.logger.info('[event=super-query-complete][startDate=%s][endDate=%s][resultCount=%s]', start_date, end_date, len(results))
             return results
         except Exception as e:
-            self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]')
+            self.logger.exception('[event=super-query-failure][startDate=%s][endDate=%s]', start_date, end_date)
             raise ResourceAccessException(f'super query between {start_date} and {end_date}', e)
 
     def check_is_admin(self, user) -> bool:

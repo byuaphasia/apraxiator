@@ -115,8 +115,8 @@ def save_subject_waiver():
 
 @app.route('/export', methods=['POST'])
 def export():
-    export_file = export_controller.handle_export(request)
-    return send_file(export_file)
+    export_file, filename = export_controller.handle_export(request)
+    return send_file(export_file, attachment_filename=filename)
 
 
 @app.route('/user', methods=['GET'])
