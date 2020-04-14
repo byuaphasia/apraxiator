@@ -31,7 +31,7 @@ class EvaluationController(ControllerBase):
         self.logger.info('[event=list-evaluations][user=%s]', user)
         evaluations = self.service.list_evaluations(user)
         return {
-            'evaluations': [e.to_list_response() for e in evaluations]
+            'evaluations': sorted([e.to_list_response() for e in evaluations], key=lambda x: x['dateCreated'])
         }
 
     @authenticate_request

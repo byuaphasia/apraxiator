@@ -11,3 +11,11 @@ class TimeConversion:
         if date is None:
             date = datetime.now()
         return date.strftime('%B %d, %Y')
+
+    @staticmethod
+    def to_response(date):
+        if isinstance(date, str):
+            return date
+        if date is None:
+            date = datetime.now()
+        return date.isoformat()
