@@ -1,3 +1,6 @@
+from src.utils import TimeConversion
+
+
 class Attempt:
     def __init__(self, id, evaluation_id, word, wsd, duration, syllable_count, date_created=None, active=True):
         self.id = id
@@ -17,7 +20,7 @@ class Attempt:
             'wsd': self.wsd,
             'duration': self.duration,
             'active': self.active,
-            'dateCreated': self.date_created,
+            'dateCreated': TimeConversion.to_response(self.date_created),
             'syllableCount': self.syllable_count
         }
         return r

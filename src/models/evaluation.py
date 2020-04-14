@@ -1,4 +1,4 @@
-from ..utils import TimeConversion
+from src.utils import TimeConversion
 
 
 class Evaluation:
@@ -17,7 +17,7 @@ class Evaluation:
             'age': self.age,
             'gender': self.gender,
             'impression': self.impression,
-            'dateCreated': self.date_created
+            'dateCreated': TimeConversion.to_response(self.date_created)
         }
 
     def to_report(self):
