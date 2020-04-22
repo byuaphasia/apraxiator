@@ -1,78 +1,125 @@
 import unittest
-import soundfile as sf
-import io
+
+import pytest
 import numpy as np
 import os
+import uuid
 
-from .context import SQLStorage, PermissionDeniedException
+from .context import src
+from src.models.attempt import Attempt
+from src.models.evaluation import Evaluation
+from src.models.waiver import Waiver
+from src.storage.sqlstorage import SQLStorage
+from src.storage.dbexceptions import ConnectionException
+from src.storage.storageexceptions import ResourceNotFoundException, IDAlreadyExists
 
 try:
-    storage = SQLStorage()
-except Exception:
+    storage = SQLStorage(name='test')
+except ConnectionException:
     storage = None
 owner_id = 'OWNER'
 bad_owner_id = 'NOT THE OWNER'
 sample_data = np.zeros(8000)
 
+
+@pytest.mark.skipif(os.environ.get('APX_TEST_MODE', 'isolated') == 'isolated',
+                    reason='Must not be running in "isolated" mode to access DB')
 class TestSQLStorage(unittest.TestCase):
     def test_create_evaluation(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        self.assertEqual('EV-', evaluation_id[0:3])
+        storage.create_evaluation(make_evaluation('create'))
 
-    def test_fetch_evaluation(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        thresh = storage.fetch_evaluation(evaluation_id, owner_id)
-        self.assertEqual(0, thresh)
+        storage.create_evaluation(make_evaluation('duplicate'))
+        with self.assertRaises(IDAlreadyExists):
+            storage.create_evaluation(make_evaluation('duplicate'))
 
-        with self.assertRaises(PermissionDeniedException):
-            storage.fetch_evaluation(evaluation_id, bad_owner_id)
+    def test_get_evaluation(self):
+        storage.create_evaluation(make_evaluation('get'))
+        storage.update_evaluation('get', 'ambiance_threshold', 0)
+        result = storage.get_evaluation('get')
+        self.assertEqual(0, result.ambiance_threshold)
+
+        with self.assertRaises(ResourceNotFoundException):
+            storage.get_evaluation('bad')
+
+    def test_list_evaluations(self):
+        ids = []
+        count = 5
+        for i in range(count):
+            storage.create_evaluation(make_evaluation(f'list{i}', 'list owner'))
+            ids.append(f'list{i}')
+        evaluations = storage.list_evaluations('list owner')
+        self.assertEqual(count, len(evaluations))
+
+        for e in evaluations:
+            self.assertIn(e.id, ids)
+            self.assertEqual('list owner', e.owner_id)
+
+        empty_evaluations = storage.list_evaluations('owner of nothing')
+        self.assertEqual(0, len(empty_evaluations))
 
     def test_create_attempt(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        self.assertEqual('AT-', attempt_id[0:3])
+        storage.create_evaluation(make_evaluation('att'))
+        storage.create_attempt(make_attempt('att', 'att'))
 
-        with self.assertRaises(PermissionDeniedException):
-            storage.create_attempt(evaluation_id, 'word', 4, 12, bad_owner_id)
+        dup_id = 'dup att'
+        storage.create_evaluation(make_evaluation(dup_id))
+        storage.create_attempt(make_attempt(dup_id, dup_id))
+        with self.assertRaises(IDAlreadyExists):
+            storage.create_attempt(make_attempt(dup_id, dup_id))
+
+    def test_update_attempt(self):
+        storage.create_evaluation(make_evaluation('update'))
+        storage.create_attempt(make_attempt('update', 'update'))
+        storage.update_attempt('update', 'active', False)
+        attempts = storage.get_attempts('update')
+        self.assertEqual('update', attempts[0].id)
+        self.assertEqual(False, attempts[0].active)
 
     def test_fetch_attempts(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        attempts = storage.fetch_attempts(evaluation_id, owner_id)
-        self.assertEqual(1, len(attempts))
-        self.assertEqual(attempt_id, attempts[0].id)
-        self.assertEqual(evaluation_id, attempts[0].evaluation_id)
-
-        with self.assertRaises(PermissionDeniedException):
-            storage.fetch_attempts(evaluation_id, bad_owner_id)
-
-    def test_save_recording(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
-
-        with self.assertRaises(PermissionDeniedException):
-            storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, bad_owner_id)
-
-
-    def test_get_recording(self):
-        evaluation_id = storage.create_evaluation(0, owner_id)
-        attempt_id = storage.create_attempt(evaluation_id, 'word', 4, 12, owner_id)
-        storage.save_recording(create_mock_recording(), evaluation_id, attempt_id, owner_id)
-        recording = storage.get_recording(evaluation_id, attempt_id, owner_id)
-
-        data, sr = sf.read(io.BytesIO(recording))
-        self.assertEqual(8000, sr)
-        self.assertTrue(np.array_equal(sample_data, data))
+        storage.create_evaluation(make_evaluation('get atts'))
+        ids = []
+        count = 5
+        for i in range(count):
+            storage.create_attempt(make_attempt(f'att{i}', 'get atts'))
+            ids.append(f'att{i}')
+        attempts = storage.get_attempts('get atts')
+        self.assertEqual(count, len(attempts))
+        for a in attempts:
+            self.assertIn(a.id, ids)
+            self.assertEqual('get atts', a.evaluation_id)
+            self.assertEqual(True, a.active)
 
     def test_add_waiver(self):
-        pass
+        name = str(uuid.uuid4())
+        waiver = Waiver('add waiver', owner_id=owner_id, valid=True, signer='signer',
+                        subject_email='email', subject_name=name, date='date', filepath='filepath')
+        storage.add_waiver(waiver)
+        result = storage.get_valid_waiver(owner_id, name, 'email')
+        self.assertDictEqual(waiver.__dict__, result.__dict__)
+
+        with self.assertRaises(IDAlreadyExists):
+            storage.add_waiver(waiver)
+
+    def test_invalidate_waiver(self):
+        name = str(uuid.uuid4())
+        waiver = Waiver('invalidate waiver', owner_id=owner_id, valid=True, signer='signer',
+                        subject_email='email', subject_name=name, date='date', filepath='filepath')
+        storage.add_waiver(waiver)
+        storage.update_waiver(waiver.id, 'valid', False)
+        result = storage.get_valid_waiver(owner_id, name, 'email')
+        self.assertIsNone(result)
 
     @classmethod
     def tearDownClass(cls):
-        os.remove('test_wav.wav')
+        c = storage.db.cursor()
+        c.execute('DROP TABLE waivers')
+        c.execute('DROP TABLE attempts')
+        c.execute('DROP TABLE evaluations')
 
-def create_mock_recording():
-    sound = sf.SoundFile('test_wav.wav', mode='w', samplerate=8000, channels=1, format='WAV')
-    sound.write(sample_data)
-    return open('test_wav.wav', 'rb').read()
+
+def make_evaluation(id, owner='owner'):
+    return Evaluation(id, '60', 'male', 'normal', owner)
+
+
+def make_attempt(id, evaluation_id):
+    return Attempt(id, evaluation_id, 'word', 0.0, 0.0, 0)

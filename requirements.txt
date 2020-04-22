@@ -1,0 +1,28 @@
+# Server framework
+flask
+flask-cors
+
+# Sound processing
+numpy
+pysoundfile
+librosa
+webrtcvad
+
+# Authentication
+jwcrypto
+pyjwt
+
+# Data storage
+PyMySQL
+pandas
+
+# PDF Generation
+jinja2
+weasyprint
+
+# AWS Interaction
+botocore
+boto3
+
+# Tests
+pytest
